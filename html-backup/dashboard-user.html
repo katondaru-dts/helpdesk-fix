@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Dashboard — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script>
+        const u = initPage('dashboard-user', 'Dashboard');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            const myTickets = getTickets().filter(t => t.reporter_id === u.id);
+            const total = myTickets.length;
+            const open = myTickets.filter(t => getTicketCurrentStatus(t.id) === 'OPEN').length;
+            const inProg = myTickets.filter(t => getTicketCurrentStatus(t.id) === 'IN_PROGRESS').length;
+            const closed = myTickets.filter(t => ['RESOLVED', 'CLOSED'].includes(getTicketCurrentStatus(t.id))).length;
+
+            // Recent tickets (last 5)
+            const recent = [...myTickets].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+
+            const recentRows = recent.length ? recent.map(t => {
+                const cat = getCatById(t.cat_id);
+                const st = getTicketCurrentStatus(t.id);
+                return `<tr onclick="window.location='ticket-detail.html?id=${t.id}'" style="cursor:pointer">
+      <td><span class="fw-600">${t.id}</span></td>
+      <td><div class="truncate" style="max-width:220px">${t.title}</div></td>
+      <td>${cat ? cat.name : '-'}</td>
+      <td>${priorityBadge(t.priority)}</td>
+      <td>${statusBadge(st)}</td>
+      <td class="text-muted text-sm">${fmtDate(t.created_at)}</td>
+    </tr>`;
+            }).join('') : `<tr><td colspan="6">${emptyState('bi-ticket', 'Belum ada tiket', 'Buat tiket pertama Anda!')}</td></tr>`;
+
+            mc.innerHTML = `
+  <div class="page-header">
+    <div>
+      <div class="page-header-title">👋 Halo, ${u.name.split(' ')[0]}!</div>
+      <div class="page-header-sub">Selamat datang di HelpDesk IT — pantau dan kelola laporan gangguan Anda.</div>
+    </div>
+    <a href="ticket-create.html" class="btn btn-primary btn-lg"><i class="bi bi-plus-circle"></i> Buat Tiket Baru</a>
+  </div>
+
+  <div class="grid g4 mb-4">
+    <div class="stat-card">
+      <div class="stat-icon si-blue"><i class="bi bi-ticket-detailed"></i></div>
+      <div><div class="stat-val">${total}</div><div class="stat-lbl">Total Tiket</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-red"><i class="bi bi-circle"></i></div>
+      <div><div class="stat-val">${open}</div><div class="stat-lbl">Open</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-orange"><i class="bi bi-arrow-repeat"></i></div>
+      <div><div class="stat-val">${inProg}</div><div class="stat-lbl">In Progress</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-green"><i class="bi bi-check-circle"></i></div>
+      <div><div class="stat-val">${closed}</div><div class="stat-lbl">Selesai</div></div>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <!-- Recent Tickets -->
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-header">
+        <i class="bi bi-clock-history" style="color:var(--primary)"></i>
+        <span class="card-title">Tiket Terbaru</span>
+        <a href="ticket-list.html" class="btn btn-outline btn-sm">Lihat Semua</a>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>ID</th><th>Judul</th><th>Kategori</th><th>Prioritas</th><th>Status</th><th>Tanggal</th></tr></thead>
+          <tbody>${recentRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-info-circle" style="color:var(--primary)"></i><span class="card-title">Cara Pakai</span></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          ${[
+                    ['1', 'bi-plus-circle', 'Buat Tiket', 'Laporkan gangguan dengan klik "Buat Tiket Baru" dan isi form detail.'],
+                    ['2', 'bi-search', 'Pantau Status', 'Cek status tiket Anda di menu "Tiket Saya".'],
+                    ['3', 'bi-chat-dots', 'Tambah Komentar', 'Klik tiket untuk melihat detail dan berinteraksi dengan IT Support.'],
+                    ['4', 'bi-star', 'Beri Rating', 'Setelah tiket diselesaikan, berikan rating kepuasan layanan.'],
+                ].map(([n, ic, t, d]) => `
+          <div class="d-flex ai-center gap-3">
+            <div style="width:32px;height:32px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="bi ${ic}" style="color:var(--primary);font-size:14px"></i>
+            </div>
+            <div><div class="fw-600 text-sm">${t}</div><div class="text-xs text-muted">${d}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA Info -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-clock" style="color:var(--primary)"></i><span class="card-title">Target Penyelesaian (SLA)</span></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${getCats().map(c => `
+          <div class="d-flex ai-center jc-between">
+            <span class="text-sm fw-600">${c.name}</span>
+            <span style="font-size:11px;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:10px">${c.sla_hours} jam</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+        }
+    </script>
+</body>
+
+</html>

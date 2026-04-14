@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Laporan — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script src="js/reports.js"></script>
+    <script>
+        const u = initPage('report', 'Laporan & Analitik', 'admin');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            let dateFrom = '', dateTo = '', chartInstances = {};
+
+            mc.innerHTML = `
+  <div class="page-header">
+    <div><div class="page-header-title">Laporan & Analitik</div>
+    <div class="page-header-sub">Ringkasan performa helpdesk dan distribusi tiket</div></div>
+    <div class="d-flex gap-2 no-print">
+      <button class="btn btn-outline" onclick="doPrint()"><i class="bi bi-printer"></i> Print</button>
+      <button class="btn btn-outline" onclick="doExcelExport()"><i class="bi bi-file-earmark-spreadsheet"></i> Excel</button>
+      <button class="btn btn-primary" onclick="doPdfExport()"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card mb-4 no-print">
+    <div class="card-body" style="padding:14px 20px">
+      <div class="d-flex ai-center gap-3 flex-wrap">
+        <div class="d-flex ai-center gap-2">
+          <label class="form-label mb-0">Dari:</label>
+          <input type="date" id="f-from" class="form-control" style="width:160px">
+        </div>
+        <div class="d-flex ai-center gap-2">
+          <label class="form-label mb-0">Sampai:</label>
+          <input type="date" id="f-to" class="form-control" style="width:160px">
+        </div>
+        <button class="btn btn-primary" onclick="applyFilter()"><i class="bi bi-funnel"></i> Terapkan</button>
+        <button class="btn btn-outline" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid g4 mb-4" id="stat-grid"></div>
+
+  <!-- Charts Row 1 -->
+  <div class="grid g2 mb-4">
+    <div class="card"><div class="card-header"><i class="bi bi-pie-chart-fill" style="color:var(--primary)"></i><span class="card-title">Distribusi Status</span></div>
+    <div class="card-body"><div class="chart-wrap" style="height:280px"><canvas id="c-status"></canvas></div></div></div>
+
+    <div class="card"><div class="card-header"><i class="bi bi-graph-up" style="color:var(--primary)"></i><span class="card-title">Tren Tiket Bulanan</span></div>
+    <div class="card-body"><div class="chart-wrap" style="height:280px"><canvas id="c-trend"></canvas></div></div></div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid g2 mb-4">
+    <div class="card"><div class="card-header"><i class="bi bi-bar-chart-fill" style="color:var(--secondary)"></i><span class="card-title">Tiket per Kategori</span></div>
+    <div class="card-body"><div class="chart-wrap" style="height:260px"><canvas id="c-cat"></canvas></div></div></div>
+
+    <div class="card"><div class="card-header"><i class="bi bi-exclamation-triangle-fill" style="color:#D97706"></i><span class="card-title">Tiket per Prioritas</span></div>
+    <div class="card-body"><div class="chart-wrap" style="height:260px"><canvas id="c-priority"></canvas></div></div></div>
+  </div>
+
+  <!-- Support Performance Table -->
+  <div class="card mb-4">
+    <div class="card-header"><i class="bi bi-trophy-fill" style="color:#D97706"></i><span class="card-title">Kinerja IT Support</span></div>
+    <div class="table-wrap"><table class="table" id="tbl-support">
+      <thead><tr><th>Nama Support</th><th>Total Ditangani</th><th>Selesai</th><th>Rate Penyelesaian</th><th>Progress</th></tr></thead>
+      <tbody id="tbl-support-body"></tbody>
+    </table></div>
+  </div>
+
+  <!-- By Department -->
+  <div class="card">
+    <div class="card-header"><i class="bi bi-building" style="color:var(--primary)"></i><span class="card-title">Tiket per Departemen</span></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Departemen</th><th>Jumlah Tiket</th><th>Persentase</th><th>Proporsi</th></tr></thead>
+      <tbody id="tbl-dept-body"></tbody>
+    </table></div>
+  </div>`;
+
+            function renderReport() {
+                const d = getReportData(dateFrom || null, dateTo || null);
+
+                // Stats
+                document.getElementById('stat-grid').innerHTML = [
+                    { v: d.total, l: 'Total Tiket', ic: 'bi-ticket-detailed', s: 'si-blue' },
+                    { v: d.open, l: 'Open', ic: 'bi-circle', s: 'si-red' },
+                    { v: d.inProgress, l: 'In Progress', ic: 'bi-arrow-repeat', s: 'si-orange' },
+                    { v: d.resolved + d.closed, l: 'Selesai', ic: 'bi-check-circle', s: 'si-green' },
+                    { v: d.pending, l: 'Pending', ic: 'bi-pause-circle', s: 'si-purple' },
+                    { v: d.avgRating, l: 'Avg Rating', ic: 'bi-star-fill', s: 'si-cyan' },
+                    { v: getTRatings().length, l: 'Total Rating', ic: 'bi-hand-thumbs-up', s: 'si-orange' },
+                    { v: getUsers().filter(u => u.is_active).length, l: 'User Aktif', ic: 'bi-people', s: 'si-blue' },
+                ].map(x => `<div class="stat-card"><div class="stat-icon ${x.s}"><i class="bi ${x.ic}"></i></div>
+      <div><div class="stat-val">${x.v}</div><div class="stat-lbl">${x.l}</div></div></div>`).join('');
+
+                // Charts — destroy old
+                Object.values(chartInstances).forEach(c => c.destroy && c.destroy());
+                chartInstances = {};
+                chartInstances.status = renderStatusDonut(document.getElementById('c-status').getContext('2d'), d);
+                chartInstances.trend = renderTrendLine(document.getElementById('c-trend').getContext('2d'), d.months);
+                chartInstances.cat = renderCatBar(document.getElementById('c-cat').getContext('2d'), d.byCat);
+                chartInstances.priority = renderPriorityBar(document.getElementById('c-priority').getContext('2d'), d.byPriority);
+
+                // Support table
+                document.getElementById('tbl-support-body').innerHTML = d.bySupport.length
+                    ? d.bySupport.map(s => {
+                        const rate = s.assigned > 0 ? Math.round(s.resolved / s.assigned * 100) : 0;
+                        return `<tr><td class="fw-600">${s.label}</td><td>${s.assigned}</td><td>${s.resolved}</td>
+            <td>${rate}%</td>
+            <td><div style="background:var(--gray-200);border-radius:10px;height:8px">
+              <div style="width:${rate}%;background:var(--primary);border-radius:10px;height:100%;transition:.5s"></div>
+            </div></td></tr>`;
+                    }).join('')
+                    : '<tr><td colspan="5" class="text-muted">Belum ada data.</td></tr>';
+
+                // Dept table
+                document.getElementById('tbl-dept-body').innerHTML = d.byDept.length
+                    ? d.byDept.map(x => {
+                        const pct = d.total > 0 ? Math.round(x.count / d.total * 100) : 0;
+                        return `<tr><td class="fw-600">${x.label}</td><td>${x.count}</td><td>${pct}%</td>
+            <td><div style="background:var(--gray-200);border-radius:10px;height:8px;max-width:200px">
+              <div style="width:${pct}%;background:var(--secondary);border-radius:10px;height:100%;transition:.5s"></div>
+            </div></td></tr>`;
+                    }).join('')
+                    : '<tr><td colspan="4" class="text-muted">Belum ada data.</td></tr>';
+
+                window.__reportData = d;
+            }
+
+            function applyFilter() {
+                dateFrom = document.getElementById('f-from').value;
+                dateTo = document.getElementById('f-to').value;
+                renderReport();
+                toast('Filter diterapkan.', 'info', 1500);
+            }
+            function resetFilter() {
+                document.getElementById('f-from').value = '';
+                document.getElementById('f-to').value = '';
+                dateFrom = ''; dateTo = '';
+                renderReport();
+            }
+            function doPrint() { window.print(); }
+            function doExcelExport() { exportExcel(window.__reportData, dateFrom, dateTo); toast('Mengunduh Excel...', 'success'); }
+            function doPdfExport() { exportPDF(window.__reportData, dateFrom, dateTo); toast('Mengunduh PDF...', 'success'); }
+
+            renderReport();
+        }
+    </script>
+</body>
+
+</html>

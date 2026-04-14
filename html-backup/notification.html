@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Notifikasi — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script>
+        const u = initPage('notification', 'Notifikasi');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            const notifIcons = {
+                NEW_TICKET: 'bi-ticket-detailed', STATUS_CHANGE: 'bi-arrow-repeat',
+                ASSIGNED: 'bi-person-plus', NEW_MESSAGE: 'bi-chat-dots', RESOLVED: 'bi-check-circle',
+            };
+            const notifColors = {
+                NEW_TICKET: 'si-blue', STATUS_CHANGE: 'si-orange', ASSIGNED: 'si-purple',
+                NEW_MESSAGE: 'si-cyan', RESOLVED: 'si-green',
+            };
+
+            function renderPage() {
+                const notifs = getUserNotifs(u.id);
+                const unread = notifs.filter(n => !n.is_read).length;
+                mc.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-header-title">Notifikasi</div>
+      <div class="page-header-sub">${unread} belum dibaca dari ${notifs.length} total</div></div>
+      ${unread ? `<button class="btn btn-outline" onclick="readAll()"><i class="bi bi-check-all"></i> Tandai Semua Dibaca</button>` : ''}
+    </div>
+    <div class="card">
+      ${notifs.length ? notifs.map(n => `
+      <div class="d-flex ai-center gap-3" style="padding:14px 20px;border-bottom:1px solid var(--gray-100);background:${n.is_read ? '' : 'rgba(37,99,235,.03)'};cursor:pointer;transition:.15s"
+        onmouseenter="this.style.background='var(--gray-50)'" onmouseleave="this.style.background='${n.is_read ? '' : 'rgba(37,99,235,.03)'}'"
+        onclick="openNotif(${n.id},'${n.ref_id || ''}')">
+        <div class="stat-icon ${notifColors[n.type] || 'si-blue'}" style="width:40px;height:40px;font-size:16px;flex-shrink:0">
+          <i class="bi ${notifIcons[n.type] || 'bi-bell'}"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="d-flex ai-center gap-2">
+            <div class="fw-600 text-sm">${n.title}</div>
+            ${n.is_read ? '' : '<span style="width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0"></span>'}
+          </div>
+          <div class="text-xs text-muted mt-1 truncate">${n.message}</div>
+          <div class="text-xs text-muted mt-1">${timeAgo(n.created_at)}</div>
+        </div>
+        ${n.ref_id ? `<i class="bi bi-chevron-right text-muted"></i>` : ''}
+      </div>`).join('')
+                        : emptyState('bi-bell-slash', 'Tidak Ada Notifikasi', 'Anda belum memiliki notifikasi apapun.')}
+    </div>`;
+            }
+
+            function openNotif(id, refId) {
+                markNotifRead(id);
+                if (refId) window.location.href = 'ticket-detail.html?id=' + refId;
+                else renderPage();
+            }
+            function readAll() {
+                markAllNotifsRead(u.id); toast('Semua notifikasi ditandai dibaca.', 'success'); renderPage();
+            }
+
+            renderPage();
+        }
+    </script>
+</body>
+
+</html>

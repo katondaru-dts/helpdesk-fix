@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Profil Saya — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script>
+        const u = initPage('profile', 'Profil Saya');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            const me = getUserById(u.id);
+            const myTickets = getTickets().filter(t => t.reporter_id === u.id);
+            const myRatings = getTRatings().filter(r => r.rated_by === u.id);
+            const initials = u.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+
+            mc.innerHTML = `
+  <div class="page-header">
+    <div><div class="page-header-title">Profil Saya</div>
+    <div class="page-header-sub">Kelola informasi akun dan keamanan Anda</div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:320px 1fr;gap:20px">
+    <!-- Profile Card -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-body" style="text-align:center;padding:32px 20px">
+          <div class="avatar lg" style="margin:0 auto 16px;width:72px;height:72px;font-size:28px">${initials}</div>
+          <div class="fw-700" style="font-size:18px">${u.name}</div>
+          <div class="text-muted text-sm mt-1">${u.email}</div>
+          <div style="margin-top:10px">
+            <span style="font-size:12px;padding:4px 12px;background:var(--primary-light);color:var(--primary);border-radius:20px;font-weight:600">${u.role_name}</span>
+          </div>
+          <div class="separator"></div>
+          <div class="d-flex jc-between text-sm">
+            <div class="text-muted">Departemen</div><div class="fw-600">${u.dept_name}</div>
+          </div>
+          <div class="d-flex jc-between text-sm mt-2">
+            <div class="text-muted">ID User</div><div class="fw-600">${u.id}</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><i class="bi bi-bar-chart" style="color:var(--primary)"></i><span class="card-title">Statistik Saya</span></div>
+        <div class="card-body">
+          ${[
+                    ['Total Tiket Dibuat', myTickets.length, 'bi-ticket'],
+                    ['Tiket Selesai', myTickets.filter(t => ['RESOLVED', 'CLOSED'].includes(getTicketCurrentStatus(t.id))).length, 'bi-check-circle'],
+                    ['Rating Diberikan', myRatings.length, 'bi-star'],
+                    ['Avg Rating Saya', myRatings.length ? (myRatings.reduce((s, r) => s + r.rating, 0) / myRatings.length).toFixed(1) + ' ⭐' : '–', 'bi-star-fill'],
+                ].map(([l, v, ic]) => `<div class="d-flex ai-center jc-between mb-3">
+            <div class="d-flex ai-center gap-2 text-sm"><i class="bi ${ic} text-muted"></i> ${l}</div>
+            <div class="fw-600">${v}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Forms -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-person-fill" style="color:var(--primary)"></i><span class="card-title">Informasi Profil</span></div>
+        <div class="card-body">
+          <div id="prof-alert" style="display:none" class="alert"></div>
+          <div class="input-row c2">
+            <div class="form-group"><label class="form-label">Nama Lengkap <span class="req">*</span></label>
+              <input type="text" id="p-name" class="form-control" value="${u.name}"></div>
+            <div class="form-group"><label class="form-label">Email</label>
+              <input type="email" class="form-control" value="${u.email}" readonly style="background:var(--gray-50)"></div>
+          </div>
+          <div class="input-row c2">
+            <div class="form-group"><label class="form-label">No. Telepon</label>
+              <input type="tel" id="p-phone" class="form-control" value="${me ? me.phone : ''}"></div>
+            <div class="form-group"><label class="form-label">Jenis Kelamin</label>
+              <select id="p-gender" class="form-select">
+                <option value="L" ${me && me.gender === 'L' ? 'selected' : ''}>Laki-laki</option>
+                <option value="P" ${me && me.gender === 'P' ? 'selected' : ''}>Perempuan</option>
+              </select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Tanggal Lahir</label>
+            <input type="date" id="p-birth" class="form-control" value="${me ? me.birth_date || '' : ''}"></div>
+          <button class="btn btn-primary" onclick="saveProfile()"><i class="bi bi-check-lg"></i> Simpan Profil</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><i class="bi bi-lock-fill" style="color:var(--primary)"></i><span class="card-title">Ubah Password</span></div>
+        <div class="card-body">
+          <div id="pw-alert" style="display:none" class="alert"></div>
+          <div class="form-group"><label class="form-label">Password Lama <span class="req">*</span></label>
+            <input type="password" id="pw-old" class="form-control" placeholder="Password saat ini"></div>
+          <div class="input-row c2">
+            <div class="form-group"><label class="form-label">Password Baru <span class="req">*</span></label>
+              <input type="password" id="pw-new" class="form-control" placeholder="Min. 6 karakter"></div>
+            <div class="form-group"><label class="form-label">Konfirmasi Password Baru <span class="req">*</span></label>
+              <input type="password" id="pw-conf" class="form-control" placeholder="Ulangi password baru"></div>
+          </div>
+          <button class="btn btn-warning" onclick="changePassword()"><i class="bi bi-shield-lock"></i> Ubah Password</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><i class="bi bi-ticket-detailed" style="color:var(--primary)"></i><span class="card-title">Tiket Terbaru Saya</span></div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>ID</th><th>Judul</th><th>Prioritas</th><th>Status</th><th>Tanggal</th></tr></thead>
+            <tbody>
+              ${myTickets.slice(0, 5).map(t => `<tr onclick="window.location='ticket-detail.html?id=${t.id}'" style="cursor:pointer">
+                <td class="fw-600 text-sm" style="color:var(--primary)">${t.id}</td>
+                <td><div class="truncate text-sm" style="max-width:200px">${t.title}</div></td>
+                <td>${priorityBadge(t.priority)}</td>
+                <td>${statusBadge(getTicketCurrentStatus(t.id))}</td>
+                <td class="text-xs text-muted">${fmtDate(t.created_at)}</td>
+              </tr>`).join('') || '<tr><td colspan="5" class="text-muted text-sm">Belum ada tiket.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+            function saveProfile() {
+                const name = document.getElementById('p-name').value.trim();
+                const phone = document.getElementById('p-phone').value;
+                const gender = document.getElementById('p-gender').value;
+                const birth = document.getElementById('p-birth').value;
+                const ab = document.getElementById('prof-alert');
+                if (!name) { ab.className = 'alert alert-danger'; ab.style.display = 'flex'; ab.innerHTML = '<i class="bi bi-x-circle-fill"></i> Nama wajib diisi.'; return; }
+                const users = getUsers(); const idx = users.findIndex(x => x.id === u.id);
+                if (idx > -1) { users[idx].name = name; users[idx].phone = phone; users[idx].gender = gender; users[idx].birth_date = birth; saveUsers(users); }
+                // Update session
+                const sess = getSession(); if (sess) { sess.name = name; saveSession(sess); }
+                ab.className = 'alert alert-success'; ab.style.display = 'flex'; ab.innerHTML = '<i class="bi bi-check-circle-fill"></i> Profil berhasil disimpan!';
+                setTimeout(() => window.location.reload(), 1000);
+            }
+            function changePassword() {
+                const oldPw = document.getElementById('pw-old').value;
+                const newPw = document.getElementById('pw-new').value;
+                const conf = document.getElementById('pw-conf').value;
+                const ab = document.getElementById('pw-alert');
+                const user = getUserById(u.id);
+                if (!user || user.password !== oldPw) { ab.className = 'alert alert-danger'; ab.style.display = 'flex'; ab.innerHTML = '<i class="bi bi-x-circle-fill"></i> Password lama salah.'; return; }
+                if (newPw.length < 6) { ab.className = 'alert alert-danger'; ab.style.display = 'flex'; ab.innerHTML = '<i class="bi bi-x-circle-fill"></i> Password baru minimal 6 karakter.'; return; }
+                if (newPw !== conf) { ab.className = 'alert alert-danger'; ab.style.display = 'flex'; ab.innerHTML = '<i class="bi bi-x-circle-fill"></i> Konfirmasi password tidak cocok.'; return; }
+                const users = getUsers(); const idx = users.findIndex(x => x.id === u.id);
+                if (idx > -1) { users[idx].password = newPw; saveUsers(users); }
+                ab.className = 'alert alert-success'; ab.style.display = 'flex'; ab.innerHTML = '<i class="bi bi-check-circle-fill"></i> Password berhasil diubah!';
+                document.getElementById('pw-old').value = ''; document.getElementById('pw-new').value = ''; document.getElementById('pw-conf').value = '';
+            }
+        }
+    </script>
+</body>
+
+</html>

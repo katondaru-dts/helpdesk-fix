@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Admin Dashboard — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script src="js/reports.js"></script>
+    <script>
+        const u = initPage('dashboard-admin', 'Admin Dashboard', 'admin');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            const d = getReportData();
+            const tickets = getTickets();
+            const urgentTickets = tickets.filter(t => {
+                const st = getTicketCurrentStatus(t.id);
+                return (t.priority === 'CRITICAL' || t.priority === 'HIGH') && !['RESOLVED', 'CLOSED'].includes(st);
+            }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
+
+            const pendingAssign = tickets.filter(t => !t.assigned_to && !['RESOLVED', 'CLOSED'].includes(getTicketCurrentStatus(t.id)));
+
+            mc.innerHTML = `
+  <div class="page-header">
+    <div>
+      <div class="page-header-title">Admin Dashboard</div>
+      <div class="page-header-sub">Pantau semua tiket dan kinerja tim IT Support</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="report.html" class="btn btn-outline"><i class="bi bi-bar-chart"></i> Laporan</a>
+      <a href="ticket-list.html" class="btn btn-primary"><i class="bi bi-list-ul"></i> Semua Tiket</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid g4 mb-4">
+    <div class="stat-card"><div class="stat-icon si-blue"><i class="bi bi-ticket-detailed"></i></div>
+      <div><div class="stat-val">${d.total}</div><div class="stat-lbl">Total Tiket</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red"><i class="bi bi-circle"></i></div>
+      <div><div class="stat-val">${d.open}</div><div class="stat-lbl">Open</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange"><i class="bi bi-arrow-repeat"></i></div>
+      <div><div class="stat-val">${d.inProgress}</div><div class="stat-lbl">In Progress</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green"><i class="bi bi-check-circle"></i></div>
+      <div><div class="stat-val">${d.resolved + d.closed}</div><div class="stat-lbl">Selesai</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-purple"><i class="bi bi-people"></i></div>
+      <div><div class="stat-val">${getUsers().filter(u => u.is_active).length}</div><div class="stat-lbl">User Aktif</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-cyan"><i class="bi bi-clock-history"></i></div>
+      <div><div class="stat-val">${pendingAssign.length}</div><div class="stat-lbl">Belum Diassign</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange"><i class="bi bi-exclamation-triangle"></i></div>
+      <div><div class="stat-val">${tickets.filter(t => t.priority === 'CRITICAL' && !['RESOLVED', 'CLOSED'].includes(getTicketCurrentStatus(t.id))).length}</div><div class="stat-lbl">Critical</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green"><i class="bi bi-star-fill"></i></div>
+      <div><div class="stat-val">${d.avgRating}</div><div class="stat-lbl">Avg Rating</div></div></div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid g2 mb-4">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-pie-chart-fill" style="color:var(--primary)"></i><span class="card-title">Status Tiket</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:240px"><canvas id="chart-status"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-graph-up" style="color:var(--primary)"></i><span class="card-title">Tren Tiket (6 Bulan)</span></div>
+      <div class="card-body"><div class="chart-wrap" style="height:240px"><canvas id="chart-trend"></canvas></div></div>
+    </div>
+  </div>
+
+  <div class="grid g2 mb-4">
+    <!-- Urgent tickets -->
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#DC2626"></i>
+        <span class="card-title">Tiket Urgent / Critical</span>
+        <a href="ticket-list.html" class="btn btn-outline btn-sm">Lihat Semua</a>
+      </div>
+      <div class="card-body p-0">
+        ${urgentTickets.length ? urgentTickets.map(t => {
+                const cat = getCatById(t.cat_id); const st = getTicketCurrentStatus(t.id);
+                const rep = getUserById(t.reporter_id);
+                return `<div class="d-flex ai-center gap-3 p-3" style="border-bottom:1px solid var(--gray-100);cursor:pointer" onclick="window.location='ticket-detail.html?id=${t.id}'">
+            <div style="min-width:0;flex:1">
+              <div class="fw-600 truncate" style="font-size:13px">${t.title}</div>
+              <div class="text-xs text-muted mt-1">${t.id} • ${rep ? rep.name : '-'} • ${fmtDate(t.created_at)}</div>
+            </div>
+            <div class="d-flex gap-1">${priorityBadge(t.priority)} ${statusBadge(st)}</div>
+          </div>`;
+            }).join('') : emptyState('bi-check-circle', 'Tidak Ada Tiket Urgent', 'Semua tiket prioritas tinggi sudah tertangani.')}
+      </div>
+    </div>
+
+    <!-- Pending Assignment -->
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-person-x-fill" style="color:#D97706"></i>
+        <span class="card-title">Belum Diassign (${pendingAssign.length})</span>
+      </div>
+      <div class="card-body p-0">
+        ${pendingAssign.length ? pendingAssign.slice(0, 6).map(t => {
+                const cat = getCatById(t.cat_id);
+                return `<div class="d-flex ai-center gap-3 p-3" style="border-bottom:1px solid var(--gray-100)">
+            <div style="min-width:0;flex:1">
+              <div class="fw-600 truncate" style="font-size:13px">${t.title}</div>
+              <div class="text-xs text-muted mt-1">${t.id} • ${cat ? cat.name : '-'} • ${timeAgo(t.created_at)}</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openAssignModal('${t.id}')"><i class="bi bi-person-plus"></i> Assign</button>
+          </div>`;
+            }).join('') : emptyState('bi-people-fill', 'Semua Tiket Sudah Diassign', '', '')}
+      </div>
+    </div>
+  </div>
+
+  <!-- Support Performance -->
+  <div class="card">
+    <div class="card-header"><i class="bi bi-trophy-fill" style="color:#D97706"></i><span class="card-title">Performa IT Support</span></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Support</th><th>Total Ditangani</th><th>Selesai</th><th>Rate Penyelesaian</th></tr></thead>
+        <tbody>
+          ${d.bySupport.length ? d.bySupport.map(s => {
+                const rate = s.assigned > 0 ? Math.round(s.resolved / s.assigned * 100) : 0;
+                return `<tr><td class="fw-600">${s.label}</td><td>${s.assigned}</td><td>${s.resolved}</td>
+            <td><div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;background:var(--gray-200);border-radius:10px;height:8px">
+                <div style="width:${rate}%;background:var(--primary);border-radius:10px;height:100%;transition:.5s"></div>
+              </div>
+              <span class="text-sm fw-600">${rate}%</span>
+            </div></td></tr>`;
+            }).join('') : '<tr><td colspan="4" class="text-muted">Belum ada data support.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>`;
+
+            // Charts
+            renderStatusDonut(document.getElementById('chart-status').getContext('2d'), d);
+            renderTrendLine(document.getElementById('chart-trend').getContext('2d'), d.months);
+
+            // Assign modal
+            window.openAssignModal = function (tid) {
+                const supports = getUsers().filter(u => u.role_id === 2 && u.is_active);
+                const opts = supports.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                confirmModal('Assign Tiket: ' + tid, `
+      <select id="assign-sel" class="form-select mt-2">
+        <option value="">-- Pilih IT Support --</option>${opts}
+      </select>`, () => {
+                    const sel = document.getElementById('assign-sel');
+                    if (!sel || !sel.value) { toast('Pilih IT Support terlebih dahulu.', 'warning'); return; }
+                    const res = assignTicket(tid, sel.value);
+                    toast(res.msg, res.ok ? 'success' : 'error');
+                    if (res.ok) setTimeout(() => window.location.reload(), 600);
+                }, false);
+            };
+        }
+    </script>
+</body>
+
+</html>

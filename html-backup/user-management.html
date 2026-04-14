@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Kelola User — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script>
+        const u = initPage('user-management', 'Kelola User', 'superadmin');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            let editId = null, filterRole = '', searchQ = '';
+
+            function renderPage() {
+                const users = getUsers(); const roles = getRoles(); const depts = getDepts();
+                let data = [...users];
+                if (filterRole) data = data.filter(x => x.role_id === parseInt(filterRole));
+                if (searchQ) data = data.filter(x => x.name.toLowerCase().includes(searchQ) || x.email.toLowerCase().includes(searchQ));
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                mc.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-header-title">Kelola User</div>
+      <div class="page-header-sub">${users.length} user terdaftar</div></div>
+      <button class="btn btn-primary" onclick="openModal()"><i class="bi bi-person-plus"></i> Tambah User</button>
+    </div>
+    <div class="card mb-4"><div class="card-body" style="padding:14px 20px">
+      <div class="filter-bar">
+        <div class="search-wrap"><i class="bi bi-search"></i>
+          <input type="text" id="search" class="form-control" placeholder="Cari nama atau email..."></div>
+        <select id="f-role" class="form-select" style="width:160px">
+          <option value="">Semua Role</option>
+          ${roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
+        </select>
+      </div>
+    </div></div>
+
+    <div class="card"><div class="table-wrap"><table class="table">
+      <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Departemen</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody>
+        ${data.map(x => {
+                    const role = getRoleById(x.role_id); const dept = getDeptById(x.dept_id);
+                    const init = x.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                    return `<tr>
+            <td><div class="d-flex ai-center gap-2"><div class="avatar sm">${init}</div>
+              <div><div class="fw-600 text-sm">${x.name}</div>
+              <div class="text-xs text-muted">${x.id}</div></div></div></td>
+            <td class="text-sm">${x.email}</td>
+            <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${x.role_id === 1 ? '#DBEAFE' : x.role_id === 2 ? '#EDE9FE' : '#D1FAE5'};color:${x.role_id === 1 ? '#1E40AF' : x.role_id === 2 ? '#5B21B6' : '#065F46'};font-weight:600">${role ? role.name : '-'}</span></td>
+            <td class="text-sm">${dept ? dept.name : '-'}</td>
+            <td>${x.is_active ? '<span style="font-size:11px;padding:2px 8px;background:#D1FAE5;color:#065F46;border-radius:10px;font-weight:600">Aktif</span>'
+                            : '<span style="font-size:11px;padding:2px 8px;background:#FEE2E2;color:#991B1B;border-radius:10px;font-weight:600">Nonaktif</span>'}</td>
+            <td class="d-flex gap-1">
+              <button class="btn btn-sm btn-outline" onclick="openModal('${x.id}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-${x.is_active ? 'warning' : 'success'}" onclick="toggleActive('${x.id}',${x.is_active})">
+                <i class="bi bi-${x.is_active ? 'person-x' : 'person-check'}"></i></button>
+              ${x.id !== u.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${x.id}')"><i class="bi bi-trash"></i></button>` : ''}</td>
+          </tr>`;
+                }).join('')}
+      </tbody>
+    </table></div></div>`;
+
+                document.getElementById('search').oninput = function () { searchQ = this.value.toLowerCase(); renderPage(); };
+                document.getElementById('f-role').onchange = function () { filterRole = this.value; renderPage(); };
+            }
+
+            function openModal(id = null) {
+                editId = id;
+                const user = id ? getUserById(id) : null;
+                const roles = getRoles(); const depts = getDepts();
+                const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+                overlay.innerHTML = `<div class="modal-box lg">
+      <div class="modal-title">${id ? 'Edit User' : 'Tambah User Baru'}</div>
+      <div class="input-row c2">
+        <div class="form-group"><label class="form-label">Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="m-name" class="form-control" value="${user ? user.name : ''}" required></div>
+        <div class="form-group"><label class="form-label">Email <span class="req">*</span></label>
+          <input type="email" id="m-email" class="form-control" value="${user ? user.email : ''}" ${id ? 'readonly' : ''}></div>
+      </div>
+      ${!id ? `<div class="form-group"><label class="form-label">Password <span class="req">*</span></label>
+        <input type="password" id="m-pw" class="form-control" placeholder="Min. 6 karakter"></div>`
+                        : `<div class="form-group"><label class="form-label">Password Baru (kosongkan jika tidak diubah)</label>
+        <input type="password" id="m-pw" class="form-control" placeholder="Biarkan kosong jika tidak diubah"></div>`}
+      <div class="input-row c2">
+        <div class="form-group"><label class="form-label">Role</label>
+          <select id="m-role" class="form-select">
+            ${roles.map(r => `<option value="${r.id}" ${user && user.role_id === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label class="form-label">Departemen</label>
+          <select id="m-dept" class="form-select">
+            ${depts.map(d => `<option value="${d.id}" ${user && user.dept_id === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="input-row c2">
+        <div class="form-group"><label class="form-label">Jenis Kelamin</label>
+          <select id="m-gender" class="form-select">
+            <option value="L" ${user && user.gender === 'L' ? 'selected' : ''}>Laki-laki</option>
+            <option value="P" ${user && user.gender === 'P' ? 'selected' : ''}>Perempuan</option>
+          </select></div>
+        <div class="form-group"><label class="form-label">No. Telepon</label>
+          <input type="tel" id="m-phone" class="form-control" value="${user ? user.phone : ''}"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">Batal</button>
+        <button class="btn btn-primary" onclick="saveUser()"><i class="bi bi-check-lg"></i> Simpan</button>
+      </div>
+    </div>`;
+                document.body.appendChild(overlay);
+            }
+
+            function saveUser() {
+                const name = document.getElementById('m-name').value.trim();
+                const email = document.getElementById('m-email').value.trim();
+                const pw = document.getElementById('m-pw').value;
+                const role_id = parseInt(document.getElementById('m-role').value);
+                const dept_id = parseInt(document.getElementById('m-dept').value);
+                const gender = document.getElementById('m-gender').value;
+                const phone = document.getElementById('m-phone').value;
+                if (!name || (!editId && !email)) { toast('Nama dan email wajib diisi.', 'warning'); return; }
+                const users = getUsers();
+                if (editId) {
+                    const idx = users.findIndex(x => x.id === editId);
+                    if (idx > -1) {
+                        users[idx].name = name; users[idx].role_id = role_id; users[idx].dept_id = dept_id;
+                        users[idx].gender = gender; users[idx].phone = phone;
+                        if (pw && pw.length >= 6) users[idx].password = pw;
+                        saveUsers(users); toast('User berhasil diperbarui.', 'success');
+                    }
+                } else {
+                    if (pw.length < 6) { toast('Password minimal 6 karakter.', 'warning'); return; }
+                    if (users.find(x => x.email.toLowerCase() === email.toLowerCase())) { toast('Email sudah terdaftar.', 'error'); return; }
+                    const newU = { id: nextUserId(), name, email: email.toLowerCase(), password: pw, role_id, dept_id, gender, phone, is_active: 1, created_at: isoNow() };
+                    users.push(newU); saveUsers(users); toast('User berhasil ditambahkan.', 'success');
+                }
+                document.querySelector('.modal-overlay').remove(); renderPage();
+            }
+
+            function toggleActive(id, cur) {
+                const users = getUsers(); const idx = users.findIndex(x => x.id === id);
+                if (idx > -1) { users[idx].is_active = cur ? 0 : 1; saveUsers(users); toast(cur ? 'User dinonaktifkan.' : 'User diaktifkan.', cur ? 'warning' : 'success'); renderPage(); }
+            }
+            function deleteUser(id) {
+                if (id === u.id) { toast('Tidak bisa hapus akun sendiri.', 'error'); return; }
+                confirmModal('Hapus User', 'Yakin ingin menghapus user ini? Data tiket tetap tersimpan.', () => {
+                    const users = getUsers().filter(x => x.id !== id); saveUsers(users);
+                    toast('User dihapus.', 'success'); renderPage();
+                });
+            }
+
+            renderPage();
+        }
+    </script>
+</body>
+
+</html>

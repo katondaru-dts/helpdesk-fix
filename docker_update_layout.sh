@@ -1,0 +1,857 @@
+
+cat << 'EOF' > /var/www/html/app/Views/layouts/main.php
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $pageTitle ?? 'Helpdesk' ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="<?= base_url('css/style.css') ?>">
+</head>
+<body class="bg-light">
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand" style="display: flex; align-items: center; padding: 20px; color: white;">
+            <div class="brand-text" style="font-size: 1.25rem; font-weight: bold; letter-spacing: 0.5px;">Helpdesk</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">Menu Utama</div>
+            <?php 
+            $role = session()->get('role_id');
+            $isStaff = ($role == 1 || $role == 2 || $role == 4);
+            ?>
+            <a href="<?= base_url('dashboard') ?>" class="<?= $activePage == 'dashboard' ? 'active' : '' ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="<?= base_url('tickets') ?>" class="<?= $activePage == 'tickets' ? 'active' : '' ?>"><i class="bi bi-ticket-detailed"></i> <?= $isStaff ? 'Semua Tiket' : 'Tiket Saya' ?></a>
+            
+            <?php if (has_permission('Buat Tiket') || $role == 4): ?>
+            <a href="<?= base_url('tickets/create') ?>" class="<?= $activePage == 'ticket-create' ? 'active' : '' ?>"><i class="bi bi-plus-circle"></i> Buat Tiket</a>
+            <?php endif; ?>
+            
+            <a href="<?= base_url('notifications') ?>" class="<?= $activePage == 'notifications' ? 'active' : '' ?>" style="display: flex; align-items: center; justify-content: space-between;">
+                <span><i class="bi bi-bell"></i> Notifikasi</span>
+                <span id="notif-badge-sidebar" class="badge bg-danger ms-auto" style="display: none; font-size: 0.7rem; padding: 0.25em 0.6em; border-radius: 50rem;">0</span>
+            </a>
+            
+            <?php if ($role == 1): ?>
+            <div class="nav-section">Administrasi</div>
+            <a href="<?= base_url('notifications/all') ?>" class="<?= $activePage == 'notifications-all' ? 'active' : '' ?>"><i class="bi bi-list-ul"></i> Riwayat Notifikasi</a>
+            <a href="<?= base_url('admin/users') ?>" class="<?= $activePage == 'user-management' ? 'active' : '' ?>"><i class="bi bi-people"></i> Kelola User</a>
+            <a href="<?= base_url('admin/departments') ?>" class="<?= $activePage == 'department-management' ? 'active' : '' ?>"><i class="bi bi-building"></i> Departemen</a>
+            <a href="<?= base_url('admin/categories') ?>" class="<?= $activePage == 'category-management' ? 'active' : '' ?>"><i class="bi bi-tags"></i> Kategori</a>
+            <a href="<?= base_url('admin/roles') ?>" class="<?= $activePage == 'role-management' ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> Role & Izin</a>
+            <a href="<?= base_url('admin/reports') ?>" class="<?= $activePage == 'report' ? 'active' : '' ?>"><i class="bi bi-bar-chart"></i> Laporan & Statistik</a>
+            <a href="<?= base_url('admin/audit-logs') ?>" class="<?= $activePage == 'audit-logs' ? 'active' : '' ?>"><i class="bi bi-journal-text"></i> Audit Logs</a>
+            <?php elseif ($role == 4): ?>
+            <div class="nav-section">Operasional</div>
+            <a href="<?= base_url('notifications/all') ?>" class="<?= $activePage == 'notifications-all' ? 'active' : '' ?>"><i class="bi bi-list-ul"></i> Semua Notifikasi</a>
+            <?php endif; ?>
+
+            <div class="nav-section">Akun</div>
+            <a href="<?= base_url('profile') ?>" class="<?= $activePage == 'profile' ? 'active' : '' ?>"><i class="bi bi-person-circle"></i> Profil Saya</a>
+            <a href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right"></i> Keluar</a>
+        </nav>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button class="btn-icon sidebar-toggle"><i class="bi bi-list"></i></button>
+            <span class="page-title"><?= $pageTitle ?? '' ?></span>
+            <div class="d-flex ai-center gap-2">
+            </div>
+        </header>
+
+        <main class="main-content">
+            <?= $this->renderSection('content') ?>
+        </main>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+        }
+
+        // Fetch unread notification count
+        fetch('<?= base_url('notifications/unread-count') ?>')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notif-badge-sidebar');
+                if (data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.style.display = 'inline-block';
+                }
+            })
+            .catch(err => console.error('Error fetching unread count:', err));
+    });
+</script>
+</body>
+</html>
+
+EOF
+
+cat << 'EOF' > /var/www/html/app/Helpers/auth_helper.php
+<?php
+
+if (!function_exists('has_permission')) {
+    /**
+     * Check if the current user has a specific permission.
+     *
+     * @param string $permission
+     * @return bool
+     */
+    function has_permission(string $permission): bool
+    {
+        $session = session();
+        $permissions = $session->get('permissions') ?: [];
+
+        // Admin (role_id 1) has all permissions
+        if ($session->get('role_id') == 1) {
+            return true;
+        }
+
+        return in_array($permission, $permissions);
+    }
+}
+
+EOF
+
+cat << 'EOF' > /var/www/html/app/Controllers/BaseController.php
+<?php
+
+namespace App\Controllers;
+
+use CodeIgniter\Controller;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
+
+abstract class BaseController extends Controller
+{
+    protected $helpers = ['auth', 'url'];
+
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+
+        if (session()->get('isLoggedIn')) {
+            $this->refreshSessionIfNeeded();
+        }
+    }
+
+    private function refreshSessionIfNeeded()
+    {
+        $userId = session()->get('id');
+        if (!$userId)
+            return;
+
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($userId);
+
+        if ($user) {
+            if (!$user['is_active']) {
+                session()->destroy();
+                header('Location: ' . base_url('login?error=' . urlencode('Akun Anda dinonaktifkan.')));
+                exit;
+            }
+
+            $roleModel = new \App\Models\RoleModel();
+            $role = $roleModel->find($user['role_id']);
+            $permissions = [];
+            if ($role && $role['permissions']) {
+                $permissions = json_decode($role['permissions'], true) ?: [];
+            }
+
+            session()->set([
+                'role_id' => $user['role_id'],
+                'dept_id' => $user['dept_id'],
+                'name' => $user['name'],
+                'permissions' => $permissions
+            ]);
+
+            $notificationModel = new \App\Models\NotificationModel();
+            $unreadCount = $notificationModel->where('user_id', $userId)
+                ->where('is_read', 0)
+                ->countAllResults();
+
+            $this->unreadNotifications = $unreadCount;
+            \Config\Services::renderer()->setData(['unreadNotifications' => $unreadCount], 'raw');
+        }
+    }
+
+    public $unreadNotifications = 0;
+}
+EOF
+
+cat << 'EOF' > /var/www/html/app/Controllers/Dashboard.php
+<?php
+
+namespace App\Controllers;
+
+use App\Controllers\BaseController;
+use App\Models\UserModel;
+use App\Models\TicketModel;
+
+class Dashboard extends BaseController
+{
+    public function index()
+    {
+        $session = session();
+        $userRole = $session->get('role_id');
+        $userId = $session->get('user_id') ?? $session->get('id');
+
+        $ticketModel = new TicketModel();
+        $userModel = new UserModel();
+
+        $data = [
+            'pageTitle' => 'Dashboard — Helpdesk',
+            'activePage' => 'dashboard'
+        ];
+
+        if (has_permission('Update Status Tiket')) {
+            // Admin or Support
+            $data['stats'] = [
+                'total' => $ticketModel->countAllResults(),
+                'open' => $ticketModel->where('status', 'OPEN')->countAllResults(),
+                'inProgress' => $ticketModel->where('status', 'IN_PROGRESS')->countAllResults(),
+                'pending' => $ticketModel->where('status', 'PENDING')->countAllResults(),
+                'resolved' => $ticketModel->whereIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
+                'users' => $userModel->where('is_active', 1)->countAllResults(),
+                'unassigned' => $ticketModel->where('assigned_to', null)->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
+                'urgent' => $ticketModel->whereIn('priority', ['HIGH', 'URGENT'])->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
+                'avgRating' => 0
+            ];
+
+            // Fetch Urgent Tickets
+            $data['urgentTickets'] = $ticketModel->select('tickets.*, reporter.name as reporter_name')
+                ->join('users as reporter', 'tickets.reporter_id = reporter.id', 'left')
+                ->whereIn('priority', ['HIGH', 'URGENT'])
+                ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
+                ->orderBy('created_at', 'DESC')
+                ->limit(6)
+                ->findAll();
+
+            // Fetch Pending Assignment
+            $data['pendingTickets'] = $ticketModel->select('tickets.*, categories.name as cat_name')
+                ->join('categories', 'tickets.cat_id = categories.id', 'left')
+                ->where('assigned_to', null)
+                ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
+                ->orderBy('created_at', 'DESC')
+                ->limit(6)
+                ->findAll();
+
+            return view('dashboard/admin', $data);
+        }
+        else {
+            // Regular User
+            $data['stats'] = [
+                'total' => $ticketModel->where('reporter_id', $userId)->countAllResults(),
+                'open' => $ticketModel->where('reporter_id', $userId)->where('status', 'OPEN')->countAllResults(),
+                'inProgress' => $ticketModel->where('reporter_id', $userId)->where('status', 'IN_PROGRESS')->countAllResults(),
+                'resolved' => $ticketModel->where('reporter_id', $userId)->whereIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
+            ];
+
+            // Recent My Tickets
+            $data['recentTickets'] = $ticketModel->where('reporter_id', $userId)
+                ->orderBy('created_at', 'DESC')
+                ->limit(5)
+                ->findAll();
+
+            return view('dashboard/user', $data);
+        }
+    }
+}
+
+EOF
+
+cat << 'EOF' > /var/www/html/app/Controllers/Auth.php
+<?php
+
+namespace App\Controllers;
+
+use App\Controllers\BaseController;
+use App\Models\UserModel;
+use CodeIgniter\HTTP\ResponseInterface;
+
+class Auth extends BaseController
+{
+    public function login()
+    {
+        if (session()->get('isLoggedIn')) {
+            return redirect()->to('/dashboard');
+        }
+        return view('auth/login');
+    }
+
+    public function attemptLogin()
+    {
+        $userModel = new UserModel();
+        $email = $this->request->getPost('email');
+        $password = (string)$this->request->getPost('password');
+
+        $user = $userModel->where('email', $email)->first();
+
+        if ($user && password_verify($password, $user['password'])) {
+            if (!$user['is_active']) {
+                return redirect()->back()->with('error', 'Akun Anda dinonaktifkan.');
+            }
+
+            $this->setUserSession($user);
+            return redirect()->to('/dashboard');
+        }
+
+        return redirect()->back()->with('error', 'Email atau Password salah.');
+    }
+
+    public function setUserSession($user)
+    {
+        $roleModel = new \App\Models\RoleModel();
+        $role = $roleModel->find($user['role_id']);
+        $permissions = [];
+        if ($role && $role['permissions']) {
+            $permissions = json_decode($role['permissions'], true) ?: [];
+        }
+
+        $data = [
+            'id' => $user['id'],
+            'user_id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'role_id' => $user['role_id'],
+            'dept_id' => $user['dept_id'],
+            'permissions' => $permissions,
+            'isLoggedIn' => true,
+        ];
+
+        session()->set($data);
+        return true;
+    }
+
+    public function register()
+    {
+        $deptModel = new \App\Models\DepartmentModel();
+        $data['departments'] = $deptModel->where('is_active', 1)->findAll();
+        return view('auth/register', $data);
+    }
+
+    public function attemptRegister()
+    {
+        $userModel = new UserModel();
+
+        $rules = [
+            'name' => 'required|min_length[3]',
+            'email' => 'required|valid_email|is_unique[users.email]',
+            'password' => 'required|min_length[1]',
+            'dept_id' => 'required',
+            'gender' => 'required'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $userModel->insert([
+            'name' => $this->request->getPost('name'),
+            'email' => $this->request->getPost('email'),
+            'password' => password_hash((string)$this->request->getPost('password'), PASSWORD_DEFAULT),
+            'dept_id' => $this->request->getPost('dept_id'),
+            'gender' => $this->request->getPost('gender'),
+            'role_id' => 3, // Default User
+            'is_active' => 1,
+        ]);
+
+        return redirect()->to('/login')->with('success', 'Registrasi berhasil. Silakan login.');
+    }
+
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/login');
+    }
+}
+
+EOF
+
+cat << 'EOF' > /var/www/html/app/Views/admin/reports/index.php
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
+<style>
+    .card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: none; margin-bottom: 1.5rem; }
+    .stat-card { padding: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .table thead th { background: #f8fafc; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.025em; color: #64748b; padding: 1rem; border-bottom: 1px solid #e1e7ef; }
+    .table td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; }
+    .badge-status { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .inline-edit-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; transition: all 0.2s; }
+    .inline-edit-input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .save-btn { opacity: 0; pointer-events: none; transition: opacity 0.2s; background: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+    .inline-edit-input:not(:placeholder-shown) + .save-btn, .inline-edit-input:focus + .save-btn { opacity: 1; pointer-events: auto; }
+    
+    @media print {
+        .no-print { display: none !important; }
+        .card { box-shadow: none; border: 1px solid #eee; }
+        body { background: white; }
+        .main-content { padding: 0; }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h4 class="fw-bold mb-1">Laporan & Statistik</h4>
+            <p class="text-muted small mb-0">Pemantauan performa IT Support secara keseluruhan</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Cetak</button>
+            <a href="<?= base_url('admin/reports/excel') ?>?f-from=<?= esc($dateFrom) ?>&f-to=<?= esc($dateTo) ?>" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+            <a href="<?= base_url('admin/reports/pdf') ?>?f-from=<?= esc($dateFrom) ?>&f-to=<?= esc($dateTo) ?>" class="btn btn-danger btn-sm"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+        </div>
+    </div>
+
+    <div class="card no-print">
+        <div class="card-body p-4">
+            <form action="<?= base_url('admin/reports') ?>" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Dari Tanggal</label>
+                    <input type="date" name="f-from" class="form-control" value="<?= esc($dateFrom) ?>">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Sampai Tanggal</label>
+                    <input type="date" name="f-to" class="form-control" value="<?= esc($dateTo) ?>">
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Filter Data</button>
+                    <a href="<?= base_url('admin/reports') ?>" class="btn btn-light border">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-ticket-detailed"></i></div>
+                    <div><div class="small text-muted fw-semibold">Total Tiket</div><div class="h4 fw-bold mb-0"><?= number_format($stats['total'] ?? 0) ?></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card h-100"><div class="stat-card p-3"><div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-hourglass-split"></i></div><div><div class="small text-muted fw-semibold">Proses</div><div class="h4 fw-bold mb-0"><?= number_format($stats['in_progress'] ?? 0) ?></div></div></div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card h-100"><div class="stat-card p-3"><div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check2-circle"></i></div><div><div class="small text-muted fw-semibold">Selesai</div><div class="h4 fw-bold mb-0"><?= number_format($stats['solved'] ?? 0) ?></div></div></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-star-fill"></i></div>
+                    <div><div class="small text-muted fw-semibold">Avg Rating</div><div class="h4 fw-bold mb-0"><?= number_format($avgRating ?: 0, 1) ?> <span class="small text-muted">/ 5</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>ID</th><th>Judul</th><th>Prioritas</th><th>Status</th><th>Pengaju</th><th width="200">Deskripsi</th><th width="250">Link Dokumentasi</th><th>Tanggal</th></tr></thead>
+                <tbody>
+                    <?php foreach ($tickets as $t): ?>
+                    <tr>
+                        <td class="fw-bold text-primary"><?= esc($t['id']) ?></td>
+                        <td><div class="fw-semibold"><?= esc($t['title']) ?></div></td>
+                        <td><span class="badge-status text-white"><?= $t['priority'] ?></span></td>
+                        <td><span class="fw-bold"><?= $t['status'] ?></span></td>
+                        <td><?= esc($t['reporter_name']) ?></td>
+                        <td><div class="text-truncate" style="max-width: 180px;"><?= esc($t['description'] ?: '-') ?></div></td>
+                        <td>
+                            <form action="<?= base_url('admin/reports/update-link/' . $t['id']) ?>" method="POST" class="d-flex gap-1 align-items-center no-print">
+                                <input type="text" name="drive_link" class="inline-edit-input" placeholder="Link..." value="<?= esc($t['drive_link']) ?>">
+                                <button type="submit" class="save-btn"><i class="bi bi-check-lg"></i></button>
+                                <?php if(!empty($t['drive_link'])): ?><a href="<?= esc($t['drive_link']) ?>" target="_blank" class="text-primary"><i class="bi bi-box-arrow-up-right"></i></a><?php endif; ?>
+                            </form>
+                        </td>
+                        <td class="small text-muted"><?= date('d/m/Y', strtotime($t['created_at'])) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?= $this->endSection() ?>
+EOF
+
+cat << 'EOF' > /var/www/html/app/Views/admin/reports/print_report.php
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Data Tiket</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; background: white; }
+.header { text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+.header h1 { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+.header p { font-size: 11px; color: #555; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+thead tr { background: #1e3a5f; color: white; }
+th { padding: 8px 6px; text-align: left; font-size: 11px; }
+td { padding: 7px 6px; border-bottom: 1px solid #ddd; font-size: 11px; }
+tr:nth-child(even) td { background: #f8f9fa; }
+.no-data { text-align: center; padding: 30px; color: #999; }
+.print-btn { text-align: right; margin-bottom: 15px; }
+.print-btn button { padding: 8px 20px; background: #1e3a5f; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+@media print {
+    .print-btn { display: none; }
+    body { padding: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="print-btn">
+    <button onclick="window.print()">&#128438; Cetak Halaman Ini</button>
+</div>
+<div class="header">
+    <h1>LAPORAN DATA TIKET HELPDESK</h1>
+    <p>Periode: <?= esc($dateFrom) ?> s/d <?= esc($dateTo) ?> &nbsp;|&nbsp; Dicetak: <?= date('d/m/Y H:i') ?></p>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>ID Tiket</th>
+            <th>Judul</th>
+            <th>Prioritas</th>
+            <th>Status</th>
+            <th>Pengaju</th>
+            <th>Departemen</th>
+            <th>Kategori</th>
+            <th>Tanggal Dibuat</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (empty($tickets)): ?>
+        <tr><td colspan="8" class="no-data">Tidak ada data tiket untuk periode ini.</td></tr>
+        <?php else: ?>
+        <?php foreach ($tickets as $t): ?>
+        <tr>
+            <td><?= esc($t['id']) ?></td>
+            <td><?= esc($t['title']) ?></td>
+            <td><?= esc($t['priority']) ?></td>
+            <td><?= esc($t['status']) ?></td>
+            <td><?= esc($t['reporter_name']) ?></td>
+            <td><?= esc($t['dept_name'] ?? '-') ?></td>
+            <td><?= esc($t['cat_name']) ?></td>
+            <td><?= date('d/m/Y H:i', strtotime($t['created_at'])) ?></td>
+        </tr>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </tbody>
+</table>
+</body>
+</html>
+
+EOF
+
+cat << 'EOF' > /var/www/html/app/Controllers/Admin/Reports.php
+<?php
+namespace App\Controllers\Admin;
+use App\Controllers\BaseController;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
+class Reports extends BaseController
+{
+    private function getTickets()
+    {
+        $db = \Config\Database::connect();
+        $dateFrom = $this->request->getGet('f-from');
+        $dateTo = $this->request->getGet('f-to');
+        $where = "1=1";
+        if (!empty($dateFrom))
+            $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
+        if (!empty($dateTo))
+            $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
+        $query = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link,
+                    u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at
+                  FROM tickets t
+                  LEFT JOIN users u ON t.reporter_id = u.id
+                  LEFT JOIN departments d ON t.dept_id = d.id
+                  LEFT JOIN categories c ON t.cat_id  = c.id
+                  WHERE $where ORDER BY t.created_at DESC";
+        return $db->query($query)->getResultArray();
+    }
+
+    public function index()
+    {
+        $db = \Config\Database::connect();
+        $dateFrom = $this->request->getGet('f-from');
+        $dateTo = $this->request->getGet('f-to');
+        $where = "1=1";
+        if (!empty($dateFrom))
+            $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
+        if (!empty($dateTo))
+            $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
+        $stats = $db->query("SELECT COUNT(*) as total,
+            SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
+            SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
+            FROM tickets t WHERE $where")->getRowArray();
+        $avgRating = $db->query("SELECT AVG(rating) as r FROM ticket_ratings")->getRow()->r;
+        $data = [
+            'pageTitle' => 'Laporan & Statistik',
+            'activePage' => 'report',
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'stats' => $stats,
+            'avgRating' => $avgRating,
+            'tickets' => $this->getTickets(),
+        ];
+        return view('admin/reports/index', $data);
+    }
+
+    public function excel()
+    {
+        $db = \Config\Database::connect();
+        $dateFrom = $this->request->getGet('f-from');
+        $dateTo = $this->request->getGet('f-to');
+        $where = "1=1";
+        if (!empty($dateFrom))
+            $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
+        if (!empty($dateTo))
+            $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
+        $stats = $db->query("SELECT COUNT(*) as total,
+            SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
+            SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
+            FROM tickets t WHERE $where")->getRowArray();
+        $avgRating = $db->query("SELECT AVG(rating) as r FROM ticket_ratings")->getRow()->r;
+
+        $tickets = $this->getTickets();
+        $filename = "Helpdesk_Laporan_" . date('Ymd_His') . ".xls";
+        header("Content-Type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header("Pragma: no-cache");
+
+        echo '<h3>Ringkasan Laporan</h3>';
+        echo '<table border="1">';
+        echo '<tr><td style="font-weight:bold;">Total Tiket</td><td>' . ($stats['total'] ?? 0) . '</td></tr>';
+        echo '<tr><td style="font-weight:bold;">Tiket Open</td><td>' . ($stats['open_tickets'] ?? 0) . '</td></tr>';
+        echo '<tr><td style="font-weight:bold;">Tiket In Progress</td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>';
+        echo '<tr><td style="font-weight:bold;">Tiket Solved/Closed</td><td>' . ($stats['solved'] ?? 0) . '</td></tr>';
+        echo '<tr><td style="font-weight:bold;">Rata-rata Rating</td><td>' . number_format($avgRating ?? 0, 1) . ' / 5</td></tr>';
+        echo '</table><br/>';
+
+        echo '<h3>Data Tiket</h3>';
+        echo '<table border="1">
+<tr style="background:#1e3a5f;color:white;font-weight:bold">
+  <td>ID Tiket</td><td>Judul</td><td>Prioritas</td><td>Status</td>
+  <td>Pengaju</td><td>Departemen</td><td>Kategori</td><td>Deskripsi</td><td>Link Dokumentasi</td><td>Tanggal Dibuat</td>
+</tr>';
+        if (empty($tickets)) {
+            echo '<tr><td colspan="8">Tidak ada data tiket.</td></tr>';
+        }
+        else {
+            foreach ($tickets as $r) {
+                echo '<tr><td>' . htmlspecialchars($r['id'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['title'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['priority'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['status'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['reporter_name'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['dept_name'] ?? '-') . '</td>
+                      <td>' . htmlspecialchars($r['cat_name'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['description'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['drive_link'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['created_at'] ?? '') . '</td></tr>';
+            }
+        }
+        echo '</table>';
+        exit;
+    }
+
+    public function export()
+    {
+        return $this->excel();
+    }
+
+    public function pdf()
+    {
+        $db = \Config\Database::connect();
+        $dateFromRaw = $this->request->getGet('f-from');
+        $dateToRaw = $this->request->getGet('f-to');
+        $where = "1=1";
+        if (!empty($dateFromRaw))
+            $where .= " AND t.created_at >= " . $db->escape($dateFromRaw . ' 00:00:00');
+        if (!empty($dateToRaw))
+            $where .= " AND t.created_at <= " . $db->escape($dateToRaw . ' 23:59:59');
+        $stats = $db->query("SELECT COUNT(*) as total,
+            SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
+            SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
+            FROM tickets t WHERE $where")->getRowArray();
+        $avgRating = $db->query("SELECT AVG(rating) as r FROM ticket_ratings")->getRow()->r;
+
+        $tickets = $this->getTickets();
+        $dateFrom = $dateFromRaw ?: 'Semua';
+        $dateTo = $dateToRaw ?: 'Semua';
+        $rows = '';
+        foreach ($tickets as $t) {
+            $rows .= '<tr>
+              <td>' . htmlspecialchars($t['id'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['title'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['priority'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['status'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['reporter_name'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['cat_name'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['description'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['drive_link'] ?? '') . '</td>
+              <td>' . date('d/m/Y', strtotime($t['created_at'])) . '</td>
+            </tr>';
+        }
+        if (empty($tickets))
+            $rows = '<tr><td colspan="7" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>body{font-family:DejaVu Sans,Arial,sans-serif;font-size:10px;margin:15px}
+h2{text-align:center;font-size:14px;margin-bottom:5px}.sub{text-align:center;font-size:10px;color:#666;margin-bottom:15px}
+.summary{width:50%;margin-bottom:20px;border-collapse:collapse;} .summary td{padding:4px;border:1px solid #ddd;}
+table{width:100%;border-collapse:collapse}th{background:#1e3a5f;color:white;padding:7px 5px;text-align:left;font-size:10px}
+td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(even) td{background:#f8f9fa}</style>
+</head><body>
+<h2>LAPORAN DATA TIKET</h2>
+<div class="sub">Periode: ' . htmlspecialchars($dateFrom) . ' s/d ' . htmlspecialchars($dateTo) . ' | Dicetak: ' . date('d/m/Y H:i') . '</div>
+<table class="summary">
+    <tr><td><strong>Total Tiket</strong></td><td>' . ($stats['total'] ?? 0) . '</td></tr>
+    <tr><td><strong>Tiket Open</strong></td><td>' . ($stats['open_tickets'] ?? 0) . '</td></tr>
+    <tr><td><strong>Tiket In Progress</strong></td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>
+    <tr><td><strong>Tiket Solved/Closed</strong></td><td>' . ($stats['solved'] ?? 0) . '</td></tr>
+    <tr><td><strong>Rata-rata Rating</strong></td><td>' . number_format($avgRating ?? 0, 1) . ' / 5</td></tr>
+</table>
+<table><tr><th>ID</th><th>Judul</th><th>Prioritas</th><th>Status</th><th>Pengaju</th><th>Kategori</th><th>Deskripsi</th><th>Link Dokumentasi</th><th>Tanggal</th></tr>
+' . $rows . '</table></body></html>';
+        $opts = new Options();
+        $opts->set('isRemoteEnabled', true);
+        $opts->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($opts);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+        $dompdf->stream("Helpdesk_Tiket_" . date('Ymd_His') . ".pdf", ['Attachment' => 1]);
+        exit;
+    }
+
+    public function printReport()
+    {
+        $data = [
+            'tickets' => $this->getTickets(),
+            'dateFrom' => $this->request->getGet('f-from') ?: 'Semua',
+            'dateTo' => $this->request->getGet('f-to') ?: 'Semua',
+        ];
+        return view('admin/reports/print_report', $data);
+    }
+
+    public function updateLink($id)
+    {
+        $db = \Config\Database::connect();
+        $link = $this->request->getPost('drive_link');
+        $db->table('tickets')->where('id', $id)->update(['drive_link' => $link]);
+        return redirect()->back()->with('success', 'Link Dokumentasi berhasil diperbarui.');
+    }
+}
+EOF
+
+cat << 'EOF' > /var/www/html/app/Config/Routes.php
+<?php
+
+use CodeIgniter\Router\RouteCollection;
+
+/**
+ * @var RouteCollection $routes
+ */
+$routes->get('/', 'Home::index');
+
+// Auth routes
+$routes->get('login', 'Auth::login');
+$routes->post('login', 'Auth::attemptLogin');
+$routes->post('login/authenticate', 'Auth::attemptLogin');
+$routes->get('register', 'Auth::register');
+$routes->post('register', 'Auth::attemptRegister');
+$routes->post('register/save', 'Auth::attemptRegister');
+$routes->get('logout', 'Auth::logout');
+
+// Dashboard & Profile
+$routes->group('', ['filter' => 'auth'], function ($routes) {
+    $routes->get('dashboard', 'Dashboard::index');
+    $routes->get('profile', 'Profile::index');
+    $routes->post('profile/update', 'Profile::update');
+    $routes->post('profile/change-password', 'Profile::changePassword');
+
+    // Notifications
+    $routes->get('notifications', 'Notifications::index');
+    $routes->get('notifications/all', 'Notifications::allNotifications');
+    $routes->get('notifications/read/(:num)', 'Notifications::markRead/$1');
+    $routes->get('notifications/unread-count', 'Notifications::getUnreadCount');
+    $routes->post('notifications/read-all', 'Notifications::markRead');
+
+    // Ticket routes
+    $routes->group('tickets', function ($routes) {
+            $routes->get('/', 'Tickets::index');
+            $routes->get('create', 'Tickets::create');
+            $routes->post('store', 'Tickets::store');
+            $routes->get('detail/(:segment)', 'Tickets::detail/$1');
+            $routes->get('view/(:segment)', 'Tickets::detail/$1');
+            $routes->post('reply/(:segment)', 'Tickets::reply/$1');
+            $routes->post('update-status/(:segment)', 'Tickets::updateStatus/$1');
+            $routes->post('assign/(:segment)', 'Tickets::assign/$1');
+            $routes->post('rate/(:segment)', 'Tickets::rate/$1');
+            $routes->get('export', 'Tickets::export');
+        }
+        );
+    });
+
+// Admin routes
+$routes->group('admin', ['filter' => 'admin'], function ($routes) {
+    $routes->get('users', 'Admin\Users::index');
+    $routes->post('users/save', 'Admin\Users::save');
+    $routes->post('users/delete', 'Admin\Users::delete');
+    $routes->post('users/toggle_status', 'Admin\Users::toggleStatus');
+
+    $routes->get('departments', 'Admin\Departments::index');
+    $routes->post('departments/save', 'Admin\Departments::save');
+    $routes->post('departments/delete', 'Admin\Departments::delete');
+    $routes->post('departments/toggle_status', 'Admin\Departments::toggleStatus');
+
+    $routes->get('categories', 'Admin\Categories::index');
+    $routes->post('categories/save', 'Admin\Categories::save');
+    $routes->post('categories/delete', 'Admin\Categories::delete');
+    $routes->post('categories/toggle_status', 'Admin\Categories::toggleStatus');
+
+    $routes->get('roles', 'Admin\Roles::index');
+    $routes->post('roles/save', 'Admin\Roles::save');
+    $routes->post('roles/delete', 'Admin\Roles::delete');
+
+    $routes->get('audit-logs', 'Admin\AuditLogs::index');
+});
+
+// Admin & Staff (Operator) routes
+$routes->group('admin', ['filter' => 'staff'], function ($routes) {
+    $routes->get('reports', 'Admin\Reports::index');
+    $routes->get('reports/export', 'Admin\Reports::export');
+    $routes->get('reports/excel', 'Admin\Reports::export');
+    $routes->get('reports/pdf', 'Admin\Reports::pdf');
+    $routes->get('reports/print', 'Admin\Reports::printReport');
+    $routes->get('reports/printReport', 'Admin\Reports::printReport');
+    $routes->post('reports/update-link/(:segment)', 'Admin\Reports::updateLink/$1');
+});
+
+EOF
+

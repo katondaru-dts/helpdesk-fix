@@ -1,0 +1,56 @@
+services:
+  # PHP Application (FPM)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: helpdesk-app
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_NAME: helpdesk_v2
+      DB_USER: root
+      DB_PASS: root_password
+    volumes:
+      - .:/var/www/html
+
+  # Database (MySQL/MariaDB)
+  db:
+    image: mariadb:latest
+    container_name: helpdesk-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: helpdesk_v2
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/mysql
+
+  # Web Server (Nginx)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: helpdesk-web
+    ports:
+      - "8085:80"
+    depends_on:
+      - app
+    volumes:
+      - .:/var/www/html
+
+  # Database Management (Optional but helpful)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: helpdesk-phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      ARBITRARY: 1
+
+volumes:
+  db_data:

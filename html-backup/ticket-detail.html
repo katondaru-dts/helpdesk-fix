@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Detail Tiket — HelpDesk IT v2</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div id="app-wrap"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/tickets.js"></script>
+  <script>
+    const u = initPage('ticket-list', 'Detail Tiket');
+    if (u) {
+      const mc = document.getElementById('main-content');
+      const tid = new URLSearchParams(window.location.search).get('id');
+      if (!tid) { mc.innerHTML = emptyState('bi-exclamation-triangle', 'Tiket tidak ditemukan', 'ID tiket tidak valid.'); }
+      else { renderPage(); }
+
+      function renderPage() {
+        const td = getTicketDetail(tid);
+        if (!td) { mc.innerHTML = emptyState('bi-exclamation-triangle', 'Tiket Tidak Ditemukan', `Tiket dengan ID "${tid}" tidak ditemukan.`); return; }
+
+        const isStaff = u.role_id === 1 || u.role_id === 2;
+        const isAdmin = u.role_id === 1;
+        const isReporter = td.reporter_id === u.id;
+        const canRate = isReporter && ['RESOLVED', 'CLOSED'].includes(td.status) && !td.rating;
+
+        // Status change options
+        const statusOpts = isStaff ? Object.values(STATUS).map(s =>
+          `<option value="${s.v}" ${s.v === td.status ? 'selected' : ''}>${s.label}</option>`).join('') : '';
+
+        // Timeline items
+        const allEvents = [
+          ...td.history.map(h => ({ type: 'status', at: h.changed_at, status: h.status, notes: h.notes, by: getUserById(h.changed_by) })),
+          ...td.messages.map(m => ({ type: 'msg', at: m.sent_at, msg: m.message, by: getUserById(m.sender_id), internal: m.is_internal })),
+        ].sort((a, b) => new Date(a.at) - new Date(b.at));
+
+        const tlHtml = allEvents.map(ev => {
+          if (ev.type === 'status') {
+            const st = STATUS[ev.status] || STATUS.OPEN;
+            return `<div class="tl-item">
+          <div class="tl-dot ${ev.status.toLowerCase().replace('_', '')}"><i class="bi ${st.icon}"></i></div>
+          <div class="tl-body">
+            <div class="tl-header">
+              <span class="tl-author"><i class="bi bi-arrow-repeat"></i> Status → ${st.label}</span>
+              <span class="tl-time">${fmtDateTime(ev.at)}</span>
+            </div>
+            <div class="tl-text text-muted">${ev.notes || '—'} ${ev.by ? `<b>oleh ${ev.by.name}</b>` : ''}</div>
+          </div>
+        </div>`;
+          } else {
+            const init = (ev.by ? ev.by.name : '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+            return `<div class="tl-item">
+          <div class="tl-dot msg"><i class="bi bi-chat-dots"></i></div>
+          <div class="tl-body ${ev.internal ? 'tl-internal' : ''}">
+            <div class="tl-header">
+              <span class="tl-author d-flex ai-center gap-2">
+                <div class="avatar sm">${init}</div> ${ev.by ? ev.by.name : 'Unknown'}
+                ${ev.internal ? '<span style="font-size:10px;background:#FDE047;color:#713F12;padding:1px 6px;border-radius:10px">Internal</span>' : ''}
+              </span>
+              <span class="tl-time">${timeAgo(ev.at)}</span>
+            </div>
+            <div class="tl-text" style="margin-top:6px">${ev.msg.replace(/\n/g, '<br>')}</div>
+          </div>
+        </div>`;
+          }
+        }).join('');
+
+        // Rating section
+        const ratingHtml = td.rating
+          ? `<div class="card"><div class="card-header"><i class="bi bi-star-fill" style="color:#F59E0B"></i><span class="card-title">Rating Kepuasan</span></div>
+         <div class="card-body"><div class="d-flex ai-center gap-2 mb-2">${starsHtml(td.rating.rating)} <b>${td.rating.rating}/5</b></div>
+         ${td.rating.feedback ? `<p class="text-muted text-sm">"${td.rating.feedback}"</p>` : ''}</div></div>`
+          : canRate ? `<div class="card">
+          <div class="card-header"><i class="bi bi-star" style="color:#F59E0B"></i><span class="card-title">Beri Rating Kepuasan</span></div>
+          <div class="card-body">
+            <p class="text-muted text-sm mb-3">Bagaimana kepuasan Anda terhadap penanganan tiket ini?</p>
+            <div class="stars mb-3" id="star-wrap">
+              ${[1, 2, 3, 4, 5].map(i => `<span data-val="${i}" onclick="selectStar(${i})">★</span>`).join('')}
+            </div>
+            <textarea id="rate-fb" class="form-control mb-3" rows="2" placeholder="Komentar (opsional)..."></textarea>
+            <button class="btn btn-primary" onclick="submitRating()"><i class="bi bi-send"></i> Kirim Rating</button>
+          </div>
+        </div>` : '';
+
+        mc.innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-header-title">${td.id}: ${td.title}</div>
+        <div class="page-header-sub">Dibuat ${fmtDateTime(td.created_at)} oleh ${td.reporter ? td.reporter.name : '-'}</div>
+      </div>
+      <a href="ticket-list.html" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Kembali</a>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr 320px;gap:20px">
+      <!-- Left Column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- Deskripsi -->
+        <div class="card">
+          <div class="card-header"><i class="bi bi-file-text" style="color:var(--primary)"></i><span class="card-title">Deskripsi Gangguan</span></div>
+          <div class="card-body">
+            <p style="line-height:1.8;white-space:pre-wrap">${td.description}</p>
+            ${td.location ? `<div class="mt-3 d-flex ai-center gap-2 text-muted text-sm"><i class="bi bi-geo-alt"></i> ${td.location}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-header"><i class="bi bi-clock-history" style="color:var(--primary)"></i><span class="card-title">Riwayat & Percakapan</span></div>
+          <div class="card-body">
+            <div class="timeline">${tlHtml || '<p class="text-muted text-sm">Belum ada aktivitas.</p>'}</div>
+          </div>
+        </div>
+
+        <!-- Reply Form -->
+        ${td.status !== 'CLOSED' ? `
+        <div class="card">
+          <div class="card-header"><i class="bi bi-chat-dots" style="color:var(--primary)"></i><span class="card-title">Tambah Balasan</span></div>
+          <div class="card-body">
+            <textarea id="reply-msg" class="form-control mb-3" rows="4" placeholder="Tulis balasan atau update informasi..."></textarea>
+            ${isStaff ? `<label class="d-flex ai-center gap-2 text-sm text-muted mb-3" style="cursor:pointer">
+              <input type="checkbox" id="internal-chk"> Pesan internal (hanya terlihat Staff)</label>`: ''}
+            <button class="btn btn-primary" onclick="sendReply()"><i class="bi bi-send"></i> Kirim Balasan</button>
+          </div>
+        </div>` : ''}
+
+        ${ratingHtml}
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+                    <!-- Info Card -->
+                    <div class="card">
+                        <div class="card-header"><i class="bi bi-info-circle" style="color:var(--primary)"></i><span class="card-title">Info Tiket</span></div>
+                        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+                            <div><div class="text-xs text-muted mb-1">STATUS</div>${statusBadge(td.status)}</div>
+                            <div><div class="text-xs text-muted mb-1">PRIORITAS</div>${priorityBadge(td.priority)}</div>
+                            <div><div class="text-xs text-muted mb-1">KATEGORI</div><span class="text-sm fw-600">${td.cat ? td.cat.name : '-'}</span></div>
+                            <div><div class="text-xs text-muted mb-1">DEPARTEMEN</div><span class="text-sm">${td.dept ? td.dept.name : '-'}</span></div>
+                            <div><div class="text-xs text-muted mb-1">PELAPOR</div>
+                                <div class="d-flex ai-center gap-2">
+                                    <div class="avatar sm">${(td.reporter ? td.reporter.name : '?').substring(0, 2).toUpperCase()}</div>
+                                    <span class="text-sm">${td.reporter ? td.reporter.name : '-'}</span>
+                                </div>
+                            </div>
+                            <div><div class="text-xs text-muted mb-1">DITANGANI</div>
+                                ${td.assigned ? `<div class="d-flex ai-center gap-2"><div class="avatar sm">${td.assigned.name.substring(0, 2).toUpperCase()}</div><span class="text-sm">${td.assigned.name}</span></div>`
+            : `<span class="text-sm text-muted">Belum diassign</span>`}
+                            </div>
+                            <div><div class="text-xs text-muted mb-1">DIBUAT</div><span class="text-sm">${fmtDateTime(td.created_at)}</span></div>
+                            ${td.closed_at ? `<div><div class="text-xs text-muted mb-1">DITUTUP</div><span class="text-sm">${fmtDateTime(td.closed_at)}</span></div>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Staff Actions -->
+                    ${isStaff ? `
+        <div class="card">
+          <div class="card-header"><i class="bi bi-gear" style="color:var(--primary)"></i><span class="card-title">Aksi Staff</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <label class="form-label">Update Status</label>
+              <select id="new-status" class="form-select mb-2">${statusOpts}</select>
+              <input type="text" id="status-notes" class="form-control mb-2" placeholder="Catatan perubahan status...">
+              <button class="btn btn-primary w100" onclick="changeStatus()"><i class="bi bi-arrow-repeat"></i> Update Status</button>
+            </div>
+            <div class="separator"></div>
+            <div>
+              <label class="form-label">Assign ke IT Support</label>
+              <select id="assign-sel" class="form-select mb-2">
+                <option value="">-- Pilih Support --</option>
+                ${getUsers().filter(u => u.role_id === 2 && u.is_active).map(s => `<option value="${s.id}" ${s.id === td.assigned_to ? 'selected' : ''}>${s.name}</option>`).join('')}
+              </select>
+              <button class="btn btn-outline w100" onclick="changeAssign()"><i class="bi bi-person-plus"></i> Assign / Update</button>
+            </div>
+          </div>
+        </div>` : ''}
+                </div>
+    </div>`;
+
+        // Star rating
+        let selectedRating = 0;
+        window.selectStar = function (val) {
+          selectedRating = val;
+          document.querySelectorAll('#star-wrap span').forEach((s, i) => { s.classList.toggle('on', i < val); });
+        };
+        window.submitRating = function () {
+          if (!selectedRating) { toast('Pilih rating bintang.', 'warning'); return; }
+          const fb = document.getElementById('rate-fb').value;
+          const res = rateTicket(tid, selectedRating, fb);
+          toast(res.msg, res.ok ? 'success' : 'error');
+          if (res.ok) setTimeout(() => renderPage(), 800);
+        };
+        window.sendReply = function () {
+          const msg = document.getElementById('reply-msg').value;
+          const intEl = document.getElementById('internal-chk');
+          const isInt = intEl ? intEl.checked : 0;
+          const res = addMessage(tid, msg, isInt ? 1 : 0);
+          toast(res.msg, res.ok ? 'success' : 'error');
+          if (res.ok) setTimeout(() => renderPage(), 500);
+        };
+        window.changeStatus = function () {
+          const ns = document.getElementById('new-status').value;
+          const nt = document.getElementById('status-notes').value;
+          const res = updateTicketStatus(tid, ns, nt);
+          toast(res.msg, res.ok ? 'success' : 'error');
+          if (res.ok) setTimeout(() => renderPage(), 500);
+        };
+        window.changeAssign = function () {
+          const sel = document.getElementById('assign-sel').value;
+          const res = assignTicket(tid, sel || null);
+          toast(res.msg, res.ok ? 'success' : 'error');
+          if (res.ok) setTimeout(() => renderPage(), 500);
+        };
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Daftar Tiket — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script>
+        const u = initPage('ticket-list', 'Daftar Tiket');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            const isStaff = u.role_id === 1 || u.role_id === 2;
+            const cats = getCats(), depts = getDepts();
+            let currentPage = 1; const perPage = APP.perPage;
+            let filterStatus = '', filterCat = '', filterPriority = '', searchQ = '', filterDept = '';
+
+            const catOpts = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            const deptOpts = depts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+
+            mc.innerHTML = `
+  <div class="page-header">
+    <div>
+      <div class="page-header-title">${isStaff ? 'Semua Tiket' : 'Tiket Saya'}</div>
+      <div class="page-header-sub" id="ticket-count">Memuat...</div>
+    </div>
+    ${!isStaff ? `<a href="ticket-create.html" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Buat Tiket</a>` : ''}
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body" style="padding:14px 20px">
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="search" class="form-control" placeholder="Cari judul atau ID tiket...">
+        </div>
+        <select id="f-status" class="form-select" style="width:150px">
+          <option value="">Semua Status</option>
+          ${Object.values(STATUS).map(s => `<option value="${s.v}">${s.label}</option>`).join('')}
+        </select>
+        <select id="f-priority" class="form-select" style="width:140px">
+          <option value="">Semua Prioritas</option>
+          ${Object.values(PRIORITY).map(p => `<option value="${p.v}">${p.label}</option>`).join('')}
+        </select>
+        <select id="f-cat" class="form-select" style="width:150px">
+          <option value="">Semua Kategori</option>${catOpts}
+        </select>
+        ${isStaff ? `<select id="f-dept" class="form-select" style="width:150px"><option value="">Semua Dept</option>${deptOpts}</select>` : ''}
+        <button class="btn btn-outline" onclick="resetFilters()"><i class="bi bi-x-circle"></i> Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Judul</th><th>Kategori</th>
+            ${isStaff ? '<th>Pelapor</th>' : ''}
+            <th>Prioritas</th><th>Status</th>
+            ${isStaff ? '<th>Ditangani</th>' : ''}
+            <th>Tanggal</th><th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="ticket-tbody"></tbody>
+      </table>
+    </div>
+    <div id="pagination-wrap"></div>
+  </div>`;
+
+            function getFiltered() {
+                let data = getTickets();
+                if (!isStaff) data = data.filter(t => t.reporter_id === u.id);
+                if (searchQ) data = data.filter(t => t.title.toLowerCase().includes(searchQ) || t.id.toLowerCase().includes(searchQ));
+                if (filterStatus) data = data.filter(t => getTicketCurrentStatus(t.id) === filterStatus);
+                if (filterCat) data = data.filter(t => t.cat_id === parseInt(filterCat));
+                if (filterPriority) data = data.filter(t => t.priority === filterPriority);
+                if (filterDept) data = data.filter(t => t.dept_id === parseInt(filterDept));
+                return data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            }
+
+            function render() {
+                const data = getFiltered();
+                const total = data.length;
+                document.getElementById('ticket-count').textContent = `${total} tiket ditemukan`;
+                const page = data.slice((currentPage - 1) * perPage, currentPage * perPage);
+                const tbody = document.getElementById('ticket-tbody');
+
+                if (!page.length) {
+                    tbody.innerHTML = `<tr><td colspan="9">${emptyState('bi-ticket', 'Tidak ada tiket', 'Coba ubah filter pencarian Anda.')}</td></tr>`;
+                } else {
+                    tbody.innerHTML = page.map(t => {
+                        const cat = getCatById(t.cat_id); const st = getTicketCurrentStatus(t.id);
+                        const rep = getUserById(t.reporter_id); const asgn = t.assigned_to ? getUserById(t.assigned_to) : null;
+                        return `<tr onclick="window.location='ticket-detail.html?id=${t.id}'" style="cursor:pointer">
+          <td><span class="fw-600" style="color:var(--primary)">${t.id}</span></td>
+          <td><div class="truncate" style="max-width:200px" title="${t.title}">${t.title}</div></td>
+          <td><span class="text-sm">${cat ? cat.name : '-'}</span></td>
+          ${isStaff ? `<td><span class="text-sm">${rep ? rep.name : '-'}</span></td>` : ''}
+          <td>${priorityBadge(t.priority)}</td>
+          <td>${statusBadge(st)}</td>
+          ${isStaff ? `<td>${asgn ? `<span class="text-sm">${asgn.name}</span>` : '<span class="text-xs text-muted">– Belum –</span>'}</td>` : ''}
+          <td class="text-sm text-muted">${fmtDate(t.created_at)}</td>
+          <td onclick="event.stopPropagation()">
+            <a href="ticket-detail.html?id=${t.id}" class="btn btn-sm btn-outline"><i class="bi bi-eye"></i> Detail</a>
+          </td>
+        </tr>`;
+                    }).join('');
+                }
+
+                renderPagination('pagination-wrap', total, perPage, currentPage, `(pg)=>{currentPage=pg;render()}`);
+            }
+
+            function resetFilters() {
+                document.getElementById('search').value = '';
+                document.getElementById('f-status').value = '';
+                document.getElementById('f-priority').value = '';
+                document.getElementById('f-cat').value = '';
+                const fd = document.getElementById('f-dept'); if (fd) fd.value = '';
+                searchQ = ''; filterStatus = ''; filterCat = ''; filterPriority = ''; filterDept = '';
+                currentPage = 1; render();
+            }
+
+            ['search', 'f-status', 'f-priority', 'f-cat', 'f-dept'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    searchQ = document.getElementById('search').value.toLowerCase();
+                    filterStatus = document.getElementById('f-status').value;
+                    filterPriority = document.getElementById('f-priority').value;
+                    filterCat = document.getElementById('f-cat').value;
+                    const fd = document.getElementById('f-dept'); filterDept = fd ? fd.value : '';
+                    currentPage = 1; render();
+                });
+            });
+
+            render();
+        }
+    </script>
+</body>
+
+</html>

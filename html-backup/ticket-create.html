@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Buat Tiket — HelpDesk IT v2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-wrap"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tickets.js"></script>
+    <script>
+        const u = initPage('ticket-create', 'Buat Tiket Baru');
+        if (u) {
+            const mc = document.getElementById('main-content');
+            const cats = getCats().filter(c => c.is_active);
+            const catOpts = cats.map(c => `<option value="${c.id}">${c.name} (SLA: ${c.sla_hours} jam)</option>`).join('');
+
+            mc.innerHTML = `
+  <div class="page-header">
+    <div>
+      <div class="page-header-title">Buat Tiket Baru</div>
+      <div class="page-header-sub">Laporkan gangguan atau masalah yang Anda hadapi</div>
+    </div>
+    <a href="ticket-list.html" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Kembali</a>
+  </div>
+
+  <div class="grid g2" style="grid-template-columns:1fr 340px">
+    <!-- Form -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-pencil-fill" style="color:var(--primary)"></i><span class="card-title">Informasi Gangguan</span></div>
+      <div class="card-body">
+        <div id="alert-box" style="display:none" class="alert"></div>
+        <form id="ticket-form">
+          <div class="form-group">
+            <label class="form-label">Judul Gangguan <span class="req">*</span></label>
+            <input type="text" id="title" class="form-control" placeholder="Contoh: Printer ruang finance tidak bisa print" required maxlength="200">
+            <div class="form-text">Deskripsi singkat masalah yang Anda hadapi (maks. 200 karakter)</div>
+          </div>
+
+          <div class="input-row c2">
+            <div class="form-group">
+              <label class="form-label">Kategori Gangguan <span class="req">*</span></label>
+              <select id="cat_id" class="form-select" required>
+                <option value="">-- Pilih Kategori --</option>
+                ${catOpts}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prioritas</label>
+              <select id="priority" class="form-select">
+                <option value="LOW">🟢 Low — Tidak mendesak</option>
+                <option value="MEDIUM" selected>🟡 Medium — Normal</option>
+                <option value="HIGH">🔴 High — Mengganggu produktivitas</option>
+                <option value="CRITICAL">🚨 Critical — Menghentikan pekerjaan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Lokasi Gangguan</label>
+            <div class="input-wrap">
+              <i class="bi bi-geo-alt"></i>
+              <input type="text" id="location" class="form-control" placeholder="Contoh: Lantai 2 – Ruang Finance, Meja No. 5">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deskripsi Lengkap <span class="req">*</span></label>
+            <textarea id="description" class="form-control" rows="6"
+              placeholder="Jelaskan masalah secara rinci:
+- Kapan pertama kali terjadi?
+- Apa yang sudah dicoba?
+- Pesan error yang muncul (jika ada)?
+- Dampak terhadap pekerjaan?" required></textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg" id="btn-submit">
+              <i class="bi bi-send-fill"></i> Kirim Laporan
+            </button>
+            <button type="reset" class="btn btn-outline btn-lg">
+              <i class="bi bi-x-circle"></i> Reset
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-clock" style="color:var(--primary)"></i><span class="card-title">Target SLA</span></div>
+        <div class="card-body">
+          ${cats.map(c => `
+          <div class="d-flex ai-center jc-between mb-2">
+            <span class="text-sm">${c.name}</span>
+            <span style="font-size:11px;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:10px;font-weight:600">${c.sla_hours}j</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><i class="bi bi-lightbulb" style="color:#D97706"></i><span class="card-title">Tips Pelaporan</span></div>
+        <div class="card-body">
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+            ${[
+                    ['bi-check-circle', 'Pilih kategori yang tepat agar tiket ditangani lebih cepat.'],
+                    ['bi-camera', 'Lampirkan screenshot jika ada pesan error.'],
+                    ['bi-geo-alt', 'Cantumkan lokasi fisik perangkat yang bermasalah.'],
+                    ['bi-exclamation-triangle', 'Gunakan prioritas Critical hanya untuk gangguan yang benar-benar menghentikan pekerjaan.'],
+                ].map(([ic, t]) => `<li class="d-flex gap-2"><i class="bi ${ic}" style="color:var(--primary);font-size:14px;flex-shrink:0;margin-top:2px"></i><span class="text-sm text-muted">${t}</span></li>`).join('')}
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><i class="bi bi-person-circle" style="color:var(--primary)"></i><span class="card-title">Info Pelapor</span></div>
+        <div class="card-body">
+          <div class="text-sm mb-2"><b>Nama:</b> ${u.name}</div>
+          <div class="text-sm mb-2"><b>Email:</b> ${u.email}</div>
+          <div class="text-sm mb-2"><b>Departemen:</b> ${u.dept_name}</div>
+          <div class="text-sm"><b>Role:</b> ${u.role_name}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+            document.getElementById('ticket-form').onsubmit = function (e) {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit');
+                btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Mengirim...';
+                const res = createTicket({
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    cat_id: document.getElementById('cat_id').value,
+                    priority: document.getElementById('priority').value,
+                    location: document.getElementById('location').value,
+                });
+                if (res.ok) {
+                    toast(res.msg + ' ID: ' + res.id, 'success', 4000);
+                    setTimeout(() => window.location.href = 'ticket-detail.html?id=' + res.id, 1000);
+                } else {
+                    const ab = document.getElementById('alert-box');
+                    ab.className = 'alert alert-danger'; ab.style.display = 'flex';
+                    ab.innerHTML = `<i class="bi bi-x-circle-fill"></i> ${res.msg}`;
+                    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send-fill"></i> Kirim Laporan';
+                }
+            };
+        }
+    </script>
+</body>
+
+</html>
