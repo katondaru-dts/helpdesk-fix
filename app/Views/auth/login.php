@@ -52,8 +52,8 @@
         }
         .logo-wrapper {
             position: relative;
-            width: 160px;
-            height: 160px;
+            width: 130px;
+            height: 130px;
             margin: -76px auto 20px;
             border-radius: 50%;
             background: linear-gradient(145deg, rgba(200,215,240,0.3), rgba(150,175,210,0.2));
@@ -64,8 +64,8 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.25);
         }
         .logo-wrapper img {
-            width: 160px;
-            height: 160px;
+            width: 100px;
+            height: 100px;
             border-radius: 12px;
             object-fit: cover;
         }
@@ -275,6 +275,7 @@
     </svg>
 </body>
 </html>
+
 
 
 
