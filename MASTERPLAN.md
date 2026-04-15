@@ -115,8 +115,8 @@ helpdesk-v2/
 | `roles` | Data role (code, name, permissions JSON) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
-| `tickets` | Data tiket (id, title, description, drive_link, status, priority, reporter_id, assigned_to, cat_id) |
-| `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at) |
+| `tickets` | Data tiket (id, title, description, drive_link, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
+| `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
 | `ticket_replies` | Balasan/komentar pada tiket |
 | `ticket_ratings` | Rating kepuasan dari user (1-5 bintang) - Mencatat `rated_by` dan `rated_at` |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
@@ -206,9 +206,18 @@ helpdesk-v2/
 - [x] Assign tiket ke staf IT Support
 - [x] Rating tiket setelah selesai (1-5 bintang) - Perbaikan bug mismatch schema (rated_by & rated_at)
 - [x] **Export tiket ke CSV/Excel** — Menyertakan deskripsi dan Link Dokumentasi.
-- [x] **Pembersihan Demo Login** — Menghilangkan kotak demo pada halaman login untuk keamanan.
-- [x] **Hapus Tiket** — Kemampuan Administrator (role `1`) untuk menghapus tiket duplikat secara permanen (termasuk riwayat, pesan, dan rating).
-- [x] **Perbaikan Tampilan Riwayat & Balasan** — Memperbaiki bug pada halaman detail tiket di mana riwayat dan balasan tidak muncul karena view menggunakan variabel `$history` (data mentah) alih-alih `$timeline` (gabungan riwayat status + balasan pesan yang sudah diurutkan). Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual.
+- [x] **Perbaikan Tampilan Riwayat & Balasan** — Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual.
+
+### ⏳ SLA (Service Level Agreement) & Timer
+- [x] **Real-time Countdown Timer** — Hitung mundur sisa waktu pengerjaan di daftar tiket dan detail tiket.
+- [x] **Konfigurasi Durasi Dinamis**:
+    - **URGENT**: 2 Jam
+    - **HIGH**: 5 Jam
+    - **MEDIUM**: 12 Jam
+    - **LOW**: 24 Jam
+- [x] **Pause & Resume SLA** — Timer otomatis berhenti (Paused) saat tiket berstatus **PENDING** dan berlanjut (dengan penyesuaian deadline) saat kembali ke status aktif.
+- [x] **Indikator Visual** — Warna dinamis: Hijau (Aman), Oranye (< 2 jam), Merah (Overdue).
+- [x] **SLA Overdue Monitoring** — CLI Command (`php spark cron:check-sla`) untuk pengecekan tiket yang melewati batas waktu.
 
 ### 👤 Profil Pengguna
 - [x] Lihat dan edit data profil (nama, email, telepon, jenis kelamin, departemen)
@@ -273,7 +282,9 @@ helpdesk-v2/
 - **Icon**: Bootstrap Icons v1.11
 - **Layout**: Sidebar kiri (dark) + Konten utama (light)
 - **Komponen**: Stat cards, badge status, modal dialog, tabel responsif
-- **Halaman Login**: Desain premium dengan background dark blue gradient, glassmorphism card (frosted glass), icon logo dalam lingkaran, geometric SVG pattern, dan animasi sparkle dekoratif
+- **Halaman Login**: Desain premium dengan background dark blue gradient, glassmorphism card (frosted glass), logo aplikasi dalam lingkaran, geometric SVG pattern, dan animasi sparkle dekoratif
+- **Sidebar Branding**: Menggunakan logo resmi aplikasi menggantikan ikon generik untuk memperkuat identitas visual.
+- **Favicon**: Dukungan favicon SVG dan ICO di seluruh halaman aplikasi.
 - **Warna Status Tiket**:
   - OPEN → Merah
   - IN_PROGRESS → Kuning/Oranye
@@ -404,4 +415,26 @@ flowchart TD
 
 ---
 
-*Terakhir diperbarui: 10 April 2026 | Versi: 2.6.3 (Tambah badge notifikasi di browser tab title dan ikon bell dengan badge di topbar)*
+## 🚀 Roadmap Pengembangan (Enterprise Features)
+
+Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpdesk v2 menjadi standar *Enterprise*:
+
+1. **Integrasi SSO (Single Sign-On) via Google Workspace**
+   - Login terpusat menggunakan ekosistem email kampus (`@unmer.ac.id`).
+   - Pencocokan akun secara aman tanpa menimpa *Role* atau kehilangan riwayat tiket lama.
+2. **Email-to-Ticket (Omnichannel)**
+   - Konversi email masuk ke kotak pengaduan menjadi tiket baru di aplikasi secara otomatis (menggunakan API/Cron Job).
+   - Mendukung balasan *threading* langsung dari antarmuka email.
+3. **SLA (Service Level Agreement) & Auto-Escalation**
+   - Penentuan batas waktu maksimal pengerjaan/respons berdasarkan prioritas tiket.
+   - Eskalasi otomatis ke kepala bagian jika SLA dilanggar.
+4. **Knowledge Base (Self-Service Pusat Bantuan)**
+   - Basis data FAQ yang direkomendasikan secara cerdas kepada User saat akan melapor, bertujuan mengurangi duplikasi pelaporan yang sama (contoh: cara reset password).
+5. **Asset & Inventory Management** *(Menunggu kesiapan infrastruktur internal)*
+   - Mengaitkan laporan kerusakan tiket secara langsung dengan kode Inventaris Hardware yang bermasalah.
+6. **Routing & Workflow Automation**
+   - Aturan pelimpahan tugas bersyarat, seperti otomatis `Assign` staf ahli Jaringan jika kategori yang dilaporkan adalah koneksi Internet.
+
+---
+
+*Terakhir diperbarui: 15 April 2026 | Versi: 2.7.4 (Penyempurnaan ukuran logo login dan pemulihan favicon asli)*

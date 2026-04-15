@@ -128,6 +128,21 @@
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">PELAPOR</div><div style="font-size:14px"><?= esc($ticket['reporter_name']) ?></div></div>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DITANGANI</div><div style="font-size:14px"><?= esc($ticket['assigned_name'] ?: 'Belum diassign') ?></div></div>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DIBUAT</div><div style="font-size:14px"><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></div></div>
+                
+                <?php if ($ticket['sla_deadline'] && !in_array($ticket['status'], ['RESOLVED', 'CLOSED'])): ?>
+                    <div style="margin-top:5px; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+                        <div style="font-size:10px;color:#9ca3af;margin-bottom:5px;font-weight:bold;text-align:center">SISA WAKTU (SLA)</div>
+                        <?php if ($ticket['status'] === 'PENDING'): ?>
+                            <div style="font-size:18px; font-weight:700; text-align:center; color:#f59e0b">
+                                <i class="bi bi-pause-fill"></i> PAUSED
+                            </div>
+                        <?php else: ?>
+                            <div class="sla-timer" data-deadline="<?= date('c', strtotime($ticket['sla_deadline'])) ?>" style="font-size:18px; font-weight:700; text-align:center; color:var(--primary)">
+                                Menghitung...
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -168,4 +183,42 @@
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateTimers() {
+        const now = new Date().getTime();
+        const timers = document.querySelectorAll('.sla-timer');
+        
+        timers.forEach(el => {
+            const deadlineStr = el.getAttribute('data-deadline');
+            if (!deadlineStr) return;
+
+            const deadline = new Date(deadlineStr).getTime();
+            if (isNaN(deadline)) return;
+
+            const diff = deadline - now;
+
+            if (diff <= 0) {
+                el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Overdue';
+                el.style.color = '#ef4444';
+            } else {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                el.innerHTML = hours + 'j ' + minutes + 'm ' + seconds + 's';
+                
+                if (hours < 2) {
+                    el.style.color = '#f97316';
+                } else {
+                    el.style.color = '#22c55e';
+                }
+            }
+        });
+    }
+    updateTimers();
+    setInterval(updateTimers, 1000);
+});
+</script>
 <?= $this->endSection() ?>

@@ -13,7 +13,7 @@
 <div class="app-wrapper">
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-headset"></i>
+            <img src="<?= base_url('images/logo.png') ?>" alt="Logo" style="width: 42px; height: 42px; border-radius: 6px; object-fit: cover; margin-right: 8px;">
             <span>Helpdesk Pusim</span>
         </div>
         <nav class="sidebar-nav">
@@ -114,3 +114,8 @@
 
 </body>
 </html>
+
+
+
+
+

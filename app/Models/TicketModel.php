@@ -12,7 +12,7 @@ class TicketModel extends Model
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'assigned_to', 'dept_id', 'location', 'status', 'drive_link', 'created_at', 'updated_at', 'closed_at'];
+    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'created_at', 'updated_at', 'closed_at'];
 
     // Dates
     protected $useTimestamps = true;
@@ -110,5 +110,19 @@ class TicketModel extends Model
         }
         return 'HD0001';
     }
-}
 
+    public function calculateSlaDeadline($priority, $createdAt = null)
+    {
+        $start = $createdAt ? strtotime($createdAt) : time();
+
+        $durations = [
+            'URGENT' => 2 * 3600, // 2 Jam
+            'HIGH' => 5 * 3600, // 5 Jam
+            'MEDIUM' => 12 * 3600, // 12 Jam
+            'LOW' => 24 * 3600, // 24 Jam
+        ];
+
+        $duration = $durations[$priority] ?? $durations['MEDIUM'];
+        return date('Y-m-d H:i:s', $start + $duration);
+    }
+}

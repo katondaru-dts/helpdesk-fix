@@ -291,7 +291,25 @@ class Tickets extends BaseController
             $db->transStart();
 
             $ticket = $ticketModel->find($id);
-            $ticketModel->update($id, ['status' => $newStatus]);
+            $updateData = ['status' => $newStatus];
+
+            // Pause SLA Logic
+            if ($newStatus === 'PENDING' && $ticket['status'] !== 'PENDING') {
+                // Berhenti: Simpan waktu mulai pause
+                $updateData['sla_paused_at'] = date('Y-m-d H:i:s');
+            }
+            elseif ($ticket['status'] === 'PENDING' && $newStatus !== 'PENDING') {
+                // Jalan lagi: Geser deadline berdasarkan durasi pause
+                if (isset($ticket['sla_paused_at']) && $ticket['sla_paused_at'] && isset($ticket['sla_deadline']) && $ticket['sla_deadline']) {
+                    $pauseTime = time() - strtotime($ticket['sla_paused_at']);
+                    $newDeadline = date('Y-m-d H:i:s', strtotime($ticket['sla_deadline']) + $pauseTime);
+                    $updateData['sla_deadline'] = $newDeadline;
+                    $updateData['sla_paused_at'] = null;
+                }
+            }
+
+            $ticketModel->update($id, $updateData);
+
             $historyModel->insert([
                 'ticket_id' => $id,
                 'status' => $newStatus,
@@ -439,17 +457,21 @@ class Tickets extends BaseController
 
         $ticketTitle = $this->request->getPost('title');
 
+        $priority = $this->request->getPost('priority') ?: 'MEDIUM';
+        $slaDeadline = $ticketModel->calculateSlaDeadline($priority);
+
         $ticketModel->insert([
             'id' => $newId,
             'title' => $ticketTitle,
             'description' => $this->request->getPost('description'),
             'cat_id' => $this->request->getPost('cat_id'),
-            'priority' => $this->request->getPost('priority') ?: 'MEDIUM',
+            'priority' => $priority,
             'reporter_id' => $session->get('id'),
             'dept_id' => $session->get('dept_id'),
             'location' => $this->request->getPost('location'),
             'drive_link' => $this->request->getPost('drive_link'),
-            'status' => 'OPEN'
+            'status' => 'OPEN',
+            'sla_deadline' => $slaDeadline
         ]);
 
         $historyModel->insert([
@@ -535,4 +557,3 @@ class Tickets extends BaseController
         return redirect()->to('/tickets')->with('success', 'Tiket berhasil dihapus.');
     }
 }
-

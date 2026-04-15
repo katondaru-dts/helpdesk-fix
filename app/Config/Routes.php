@@ -15,6 +15,8 @@ $routes->get('register', 'Auth::register');
 $routes->post('register', 'Auth::attemptRegister');
 $routes->post('register/save', 'Auth::attemptRegister');
 $routes->get('logout', 'Auth::logout');
+$routes->get('auth/google', 'Auth::googleLogin');
+$routes->get('auth/googleCallback', 'Auth::googleCallback');
 
 // Dashboard & Profile
 $routes->group('', ['filter' => 'auth'], function ($routes) {
@@ -82,4 +84,3 @@ $routes->group('admin', ['filter' => 'staff'], function ($routes) {
     $routes->get('reports/printReport', 'Admin\Reports::printReport');
     $routes->post('reports/update-link/(:segment)', 'Admin\Reports::updateLink/$1');
 });
-

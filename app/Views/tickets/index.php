@@ -83,6 +83,7 @@ function exportTickets() {
                     <?php if ($isStaff): ?><th>Pelapor</th><?php endif; ?>
                     <th>Prioritas</th>
                     <th>Status</th>
+                    <th>SLA</th>
                     <?php if ($isStaff): ?><th>Ditangani</th><?php endif; ?>
                     <th>Tanggal</th>
                     <th>Aksi</th>
@@ -98,6 +99,17 @@ function exportTickets() {
                             <?php if ($isStaff): ?><td><span class="text-sm"><?= esc($t['reporter_name']) ?></span></td><?php endif; ?>
                             <td><span class="badge"><?= $t['priority'] ?></span></td>
                             <td><span class="badge"><?= $t['status'] ?></span></td>
+                            <td>
+                                <?php if (in_array($t['status'], ['RESOLVED', 'CLOSED'])): ?>
+                                    <span class="text-sm text-muted">Selesai</span>
+                                <?php elseif ($t['status'] === 'PENDING'): ?>
+                                    <span class="badge" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b"><i class="bi bi-pause-fill"></i> Paused</span>
+                                <?php elseif ($t['sla_deadline']): ?>
+                                    <span class="sla-timer badge" data-deadline="<?= date('c', strtotime($t['sla_deadline'])) ?>">Menghitung...</span>
+                                <?php else: ?>
+                                    <span class="text-muted">&mdash;</span>
+                                <?php endif; ?>
+                            </td>
                             <?php if ($isStaff): ?><td><span class="text-sm"><?= $t['assigned_name'] ?: '<span class="text-muted">&mdash;</span>' ?></span></td><?php endif; ?>
                             <td class="text-sm text-muted"><?= date('d/m/y', strtotime($t['created_at'])) ?></td>
                             <td onclick="event.stopPropagation()" style="display:flex; gap:5px; align-items:center;">
@@ -111,7 +123,7 @@ function exportTickets() {
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="9" class="text-center p-4 text-muted">Tidak ada tiket yang ditemukan.</td></tr>
+                    <tr><td colspan="10" class="text-center p-4 text-muted">Tidak ada tiket yang ditemukan.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -121,6 +133,46 @@ function exportTickets() {
         <?= $pager->links() ?>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateTimers() {
+        const now = new Date().getTime();
+        document.querySelectorAll('.sla-timer').forEach(el => {
+            const deadlineStr = el.getAttribute('data-deadline');
+            if (!deadlineStr) return;
+
+            const deadline = new Date(deadlineStr).getTime();
+            if (isNaN(deadline)) return;
+
+            const diff = deadline - now;
+
+            if (diff <= 0) {
+                el.innerHTML = '<i class="bi bi-clock-history"></i> Overdue';
+                el.style.backgroundColor = '#fee2e2';
+                el.style.color = '#ef4444';
+                el.style.border = '1px solid #ef4444';
+            } else {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                el.innerHTML = hours + 'j ' + minutes + 'm ' + seconds + 's';
+                
+                if (hours < 2) {
+                    el.style.backgroundColor = '#fff7ed';
+                    el.style.color = '#f97316';
+                    el.style.border = '1px solid #f97316';
+                } else {
+                    el.style.backgroundColor = '#f0fdf4';
+                    el.style.color = '#22c55e';
+                    el.style.border = '1px solid #22c55e';
+                }
+            }
+        });
+    }
+    updateTimers();
+    setInterval(updateTimers, 1000);
+});
+</script>
 <?= $this->endSection() ?>
-
-
