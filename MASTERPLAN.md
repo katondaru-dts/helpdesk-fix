@@ -437,4 +437,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 
 ---
 
-*Terakhir diperbarui: 15 April 2026 | Versi: 2.7.5 (Opimasi ukuran logo login agar lebih proporsional)*
+*Terakhir diperbarui: 15 April 2026 | Versi: 2.7.6 (Fine-tuning ukuran logo login agar lebih compact)*
