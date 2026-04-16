@@ -9,20 +9,24 @@
     <a href="<?= base_url('tickets/create') ?>" class="btn btn-primary btn-lg"><i class="bi bi-plus-circle"></i> Buat Tiket Baru</a>
 </div>
 
-<div class="grid g4 mb-4">
+<div class="grid mb-4" style="grid-template-columns: repeat(5, 1fr);">
     <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>'" style="cursor:pointer">
         <div class="stat-icon si-blue"><i class="bi bi-ticket-detailed"></i></div>
         <div><div class="stat-val"><?= $stats['total']; ?></div><div class="stat-lbl">Total Tiket</div></div>
     </div>
-    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>'" style="cursor:pointer">
+    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>?f-status=OPEN'" style="cursor:pointer">
         <div class="stat-icon si-red"><i class="bi bi-circle"></i></div>
         <div><div class="stat-val"><?= $stats['open']; ?></div><div class="stat-lbl">Open</div></div>
     </div>
-    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>'" style="cursor:pointer">
+    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>?f-status=IN_PROGRESS'" style="cursor:pointer">
         <div class="stat-icon si-orange"><i class="bi bi-arrow-repeat"></i></div>
         <div><div class="stat-val"><?= $stats['inProgress']; ?></div><div class="stat-lbl">In Progress</div></div>
     </div>
-    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>'" style="cursor:pointer">
+    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>?f-status=PENDING'" style="cursor:pointer">
+        <div class="stat-icon si-gray"><i class="bi bi-pause-circle"></i></div>
+        <div><div class="stat-val"><?= $stats['pending']; ?></div><div class="stat-lbl">Pending</div></div>
+    </div>
+    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>?f-status=RESOLVED'" style="cursor:pointer">
         <div class="stat-icon si-green"><i class="bi bi-check-circle"></i></div>
         <div><div class="stat-val"><?= $stats['resolved']; ?></div><div class="stat-lbl">Selesai</div></div>
     </div>

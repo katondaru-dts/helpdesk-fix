@@ -62,6 +62,7 @@ class Dashboard extends BaseController
                 'total' => $ticketModel->where('reporter_id', $userId)->countAllResults(),
                 'open' => $ticketModel->where('reporter_id', $userId)->where('status', 'OPEN')->countAllResults(),
                 'inProgress' => $ticketModel->where('reporter_id', $userId)->where('status', 'IN_PROGRESS')->countAllResults(),
+                'pending' => $ticketModel->where('reporter_id', $userId)->where('status', 'PENDING')->countAllResults(),
                 'resolved' => $ticketModel->where('reporter_id', $userId)->whereIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
             ];
 
@@ -75,4 +76,3 @@ class Dashboard extends BaseController
         }
     }
 }
-

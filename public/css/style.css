@@ -409,6 +409,11 @@ a {
     color: #0891B2
 }
 
+.si-gray {
+    background: #F1F5F9;
+    color: #475569
+}
+
 .stat-val {
     font-size: 28px;
     font-weight: 700;

@@ -189,11 +189,11 @@ helpdesk-v2/
 - [x] Halaman error 429 (Too Many Requests)
 
 ### 📊 Dashboard
-- [x] **Dashboard Admin** — 10 stat cards (Total, Open, In Progress, Selesai, User Aktif, Belum Diassign, Urgent, Laporan, Audit, Avg Rating) tersusun responsif 5 kolom.
+- [x] **Dashboard Admin** — 11 stat cards (Total, Open, In Progress, Pending, Selesai, User Aktif, Belum Diassign, Urgent, Laporan, Audit, Avg Rating) tersusun responsif.
 - [x] Panel Tiket Urgent / High Priority
 - [x] Panel Tiket Belum Diassign
 - [x] Tombol aksi: Laporan & Semua Tiket
-- [x] **Dashboard User** — 4 stat cards (tiket milik sendiri) + tabel Tiket Terbaru
+- [x] **Dashboard User** — 5 stat cards (tiket milik sendiri) + tabel Tiket Terbaru
 - [x] **Perbaikan UI/UX** — Perbaikan konflik class CSS agar sidebar tidak menimpa konten utama (overlapping layout).
 
 ### 🎫 Manajemen Tiket

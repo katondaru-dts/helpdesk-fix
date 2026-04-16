@@ -42,6 +42,14 @@
         </div>
     </div>
 
+    <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>?f-status=PENDING'" style="cursor:pointer; padding:14px 12px; gap:10px;">
+        <div class="stat-icon si-gray" style="width:38px;height:38px;font-size:17px;flex-shrink:0;"><i class="bi bi-pause-circle"></i></div>
+        <div style="min-width:0;">
+            <div class="stat-val" style="font-size:20px;"><?= $stats['pending'] ?></div>
+            <div class="stat-lbl">Pending</div>
+        </div>
+    </div>
+
     <div class="stat-card" onclick="window.location='<?= base_url('tickets') ?>?f-status=RESOLVED'" style="cursor:pointer; padding:14px 12px; gap:10px;">
         <div class="stat-icon si-green" style="width:38px;height:38px;font-size:17px;flex-shrink:0;"><i class="bi bi-check-circle"></i></div>
         <div style="min-width:0;">
