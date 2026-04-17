@@ -75,8 +75,17 @@
                         <span style="position:absolute;top:-6px;right:-8px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;"><?= $unreadNotifications > 99 ? '99+' : $unreadNotifications ?></span>
                     <?php endif; ?>
                 </a>
-                <span style="font-size:13px;color:var(--gray-600);"><?= session()->get('name') ?></span>
-                <span style="font-size:12px;color:var(--gray-400);"><?= session()->get('role_name') ?></span>
+
+                <!-- Dropdown Profil Sederhana -->
+                <div class="user-dropdown">
+                    <div class="user-info-trigger">
+                        <span style="font-size:13px; font-weight:600; color:var(--gray-700);"><?= session()->get('name') ?></span>
+                        <i class="bi bi-chevron-down" style="font-size:12px; color:var(--gray-400);"></i>
+                    </div>
+                    <div class="dropdown-content" style="min-width: 120px;">
+                        <a href="<?= base_url('logout') ?>" style="color: #ef4444;"><i class="bi bi-box-arrow-right"></i> Keluar</a>
+                    </div>
+                </div>
             </div>
         </header>
 

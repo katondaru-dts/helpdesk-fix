@@ -155,7 +155,12 @@
                         <?= csrf_field() ?>
                         <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:bold">Update Status</label>
                         <select name="new_status" class="form-select mb-2" style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:10px">
-                            <?php foreach(['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'] as $st): ?>
+                            <?php 
+                            $statuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'];
+                            foreach($statuses as $st): 
+                                // Jika role teknisi (2), jangan tampilkan CLOSED
+                                if (session()->get('role_id') == 2 && $st === 'CLOSED') continue;
+                            ?>
                                 <option value="<?= $st ?>" <?= $ticket['status'] == $st ? 'selected' : '' ?>><?= $st ?></option>
                             <?php endforeach; ?>
                         </select>

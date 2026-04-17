@@ -190,6 +190,9 @@ helpdesk-v2/
 
 ### 📊 Dashboard
 - [x] **Dashboard Admin** — 11 stat cards (Total, Open, In Progress, Pending, Selesai, User Aktif, Belum Diassign, Urgent, Laporan, Audit, Avg Rating) tersusun responsif.
+- [x] **Filter Kinerja Tim** — Pilihan rentang waktu dinamis (Hari Ini, Kemarin, Minggu Ini, Bulan Ini) untuk memantau produktivitas teknisi.
+- [x] **Analisis Tren 3-Hari** — Saat memfilter "Hari Ini" atau "Kemarin", grafik garis otomatis menampilkan tren 3 hari ke belakang agar visualisasi data tidak terputus dan lebih informatif.
+- [x] **Legenda Statistik Dinamis** — Penambahan teks keterangan info di bawah grafik untuk menjelaskan arti angka (Jumlah tiket selesai per teknisi dan rata-rata jam penanganan per kategori).
 - [x] Panel Tiket Urgent / High Priority
 - [x] Panel Tiket Belum Diassign
 - [x] Tombol aksi: Laporan & Semua Tiket
@@ -233,6 +236,7 @@ helpdesk-v2/
 - [x] **Auto-Mark Read** — Notifikasi otomatis ditandai sebagai terbaca setelah halaman Notifikasi dibuka.
 - [x] **Notification Badge (Browser Tab)** — Judul tab browser menampilkan angka notifikasi belum dibaca dengan format `(N) Nama Halaman`, memudahkan pengguna memantau notifikasi meskipun tab tidak aktif.
 - [x] **Notification Bell (Topbar)** — Ikon bell ditambahkan di pojok kanan atas topbar. Berubah menjadi kuning (`bi-bell-fill`) dengan badge merah saat ada notifikasi belum dibaca. Mendukung tampilan `99+` untuk lebih dari 99 notifikasi.
+- [x] **Simplified User Dropdown** — Nama akun di Topbar kini memiliki menu dropdown minimalis yang memunculkan opsi "Keluar" saat kursor diarahkan (*hover*), memberikan akses cepat untuk logout dengan tampilan bersih.
 
 ### 🛠️ Administrasi (Superadmin Only)
 
@@ -437,4 +441,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 
 ---
 
-*Terakhir diperbarui: 15 April 2026 | Versi: 2.7.6 (Fine-tuning ukuran logo login agar lebih compact)*
+*Terakhir diperbarui: 17 April 2026 | Versi: 2.8.0 (Dashboard Performance Filters & Simplified Logout Dropdown)*
