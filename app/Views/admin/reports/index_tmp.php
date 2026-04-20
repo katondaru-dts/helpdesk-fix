@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <style>
     @media print {
-        .no-print {  }
+        .no-print { display: none !important; }
         .main-wrapper { margin-left: 0; }
         .main-content { padding: 0; }
         body { background: white; }
@@ -49,12 +49,12 @@
     .sta-PENDING    { background: #ede9fe; color: #5b21b6; }
     .sta-RESOLVED   { background: #d1fae5; color: #065f46; }
     .sta-CLOSED     { background: #f1f5f9; color: #475569; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-cetak' : 'btn-cetak-hidden'; ?> { display: none !important;   padding: 8px 16px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-cetak' : 'btn-cetak-hidden'; ?>:hover { background: #f1f5f9; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-excel' : 'btn-excel-hidden'; ?> { display: none !important;   padding: 8px 16px; border-radius: 8px; border: none; background: #059669; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-excel' : 'btn-excel-hidden'; ?>:hover { background: #047857; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-pdf' : 'btn-pdf-hidden'; ?> { display: none !important;   padding: 8px 16px; border-radius: 8px; border: none; background: #dc2626; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-pdf' : 'btn-pdf-hidden'; ?>:hover { background: #b91c1c; }
+    .btn-cetak { padding: 8px 16px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; }
+    .btn-cetak:hover { background: #f1f5f9; }
+    .btn-excel { padding: 8px 16px; border-radius: 8px; border: none; background: #059669; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
+    .btn-excel:hover { background: #047857; }
+    .btn-pdf { padding: 8px 16px; border-radius: 8px; border: none; background: #dc2626; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
+    .btn-pdf:hover { background: #b91c1c; }
     .btn-filter { padding: 10px 20px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .btn-filter:hover { background: #1d4ed8; }
     .btn-reset { padding: 10px 16px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
@@ -69,11 +69,9 @@
         <p style="font-size: 13px; color: #64748b; margin: 0;">Monitor performa IT Support dan ringkasan data tiket secara keseluruhan</p>
     </div>
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-<?php if (has_permission('Ekspor Data')): ?>
-        <button onclick="window.print()" class="<?php echo has_permission('Ekspor Data') ? 'btn-cetak' : 'btn-cetak-hidden'; ?>"><i class="bi bi-printer"></i> Cetak</button>
-        <a href="<?= base_url('admin/reports/excel') ?>?f-from=<?= esc($dateFrom) ?>&f-to=<?= esc($dateTo) ?>" class="<?php echo has_permission('Ekspor Data') ? 'btn-excel' : 'btn-excel-hidden'; ?>"><i class="bi bi-file-earmark-excel"></i> Excel</a>
-        <a href="<?= base_url('admin/reports/pdf') ?>?f-from=<?= esc($dateFrom) ?>&f-to=<?= esc($dateTo) ?>" class="<?php echo has_permission('Ekspor Data') ? 'btn-pdf' : 'btn-pdf-hidden'; ?>"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
-<?php endif; ?>
+        <button onclick="window.print()" class="btn-cetak"><i class="bi bi-printer"></i> Cetak</button>
+        <a href="<?= base_url('admin/reports/excel') ?>?f-from=<?= esc($dateFrom) ?>&f-to=<?= esc($dateTo) ?>" class="btn-excel"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+        <a href="<?= base_url('admin/reports/pdf') ?>?f-from=<?= esc($dateFrom) ?>&f-to=<?= esc($dateTo) ?>" class="btn-pdf"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
     </div>
 </div>
 

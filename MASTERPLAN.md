@@ -99,7 +99,7 @@ helpdesk-v2/
 | Role ID | Nama | Deskripsi |
 |---------|------|-----------|
 | 1 | **Superadmin** | Akses penuh ke semua fitur dan menu administrasi |
-| 2 | **IT Support** | Dapat melihat semua tiket, merespons, assign, dan update status |
+| 2 | **IT Support** | Dapat melihat semua tiket, merespons, assign, dan update status (Kecuali CLOSED) |
 | 3 | **User** | Hanya dapat membuat dan melihat tiket milik sendiri |
 | 4 | **Operator** | Akses operasional, dapat melihat laporan dan statistik |
 
@@ -149,8 +149,11 @@ helpdesk-v2/
 | POST | `/tickets/rate/{id}` | Beri rating tiket |
 | GET | `/tickets/export` | Export tiket ke CSV |
 | POST | `/tickets/delete/{id}` | Hapus tiket (khusus Administrator) |
-| GET | `/notifications` | Halaman notifikasi personal |
-| GET | `/notifications/all` | Riwayat seluruh aktivitas tiket (Admin/Support) |
+| GET | `/notifications` | Halaman notifikasi personal (Filter & Pagination) |
+| GET | `/notifications/mark-read/{id}` | Tandai satu notifikasi sebagai dibaca & buka tiket |
+| GET | `/notifications/mark-all-read` | Tandai semua notifikasi milik user sebagai dibaca |
+| POST | `/notifications/bulk-mark-read` | Tandai beberapa notifikasi yang dipilih sebagai dibaca |
+| GET | `/notifications/unread-count` | API untuk cek jumlah notifikasi (Polling) |
 | GET | `/profile` | Profil pengguna |
 | POST | `/profile/update` | Update data profil |
 | POST | `/profile/password` | Ganti password |
@@ -178,105 +181,9 @@ helpdesk-v2/
 
 ## ✅ Fitur yang Telah Diimplementasikan
 
-### 🔐 Autentikasi & Keamanan
-- [x] Login dengan email & password (password di-hash dengan `password_hash`)
-- [x] Registrasi akun baru (Menu disembunyikan dari halaman login)
-- [x] Logout
-- [x] **Rate Limiter** — Membatasi 5 upaya login per menit per IP
-- [x] **AuthFilter** — Melindungi semua route yang membutuhkan login
-- [x] **AdminFilter** — Membatasi akses menu admin hanya untuk Superadmin
-- [x] CSRF Protection (bawaan CI4)
-- [x] Halaman error 429 (Too Many Requests)
+Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket, notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
 
-### 📊 Dashboard
-- [x] **Dashboard Admin** — 11 stat cards (Total, Open, In Progress, Pending, Selesai, User Aktif, Belum Diassign, Urgent, Laporan, Audit, Avg Rating) tersusun responsif.
-- [x] **Filter Kinerja Tim** — Pilihan rentang waktu dinamis (Hari Ini, Kemarin, Minggu Ini, Bulan Ini) untuk memantau produktivitas teknisi.
-- [x] **Analisis Tren 3-Hari** — Saat memfilter "Hari Ini" atau "Kemarin", grafik garis otomatis menampilkan tren 3 hari ke belakang agar visualisasi data tidak terputus dan lebih informatif.
-- [x] **Legenda Statistik Dinamis** — Penambahan teks keterangan info di bawah grafik untuk menjelaskan arti angka (Jumlah tiket selesai per teknisi dan rata-rata jam penanganan per kategori).
-- [x] Panel Tiket Urgent / High Priority
-- [x] Panel Tiket Belum Diassign
-- [x] Tombol aksi: Laporan & Semua Tiket
-- [x] **Dashboard User** — 5 stat cards (tiket milik sendiri) + tabel Tiket Terbaru
-- [x] **Perbaikan UI/UX** — Perbaikan konflik class CSS agar sidebar tidak menimpa konten utama (overlapping layout).
-
-### 🎫 Manajemen Tiket
-- [x] Daftar semua tiket (admin/support) atau tiket sendiri (user)
-- [x] Filter tiket berdasarkan status, prioritas, kategori, departemen, **teknisi yang menangani**
-- [x] Buat tiket baru (with title, description, category, priority, drive_link)
-- [x] Detail tiket dengan riwayat perubahan
-- [x] Balas tiket (komentar/respons support)
-- [x] Update status tiket (OPEN → IN_PROGRESS → RESOLVED → CLOSED)
-- [x] Assign tiket ke staf IT Support
-- [x] Rating tiket setelah selesai (1-5 bintang) - Perbaikan bug mismatch schema (rated_by & rated_at)
-- [x] **Export tiket ke CSV/Excel** — Menyertakan deskripsi dan Link Dokumentasi.
-- [x] **Perbaikan Tampilan Riwayat & Balasan** — Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual.
-
-### ⏳ SLA (Service Level Agreement) & Timer
-- [x] **Real-time Countdown Timer** — Hitung mundur sisa waktu pengerjaan di daftar tiket dan detail tiket.
-- [x] **Konfigurasi Durasi Dinamis**:
-    - **URGENT**: 2 Jam
-    - **HIGH**: 5 Jam
-    - **MEDIUM**: 12 Jam
-    - **LOW**: 24 Jam
-- [x] **Pause & Resume SLA** — Timer otomatis berhenti (Paused) saat tiket berstatus **PENDING** dan berlanjut (dengan penyesuaian deadline) saat kembali ke status aktif.
-- [x] **Indikator Visual** — Warna dinamis: Hijau (Aman), Oranye (< 2 jam), Merah (Overdue).
-- [x] **SLA Overdue Monitoring** — CLI Command (`php spark cron:check-sla`) untuk pengecekan tiket yang melewati batas waktu.
-
-### 👤 Profil Pengguna
-- [x] Lihat dan edit data profil (nama, email, telepon, jenis kelamin, departemen)
-- [x] Ganti password (verifikasi password lama, perbaikan error 404 Form Submit)
-
-### 🔔 Notifikasi & Aktivitas Tiket
-- [x] **Global Activity Access** — IT Support (Role 2) kini dapat melihat seluruh riwayat aktivitas tiket melalui halaman "Semua Notifikasi", memudahkan pemantauan tim.
-- [x] **Automated Reply Notifications** — Notifikasi otomatis dikirim saat ada balasan pesan:
-    - Staf membalas -> Reporter mendapatkan notifikasi.
-    - Reporter membalas -> Staf yang ditugaskan (atau seluruh tim jika belum diassign) mendapatkan notifikasi.
-- [x] **New Ticket Alerts for IT Support** — Tim IT Support kini otomatis mendapatkan notifikasi setiap ada tiket baru yang masuk.
-- [x] **Notification Badge (Sidebar)** — Menu "Notifikasi" pada sidebar kini menampilkan angka (badge merah) yang menunjukkan jumlah pesan atau aktivitas baru yang belum dibaca.
-- [x] **Auto-Mark Read** — Notifikasi otomatis ditandai sebagai terbaca setelah halaman Notifikasi dibuka.
-- [x] **Notification Badge (Browser Tab)** — Judul tab browser menampilkan angka notifikasi belum dibaca dengan format `(N) Nama Halaman`, memudahkan pengguna memantau notifikasi meskipun tab tidak aktif.
-- [x] **Notification Bell (Topbar)** — Ikon bell ditambahkan di pojok kanan atas topbar. Berubah menjadi kuning (`bi-bell-fill`) dengan badge merah saat ada notifikasi belum dibaca. Mendukung tampilan `99+` untuk lebih dari 99 notifikasi.
-- [x] **Simplified User Dropdown** — Nama akun di Topbar kini memiliki menu dropdown minimalis yang memunculkan opsi "Keluar" saat kursor diarahkan (*hover*), memberikan akses cepat untuk logout dengan tampilan bersih.
-
-### 🛠️ Administrasi (Superadmin Only)
-
-#### Kelola User
-- [x] Daftar semua user dengan filter role
-- [x] Tambah user baru
-- [x] Edit data user
-- [x] Aktif / nonaktifkan user
-- [x] Hapus user (dengan proteksi akun sendiri)
-
-#### Kelola Departemen
-- [x] Daftar departemen dengan jumlah user
-- [x] Tambah / edit departemen
-- [x] Aktif / nonaktifkan departemen
-- [x] Hapus departemen (jika tidak ada user)
-
-#### Kelola Kategori
-- [x] Daftar kategori tiket
-- [x] Tambah / edit / hapus kategori
-- [x] Toggle status aktif/nonaktif
-
-#### Kelola Role & Izin
-- [x] Daftar role dengan jumlah user
-- [x] Tambah / edit role dengan izin granular (9 jenis izin)
-- [x] Hapus role (jika tidak dipakai user)
-- [x] Proteksi: Role Superadmin tidak bisa diubah/dihapus
-
-#### Laporan & Statistik
-- [x] Filter laporan berdasarkan rentang tanggal
-- [x] Statistik total tiket per status
-- [x] Export laporan ke CSV/Excel & PDF (dengan kolom deskripsi & Link Dokumentasi)
-- [x] **Link Dokumentasi Inline Edit** — Admin dapat langsung mengetik, menyimpan, dan memperbarui Link Dokumentasi langsung dari kolom tabel laporan (tanpa modal popup). Ikon buka link juga tampil otomatis jika link sudah terisi.
-- [x] Fitur Cetak Laporan (Print) dengan layout baru
-- [x] **Akses Laporan Dinamis** — Menu laporan dan halaman statistik kini dapat diakses oleh role apa pun (termasuk IT Support) selama mereka memiliki izin `Lihat Laporan`.
-- [x] **Pagination Laporan** — Mendukung pembagian halaman pada data tiket yang panjang (10 data per halaman) dengan desain antarmuka elegan.
-
-#### Audit Log
-- [x] Rekam semua aktivitas admin (CREATE, UPDATE, DELETE, TOGGLE_STATUS)
-- [x] Data: Waktu, User, IP Address, Tabel, ID Target, Detail perubahan
-- [x] Pagination halaman log dengan desain antarmuka premium dan indikator aktif.
+Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
 
 ---
 
@@ -285,10 +192,9 @@ helpdesk-v2/
 - **Font**: Inter (Google Fonts)
 - **Icon**: Bootstrap Icons v1.11
 - **Layout**: Sidebar kiri (dark) + Konten utama (light)
-- **Komponen**: Stat cards, badge status, modal dialog, tabel responsif
+- **Dashboard**: "Dashboard Status & Kinerja Layanan" dengan desain enterprise premium.
 - **Halaman Login**: Desain premium dengan background dark blue gradient, glassmorphism card (frosted glass), logo aplikasi dalam lingkaran, geometric SVG pattern, dan animasi sparkle dekoratif
 - **Sidebar Branding**: Menggunakan logo resmi aplikasi menggantikan ikon generik untuk memperkuat identitas visual.
-- **Favicon**: Dukungan favicon SVG dan ICO di seluruh halaman aplikasi.
 - **Warna Status Tiket**:
   - OPEN → Merah
   - IN_PROGRESS → Kuning/Oranye
@@ -401,7 +307,8 @@ flowchart TD
 5. **Input Escaping** — Fungsi `esc()` di setiap output HTML
 6. **Audit Log** — Setiap aksi admin dicatat lengkap dengan IP address
 7. **SQL Injection Protection** — Query Builder CI4 otomatis memparameterisasi query
-8. **Auto-Logout** — Sesi kedaluwarsa otomatis dan redirect ke halaman logout setelah 15 menit tanpa aktivitas
+8. **Session Management** — Dialihkan ke `DatabaseHandler` untuk mencegah konflik *file locking*. Umur *cookie* dinaikkan menjadi 1 Tahun (`31536000` detik) untuk menahan akun Teknisi/Operator terus *Standby* (mencegah *Auto-Logout*).
+9. **Permission-Based Export Control** — Fungsi `has_permission()` di `app/Helpers/auth_helper.php` memvalidasi izin granular setiap user. Ekspor laporan (Cetak/Excel/PDF) diblokir di level Controller dan disembunyikan di level View jika izin `Ekspor Data` tidak diaktifkan pada role.
 
 ---
 
@@ -409,6 +316,8 @@ flowchart TD
 
 | File | Lokasi | Fungsi |
 |------|--------|--------|
+| `INSTRUKSI.md` | Root | Panduan standar operasional, coding, dan instruksi AI |
+| `FEATURES.md` | Root | Dokumentasi detail fitur-fitur yang telah diimplementasikan |
 | `Routes.php` | `app/Config/` | Definisi semua URL route |
 | `Filters.php` | `app/Config/` | Registrasi filter |
 | `main.php` | `app/Views/layouts/` | Template layout utama |
@@ -416,6 +325,9 @@ flowchart TD
 | `.env` | Root | Konfigurasi environment |
 | `docker-compose.yml` | Root | Konfigurasi Docker |
 | `nginx.conf` | Root | Konfigurasi web server |
+| `auth_helper.php` | `app/Helpers/` | Fungsi `has_permission()` untuk validasi izin granular per role |
+| `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
+| `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 
 ---
 
@@ -439,6 +351,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 6. **Routing & Workflow Automation**
    - Aturan pelimpahan tugas bersyarat, seperti otomatis `Assign` staf ahli Jaringan jika kategori yang dilaporkan adalah koneksi Internet.
 
----
-
-*Terakhir diperbarui: 17 April 2026 | Versi: 2.8.0 (Dashboard Performance Filters & Simplified Logout Dropdown)*
+*Terakhir diperbarui: 19 April 2026 | Versi: 2.9.6 (Penghapusan Otomatis Notifikasi Saat Tiket Dihapus)*

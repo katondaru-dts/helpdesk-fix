@@ -1,6 +1,27 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
+<style>
+.timeline-scroll {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+.timeline-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.timeline-scroll::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 4px;
+}
+.timeline-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.timeline-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+</style>
 <div class="grid" style="grid-template-columns:1fr 300px;gap:20px;max-width:1200px;margin:0 auto">
     <!-- Left Column -->
     <div style="display:flex;flex-direction:column;gap:20px">
@@ -24,7 +45,7 @@
         <!-- History/Messages -->
         <div class="card" style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:20px">
             <div style="font-weight:bold;margin-bottom:20px;font-size:16px"><i class="bi bi-clock-history" style="color:var(--primary)"></i> Riwayat & Balasan</div>
-            <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="timeline-scroll" style="display:flex;flex-direction:column;gap:20px">
                 <?php if (empty($timeline)): ?>
                     <p style="text-align:center;color:#9ca3af;font-style:italic">Belum ada balasan.</p>
                 <?php else: ?>

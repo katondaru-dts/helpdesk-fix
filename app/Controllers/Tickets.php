@@ -230,46 +230,57 @@ class Tickets extends BaseController
             $ticket = $ticketModel->find($id);
             if ($ticket) {
                 helper('notification');
+                $senderId = $session->get('id');
                 $senderName = $session->get('name');
 
-                if (!$isInternal) {
-                    // Notify reporter if staff replies
-                    if ($session->get('id') != $ticket['reporter_id']) {
-                        add_notification(
-                            $ticket['reporter_id'],
-                            'NEW_MESSAGE',
-                            'Balasan Pesan Baru',
-                            'Ada pesan baru dari ' . $senderName . ' pada tiket: ' . $ticket['title'],
-                            $id
-                        );
-                    }
+                // Kumpulkan ID user yang perlu dinotifikasi
+                $userIdsToNotify = [];
 
-                    // Notify staff if reporter replies
-                    if ($session->get('id') == $ticket['reporter_id']) {
-                        if ($ticket['assigned_to']) {
-                            add_notification(
-                                $ticket['assigned_to'],
-                                'NEW_MESSAGE',
-                                'Balasan dari User',
-                                'User ' . $senderName . ' membalas tiket: ' . $ticket['title'],
-                                $id
-                            );
-                        }
-                        else {
-                            // Notify all admins and support if unassigned
-                            $userModel = new \App\Models\UserModel();
-                            $staffToNotify = $userModel->whereIn('role_id', [1, 2, 4])->where('is_active', 1)->findAll();
-                            foreach ($staffToNotify as $staff) {
-                                add_notification(
-                                    $staff['id'],
-                                    'NEW_MESSAGE',
-                                    'Balasan User (Tiket Belum Diassign)',
-                                    'User ' . $senderName . ' membalas tiket: ' . $ticket['title'],
-                                    $id
-                                );
-                            }
+                if (!$isInternal) {
+                    // Beritahu Pelapor (jika pengirim bukan pelapor)
+                    if ($senderId != $ticket['reporter_id']) {
+                        $userIdsToNotify[] = $ticket['reporter_id'];
+                    }
+                }
+
+                // Beritahu Teknisi yang ditugaskan (jika ada dan bukan si pengirim)
+                if ($ticket['assigned_to'] && $senderId != $ticket['assigned_to']) {
+                    $userIdsToNotify[] = $ticket['assigned_to'];
+                }
+
+                $userModel = new \App\Models\UserModel();
+
+                // Selalu beritahu semua Administrator (Role 1) agar mereka bisa memantau semua aktivitas tiket
+                $admins = $userModel->where('role_id', 1)->where('is_active', 1)->findAll();
+                foreach ($admins as $admin) {
+                    if ($admin['id'] != $senderId) {
+                        $userIdsToNotify[] = $admin['id'];
+                    }
+                }
+
+                // Jika tiket belum diassign, beritahu SEMUA staf (Admin, Support, Operator)
+                if (empty($ticket['assigned_to'])) {
+                    $staffToNotify = $userModel->whereIn('role_id', [1, 2, 4])->where('is_active', 1)->findAll();
+                    foreach ($staffToNotify as $staff) {
+                        if ($staff['id'] != $senderId) {
+                            $userIdsToNotify[] = $staff['id'];
                         }
                     }
+                }
+
+                // Hapus duplikasi ID user (agar tidak dikirim notif ganda ke orang yang sama)
+                $userIdsToNotify = array_unique($userIdsToNotify);
+
+                // Kirim notifikasi ke semua ID yang terkumpul
+                $locationStr = !empty($ticket['location']) ? ' | Lokasi: ' . $ticket['location'] : '';
+                foreach ($userIdsToNotify as $uid) {
+                    add_notification(
+                        $uid,
+                        'NEW_MESSAGE',
+                        $isInternal ? 'Pesan Internal Baru' : 'Balasan Pesan Baru',
+                        'Pengirim: ' . $senderName . $locationStr . ' | Pada tiket: "' . $ticket['title'] . '"',
+                        $id
+                    );
                 }
             }
 
@@ -292,6 +303,13 @@ class Tickets extends BaseController
 
             $ticket = $ticketModel->find($id);
             $updateData = ['status' => $newStatus];
+
+            // Auto-Assign Logic: If status changed to IN_PROGRESS and ticket is unassigned, 
+            // assign it to the technician who is changing the status.
+            if ($newStatus === 'IN_PROGRESS' && empty($ticket['assigned_to'])) {
+                $updateData['assigned_to'] = $session->get('id');
+                $notes = ($notes ? $notes . " | " : "") . "Sistem: Tiket otomatis ditugaskan kepada " . $session->get('name');
+            }
 
             // Pause SLA Logic
             if ($newStatus === 'PENDING' && $ticket['status'] !== 'PENDING') {
@@ -326,11 +344,12 @@ class Tickets extends BaseController
                     'RESOLVED' => 'Terselesaikan',
                     'CLOSED' => 'Ditutup',
                 ][$newStatus] ?? $newStatus;
+                $locationStr = !empty($ticket['location']) ? ' | Lokasi: ' . $ticket['location'] : '';
                 add_notification(
                     $ticket['reporter_id'],
                     'STATUS_CHANGE',
                     'Status Tiket Diperbarui',
-                    'Status tiket Anda "' . $ticket['title'] . '" berubah menjadi: ' . $statusLabel,
+                    'Status berubah menjadi: ' . $statusLabel . $locationStr . ' | Pada tiket: "' . $ticket['title'] . '"',
                     $id
                 );
             }
@@ -505,13 +524,14 @@ class Tickets extends BaseController
             ->where('is_active', 1)
             ->findAll();
 
+        $locationStr = $this->request->getPost('location') ? ' | Lokasi: ' . $this->request->getPost('location') : '';
         foreach ($staffToNotify as $staff) {
             if ($staff['id'] != $session->get('id')) {
                 add_notification(
                     $staff['id'],
                     'NEW_TICKET',
                     'Tiket Baru Masuk',
-                    'Ada tiket baru dari ' . $session->get('name') . ': "' . $ticketTitle . '" (ID: ' . $newId . ')',
+                    'Pengirim: ' . $session->get('name') . $locationStr . ' | Judul: "' . $ticketTitle . '" (ID: ' . $newId . ')',
                     $newId
                 );
             }
@@ -531,6 +551,7 @@ class Tickets extends BaseController
         $historyModel = new TicketHistoryModel();
         $messageModel = new TicketMessageModel();
         $ratingModel = new TicketRatingModel();
+        $notificationModel = new NotificationModel();
 
         $ticket = $ticketModel->find($id);
         if (!$ticket) {
@@ -544,6 +565,7 @@ class Tickets extends BaseController
         $historyModel->where('ticket_id', $id)->delete();
         $messageModel->where('ticket_id', $id)->delete();
         $ratingModel->where('ticket_id', $id)->delete();
+        $notificationModel->where('ref_id', $id)->delete();
 
         // Delete ticket
         $ticketModel->delete($id);

@@ -5,13 +5,14 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 class UserModel extends Model
-{    protected $table = 'users';
+{
+    protected $table = 'users';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['name', 'email', 'password', 'role_id', 'dept_id', 'gender', 'phone', 'birth_date', 'is_active', 'created_at'];
+    protected $allowedFields = ['name', 'email', 'password', 'role_id', 'dept_id', 'gender', 'phone', 'birth_date', 'is_active', 'notif_sound_enabled', 'notif_sound_type', 'created_at'];
 
     // Dates
     protected $useTimestamps = false;

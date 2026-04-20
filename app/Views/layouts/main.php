@@ -1,5 +1,3 @@
-
-cat << 'EOF' > /var/www/html/app/Views/layouts/main.php
 <!DOCTYPE html>
 <html lang="id">
 <head>

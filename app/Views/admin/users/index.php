@@ -123,7 +123,12 @@
 
             <div style="margin-bottom:15px">
                 <label style="display:block;margin-bottom:5px;font-size:13px;font-weight:600">Password</label>
-                <input type="password" name="password" id="m-pw" class="form-control" placeholder="Kosongkan jika tidak diganti / biarkan untuk default" style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db">
+                <div style="position:relative">
+                    <input type="password" name="password" id="m-pw" class="form-control" placeholder="Kosongkan jika tidak diganti / biarkan untuk default" style="width:100%;padding:10px 40px 10px 10px;border-radius:8px;border:1px solid #d1d5db">
+                    <button type="button" onclick="togglePasswordVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-eye" id="m-pw-icon" style="font-size:1.1rem"></i>
+                    </button>
+                </div>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px">
@@ -173,9 +178,33 @@ function openUserModal(u = null) {
     document.getElementById('m-gender').value = u ? u.gender : 'L';
     document.getElementById('m-phone').value = u ? u.phone : '';
     document.getElementById('m-title').innerText = u ? 'Edit User' : 'Tambah User';
+    
+    // Reset password visibility
+    const pwInput = document.getElementById('m-pw');
+    pwInput.type = 'password';
+    pwInput.value = '';
+    const pwIcon = document.getElementById('m-pw-icon');
+    pwIcon.classList.remove('bi-eye-slash');
+    pwIcon.classList.add('bi-eye');
+    
     document.getElementById('user-modal').style.display = 'flex';
 }
-function closeUserModal() { document.getElementById('user-modal').style.display = 'none'; }
+function closeUserModal() { 
+    document.getElementById('user-modal').style.display = 'none'; 
+}
+function togglePasswordVisibility() {
+    const pwInput = document.getElementById('m-pw');
+    const pwIcon = document.getElementById('m-pw-icon');
+    if (pwInput.type === 'password') {
+        pwInput.type = 'text';
+        pwIcon.classList.remove('bi-eye');
+        pwIcon.classList.add('bi-eye-slash');
+    } else {
+        pwInput.type = 'password';
+        pwIcon.classList.remove('bi-eye-slash');
+        pwIcon.classList.add('bi-eye');
+    }
+}
 </script>
 
 <?= $this->endSection() ?>

@@ -27,10 +27,10 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     // Notifications
     $routes->get('notifications', 'Notifications::index');
-    $routes->get('notifications/all', 'Notifications::allNotifications');
-    $routes->get('notifications/read/(:num)', 'Notifications::markRead/$1');
+    $routes->get('notifications/mark-read/(:num)', 'Notifications::markRead/$1');
     $routes->get('notifications/unread-count', 'Notifications::getUnreadCount');
-    $routes->post('notifications/read-all', 'Notifications::markRead');
+    $routes->get('notifications/mark-all-read', 'Notifications::markAllAsRead');
+    $routes->post('notifications/bulk-mark-read', 'Notifications::bulkMarkRead');
 
     // Ticket routes
     $routes->group('tickets', function ($routes) {
@@ -45,7 +45,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
             $routes->post('rate/(:segment)', 'Tickets::rate/$1');
             $routes->get('export', 'Tickets::export');
             $routes->post('delete/(:segment)', 'Tickets::delete/$1');
-            $routes->get('delete/(:segment)', 'Tickets::delete/$1'); // handle direct access safely
+            $routes->get('delete/(:segment)', 'Tickets::delete/$1');
         }
         );
     });

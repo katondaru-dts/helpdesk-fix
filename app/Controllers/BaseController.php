@@ -47,7 +47,9 @@ abstract class BaseController extends Controller
                 'role_id' => $user['role_id'],
                 'dept_id' => $user['dept_id'],
                 'name' => $user['name'],
-                'permissions' => $permissions
+                'permissions' => $permissions,
+                'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
+                'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
             ]);
 
             $notificationModel = new \App\Models\NotificationModel();

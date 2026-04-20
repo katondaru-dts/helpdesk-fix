@@ -20,4 +20,3 @@ if (!function_exists('has_permission')) {
         return in_array($permission, $permissions);
     }
 }
-

@@ -70,6 +70,10 @@ class Reports extends BaseController
 
     public function excel()
     {
+        if (!has_permission('Ekspor Data')) {
+            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak. Anda tidak memiliki izin untuk mengekspor data.');
+        }
+
         $db = \Config\Database::connect();
         $dateFrom = $this->request->getGet('f-from');
         $dateTo = $this->request->getGet('f-to');
@@ -134,6 +138,10 @@ class Reports extends BaseController
 
     public function pdf()
     {
+        if (!has_permission('Ekspor Data')) {
+            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak. Anda tidak memiliki izin untuk mengekspor data.');
+        }
+
         $db = \Config\Database::connect();
         $dateFromRaw = $this->request->getGet('f-from');
         $dateToRaw = $this->request->getGet('f-to');
@@ -199,6 +207,10 @@ td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(ev
 
     public function printReport()
     {
+        if (!has_permission('Ekspor Data')) {
+            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak. Anda tidak memiliki izin untuk mencetak data.');
+        }
+
         $data = [
             'tickets' => $this->getTickets(),
             'dateFrom' => $this->request->getGet('f-from') ?: 'Semua',

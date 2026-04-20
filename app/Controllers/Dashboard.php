@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\UserModel;
 use App\Models\TicketModel;
+use App\Models\TicketMessageModel;
 
 class Dashboard extends BaseController
 {
@@ -16,6 +17,7 @@ class Dashboard extends BaseController
 
         $ticketModel = new TicketModel();
         $userModel = new UserModel();
+        $messageModel = new TicketMessageModel();
 
         $data = [
             'pageTitle' => 'Dashboard — Helpdesk',
@@ -35,6 +37,16 @@ class Dashboard extends BaseController
                 'urgent' => $ticketModel->whereIn('priority', ['HIGH', 'URGENT'])->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
                 'avgRating' => 0
             ];
+
+            // Highlight Notifikasi: Pesan terbaru dari Reporter (User)
+            $data['recentMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, tickets.title as ticket_title')
+                ->join('tickets', 'ticket_messages.ticket_id = tickets.id')
+                ->join('users', 'ticket_messages.sender_id = users.id')
+                ->where('users.role_id', 3) // Hanya pesan dari role User
+                ->where('ticket_messages.is_internal', 0)
+                ->orderBy('ticket_messages.sent_at', 'DESC')
+                ->limit(5)
+                ->findAll();
 
             // Fetch Urgent Tickets
             $data['urgentTickets'] = $ticketModel->select('tickets.*, reporter.name as reporter_name')
@@ -196,6 +208,17 @@ class Dashboard extends BaseController
 
             $data['recentTickets'] = $ticketModel->where('reporter_id', $userId)
                 ->orderBy('created_at', 'DESC')
+                ->limit(5)
+                ->findAll();
+
+            // Highlight Notifikasi: Pesan terbaru dari IT Support
+            $data['recentMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, tickets.title as ticket_title')
+                ->join('tickets', 'ticket_messages.ticket_id = tickets.id')
+                ->join('users', 'ticket_messages.sender_id = users.id')
+                ->where('tickets.reporter_id', $userId)
+                ->where('ticket_messages.sender_id !=', $userId)
+                ->where('ticket_messages.is_internal', 0)
+                ->orderBy('ticket_messages.sent_at', 'DESC')
                 ->limit(5)
                 ->findAll();
 

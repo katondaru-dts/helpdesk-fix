@@ -54,6 +54,8 @@ class Auth extends BaseController
             'dept_id' => $user['dept_id'],
             'permissions' => $permissions,
             'isLoggedIn' => true,
+            'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
+            'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
         ];
 
         session()->set($data);

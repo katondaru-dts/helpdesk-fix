@@ -6,6 +6,7 @@
     <title>Login - Helpdesk Pusim</title>
     <link rel="icon" href="<?= base_url('images/favicon.ico') ?>" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -248,10 +249,28 @@
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password" placeholder="**********" required>
+                <div style="position:relative">
+                    <input type="password" name="password" id="password" placeholder="**********" required style="padding-right: 45px;">
+                    <button type="button" id="togglePassword" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;z-index:10">
+                        <i class="bi bi-eye" id="eyeIcon" style="font-size:1.1rem"></i>
+                    </button>
+                </div>
             </div>
             <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
         </form>
+
+        <script>
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+            const eyeIcon = document.querySelector('#eyeIcon');
+
+            togglePassword.addEventListener('click', function (e) {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                eyeIcon.classList.toggle('bi-eye');
+                eyeIcon.classList.toggle('bi-eye-slash');
+            });
+        </script>
 
         <div class="divider">
             <span>atau masuk dengan</span>

@@ -40,7 +40,9 @@ class Profile extends BaseController
         $updateData = [
             'name' => $name,
             'phone' => $phone,
-            'gender' => $gender
+            'gender' => $gender,
+            'notif_sound_enabled' => $this->request->getPost('notif_sound_enabled') ? 1 : 0,
+            'notif_sound_type' => $this->request->getPost('notif_sound_type') ?? 'default'
         ];
 
         if (session()->get('role_id') == 1) {
@@ -60,7 +62,11 @@ class Profile extends BaseController
         $userModel = new UserModel();
         $userModel->update($userId, $updateData);
 
-        $sessionUpdate = ['name' => $name];
+        $sessionUpdate = [
+            'name' => $name,
+            'notif_sound_enabled' => $updateData['notif_sound_enabled'],
+            'notif_sound_type' => $updateData['notif_sound_type']
+        ];
         if (isset($email)) {
             $sessionUpdate['email'] = $email;
         }
