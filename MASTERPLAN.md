@@ -111,7 +111,7 @@ helpdesk-v2/
 
 | Tabel | Fungsi |
 |-------|--------|
-| `users` | Data pengguna (name, email, password, role_id, dept_id, gender, phone, is_active) |
+| `users` | Data pengguna (name, email, password, role_id, dept_id, gender, phone, is_active, **login_attempts**, **lockout_time**) |
 | `roles` | Data role (code, name, permissions JSON) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
@@ -309,6 +309,8 @@ flowchart TD
 7. **SQL Injection Protection** — Query Builder CI4 otomatis memparameterisasi query
 8. **Session Management** — Dialihkan ke `DatabaseHandler` untuk mencegah konflik *file locking*. Umur *cookie* dinaikkan menjadi 1 Tahun (`31536000` detik) untuk menahan akun Teknisi/Operator terus *Standby* (mencegah *Auto-Logout*).
 9. **Permission-Based Export Control** — Fungsi `has_permission()` di `app/Helpers/auth_helper.php` memvalidasi izin granular setiap user. Ekspor laporan (Cetak/Excel/PDF) diblokir di level Controller dan disembunyikan di level View jika izin `Ekspor Data` tidak diaktifkan pada role.
+10. **Login Attempt Tracking & Lockout** — Percobaan login gagal dilacak di kolom `login_attempts` dan `lockout_time` pada tabel `users`. Setelah 3 kali gagal, akun dikunci otomatis selama **1 menit**. Data percobaan dihapus saat login berhasil.
+11. **Alphanumeric CAPTCHA** — Setelah 2 kali percobaan gagal, tampil CAPTCHA kode acak 6 karakter (huruf kapital + angka, tanpa karakter ambigu seperti 0/O/1/I) menggunakan `app/Helpers/captcha_helper.php`. Verifikasi bersifat *case-insensitive*.
 
 ---
 
@@ -326,6 +328,7 @@ flowchart TD
 | `docker-compose.yml` | Root | Konfigurasi Docker |
 | `nginx.conf` | Root | Konfigurasi web server |
 | `auth_helper.php` | `app/Helpers/` | Fungsi `has_permission()` untuk validasi izin granular per role |
+| `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 
@@ -351,4 +354,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 6. **Routing & Workflow Automation**
    - Aturan pelimpahan tugas bersyarat, seperti otomatis `Assign` staf ahli Jaringan jika kategori yang dilaporkan adalah koneksi Internet.
 
-*Terakhir diperbarui: 19 April 2026 | Versi: 2.9.6 (Penghapusan Otomatis Notifikasi Saat Tiket Dihapus)*
+*Terakhir diperbarui: 21 April 2026 | Versi: 2.10.0 (Sistem Keamanan Login: Attempt Tracking, Account Lockout 1 Menit, dan CAPTCHA Alfanumerik)*

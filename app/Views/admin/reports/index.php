@@ -139,7 +139,7 @@
                     <th style="width: 220px;">Judul Tiket</th>
                     <th style="text-align: center; width: 100px;">Prioritas</th>
                     <th style="text-align: center; width: 120px;">Status</th>
-                    <th style="width: 130px;">Pengaju</th>
+                    <th style="width: 130px;">PEMOHON</th>
                     <th style="width: 140px;">Lokasi Gangguan</th>
                     <th style="width: 230px;">Deskripsi</th>
                     <th style="width: 190px;">Link Dokumentasi</th>

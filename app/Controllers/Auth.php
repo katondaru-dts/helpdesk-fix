@@ -8,12 +8,26 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class Auth extends BaseController
 {
+    protected $helpers = ['auth', 'url', 'captcha'];
     public function login()
     {
         if (session()->get('isLoggedIn')) {
             return redirect()->to('/dashboard');
         }
-        return view('auth/login');
+
+        $data = [];
+
+        if (session()->getFlashdata('error')) {
+            $data['error'] = session()->getFlashdata('error');
+        }
+
+        // Jika CAPTCHA diperlukan, generate soal baru
+        if (session()->get('captcha_required')) {
+            $data['captcha_required'] = true;
+            $data['captcha_question'] = session()->get('captcha_question') ?? generate_captcha();
+        }
+
+        return view('auth/login', $data);
     }
 
     public function attemptLogin()
@@ -24,17 +38,90 @@ class Auth extends BaseController
 
         $user = $userModel->where('email', $email)->first();
 
-        if ($user && password_verify($password, $user['password'])) {
-            if (!$user['is_active']) {
-                return redirect()->back()->with('error', 'Akun Anda dinonaktifkan.');
-            }
+        // ── 0. CEK EMAIL ────────────────────────────────────────────
+        if (!$user) {
+            return redirect()->back()->with('error', 'Email atau Password salah.')->withInput();
+        }
 
+        // ── 1. CEK STATUS AKTIF ─────────────────────────────────────
+        if (!$user['is_active']) {
+            clear_captcha();
+            return redirect()->back()->with('error', 'Akun Anda dinonaktifkan.');
+        }
+
+        // ── 2. CEK LOCKOUT ──────────────────────────────────────────
+        $lockoutTime = $user['lockout_time'] ?? null;
+        $loginAttempts = (int)($user['login_attempts'] ?? 0);
+
+        if (!empty($lockoutTime) && strtotime($lockoutTime) > time()) {
+            // Masih terkunci
+            $remainingTime = strtotime($lockoutTime) - time();
+            $minutes = floor($remainingTime / 60);
+            $seconds = $remainingTime % 60;
+            clear_captcha();
+            return redirect()->back()->with('error',
+                "Akun Anda terkunci. Silakan coba lagi dalam {$minutes} menit {$seconds} detik."
+            );
+        }
+
+        // Lockout kedaluwarsa → reset siklus
+        if (!empty($lockoutTime) && strtotime($lockoutTime) <= time()) {
+            $loginAttempts = 0;
+            $userModel->update($user['id'], ['login_attempts' => 0, 'lockout_time' => null]);
+            clear_captcha();
+        }
+
+        // ── 3. VALIDASI CAPTCHA (jika diperlukan) ───────────────────
+        if (session()->get('captcha_required')) {
+            $userInput = (string)$this->request->getPost('captcha_answer');
+            if (!verify_captcha($userInput)) {
+                // CAPTCHA salah → generate soal baru, jangan increment attempt
+                generate_captcha();
+                return redirect()->back()
+                    ->with('error', 'Jawaban CAPTCHA salah. Silakan coba lagi.')
+                    ->withInput();
+            }
+            // CAPTCHA benar → hapus dari session (akan di-generate ulang jika masih gagal)
+            session()->remove('captcha_answer');
+            session()->remove('captcha_question');
+        }
+
+        // ── 4. VERIFIKASI PASSWORD ──────────────────────────────────
+        if (password_verify($password, $user['password'])) {
+            // ✅ LOGIN BERHASIL
+            $userModel->update($user['id'], ['login_attempts' => 0, 'lockout_time' => null]);
+            clear_captcha();
             $this->setUserSession($user);
             return redirect()->to('/dashboard');
         }
 
-        return redirect()->back()->with('error', 'Email atau Password salah.');
+        // ❌ PASSWORD SALAH — increment counter
+        $newAttempts = $loginAttempts + 1;
+
+        if ($newAttempts >= 3) {
+            // Percobaan ke-3: kunci 1 menit, reset counter
+            $userModel->update($user['id'], [
+                'login_attempts' => 0,
+                'lockout_time' => date('Y-m-d H:i:s', time() + 60),
+            ]);
+            clear_captcha();
+            $errorMessage = 'Terlalu banyak percobaan gagal. Akun Anda dikunci selama 1 menit.';
+        }
+        else {
+            $userModel->update($user['id'], ['login_attempts' => $newAttempts]);
+            $attemptsLeft = 3 - $newAttempts;
+            $errorMessage = "Email atau Password salah. Sisa percobaan: {$attemptsLeft}x";
+
+            // Percobaan ke-2: aktifkan CAPTCHA untuk percobaan berikutnya
+            if ($newAttempts === 2) {
+                session()->set('captcha_required', true);
+                generate_captcha();
+            }
+        }
+
+        return redirect()->back()->with('error', $errorMessage)->withInput();
     }
+
 
     public function setUserSession($user)
     {
@@ -148,14 +235,12 @@ class Auth extends BaseController
             $user = $userModel->where('email', $email)->first();
 
             if (!$user) {
-                // User baru, otomatis register sebagai Role 3 (User)
-                // Default Departemen (opsional, bisa diset ke NULL atau ID tertentu)
                 $userModel->insert([
                     'name' => $name,
                     'email' => $email,
-                    'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT), // Random password
-                    'role_id' => 3, // Default User
-                    'dept_id' => null, // Set null jika departemen belum dipilih
+                    'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
+                    'role_id' => 3,
+                    'dept_id' => null,
                     'is_active' => 1,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);

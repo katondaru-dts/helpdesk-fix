@@ -11,6 +11,7 @@ $routes->get('/', 'Home::index');
 $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::attemptLogin');
 $routes->post('login/authenticate', 'Auth::attemptLogin');
+$routes->get('auth/refresh-captcha', 'Auth::refreshCaptcha');
 $routes->get('register', 'Auth::register');
 $routes->post('register', 'Auth::attemptRegister');
 $routes->post('register/save', 'Auth::attemptRegister');

@@ -213,6 +213,10 @@
         @media (max-width: 480px) {
             .login-card { margin: 0 20px; padding: 36px 24px 28px; }
         }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -238,8 +242,8 @@
         <h1>Helpdesk Pusim</h1>
         <p class="subtitle">Login ke akun Anda</p>
 
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="alert-error"><?= session()->getFlashdata('error') ?></div>
+        <?php if (isset($error)): ?>
+            <div class="alert-error"><?= esc($error) ?></div>
         <?php endif; ?>
 
         <form action="<?= base_url('login') ?>" method="POST" id="loginForm">
@@ -256,6 +260,36 @@
                     </button>
                 </div>
             </div>
+
+            <?php if (!empty($captcha_required)): ?>
+                <div class="form-group" id="captcha-block" style="animation: fadeIn .3s ease;">
+                    <label for="captcha_answer">Verifikasi Keamanan</label>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="
+                            background: rgba(255,255,255,0.12) repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.05) 5px, rgba(255,255,255,0.05) 10px);
+                            border: 1px solid rgba(255,255,255,0.25);
+                            border-radius: 8px;
+                            padding: 10px 18px;
+                            font-size: 20px;
+                            font-weight: 800;
+                            font-family: 'Courier New', Courier, monospace;
+                            font-style: italic;
+                            color: #ffffff;
+                            letter-spacing: 6px;
+                            min-width: 140px;
+                            text-align: center;
+                            flex-shrink: 0;
+                            text-shadow: 2px 2px 0 rgba(74,138,244,0.5), -1px -1px 0 rgba(0,0,0,0.5);
+                            transform: skewX(-10deg);
+                            user-select: none;
+                        "><?= esc($captcha_question ?? '') ?></div>
+                        <input type="text" name="captcha_answer" id="captcha_answer"
+                               placeholder="Ketik kode captcha" required autocomplete="off"
+                               style="flex:1;padding-right:14px; text-transform: uppercase;">
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
         </form>
 
@@ -294,9 +328,3 @@
     </svg>
 </body>
 </html>
-
-
-
-
-
-
