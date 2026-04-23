@@ -322,6 +322,7 @@
     </div>
 
     <p class="footer-text">Lupa Kata Sandi? Hubungi Administrator.</p>
+    <p class="footer-text" style="margin-top: 8px;">&copy; 2026 Universitas Merdeka Malang</p>
 
     <svg class="sparkle" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M20 0L23.5 16.5L40 20L23.5 23.5L20 40L16.5 23.5L0 20L16.5 16.5L20 0Z" fill="rgba(140,180,255,0.8)"/>

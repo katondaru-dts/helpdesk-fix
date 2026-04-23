@@ -314,6 +314,17 @@ flowchart TD
 
 ---
 
+## 📢 Sistem Notifikasi Cerdas
+
+Sistem Helpdesk ini menggunakan 2 jalur notifikasi secara paralel:
+1. **In-App Notification**: Notifikasi lonceng *real-time* di dalam aplikasi (dengan *audio alert* dan sistem *polling*).
+2. **Telegram Bot Integration**: Notifikasi instan langsung dikirim ke Grup Telegram staf IT Support/Teknisi secara asinkron (*non-blocking fire-and-forget* via eksekusi cURL OS) demi memastikan aplikasi tetap responsif 100%. Momen trigger Telegram meliputi:
+    - **Tiket Baru**: Menampilkan ID, Prioritas, Lokasi, dan Judul.
+    - **Balasan (Pesan Publik)**: Notifikasi diskusi / kendala lanjutan ke teknisi.
+    - **Perubahan Status**: Pemberitahuan setiap status diupdate (misal OPEN menjadi IN_PROGRESS).
+
+---
+
 ## 📁 File Penting
 
 | File | Lokasi | Fungsi |
@@ -324,11 +335,12 @@ flowchart TD
 | `Filters.php` | `app/Config/` | Registrasi filter |
 | `main.php` | `app/Views/layouts/` | Template layout utama |
 | `style.css` | `public/css/` | CSS seluruh aplikasi |
-| `.env` | Root | Konfigurasi environment |
+| `.env` | Root | Konfigurasi environment (DB, Google OAuth, **Telegram Bot Token & Chat ID**) |
 | `docker-compose.yml` | Root | Konfigurasi Docker |
 | `nginx.conf` | Root | Konfigurasi web server |
 | `auth_helper.php` | `app/Helpers/` | Fungsi `has_permission()` untuk validasi izin granular per role |
 | `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
+| `telegram_helper.php` | `app/Helpers/` | Fungsi `send_telegram()`: wrapper API asinkron non-blocking mengirim JSON ke API Bot Telegram |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 
@@ -354,4 +366,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 6. **Routing & Workflow Automation**
    - Aturan pelimpahan tugas bersyarat, seperti otomatis `Assign` staf ahli Jaringan jika kategori yang dilaporkan adalah koneksi Internet.
 
-*Terakhir diperbarui: 21 April 2026 | Versi: 2.10.0 (Sistem Keamanan Login: Attempt Tracking, Account Lockout 1 Menit, dan CAPTCHA Alfanumerik)*
+*Terakhir diperbarui: 23 April 2026 | Versi: 2.11.0 (Integrasi Notifikasi Grup Telegram Asinkron/Non-Blocking)*

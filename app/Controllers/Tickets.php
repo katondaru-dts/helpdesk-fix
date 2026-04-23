@@ -284,6 +284,25 @@ class Tickets extends BaseController
                 }
             }
 
+            // Kirim notifikasi Telegram untuk balasan (hanya pesan publik)
+            if (!$isInternal) {
+                helper('telegram');
+                $ticket = $ticketModel->find($id);
+                if ($ticket) {
+                    $telegramMsg = "💬 <b>BALASAN TIKET BARU</b>\n";
+                    $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+                    $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
+                    $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+                    if (!empty($ticket['location'])) {
+                        $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
+                    }
+                    $telegramMsg .= "✍️ <b>Pengirim:</b> " . $session->get('name') . "\n";
+                    $telegramMsg .= "💬 <b>Pesan:</b> " . mb_substr($message, 0, 200) . (mb_strlen($message) > 200 ? '...' : '') . "\n";
+                    $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
+                    send_telegram($telegramMsg);
+                }
+            }
+
             return redirect()->back()->with('success', 'Balasan terkirim.');
         }
         return redirect()->back();
@@ -336,14 +355,16 @@ class Tickets extends BaseController
             ]);
 
             // Notify ticket creator about status change
+            $statusLabel = [
+                'OPEN' => 'Terbuka',
+                'IN_PROGRESS' => 'Sedang Diproses',
+                'PENDING' => 'Ditunda',
+                'RESOLVED' => 'Terselesaikan',
+                'CLOSED' => 'Ditutup',
+            ][$newStatus] ?? $newStatus;
+
             if ($ticket && $ticket['reporter_id'] && $ticket['reporter_id'] != $session->get('id')) {
                 helper('notification');
-                $statusLabel = [
-                    'OPEN' => 'Terbuka',
-                    'IN_PROGRESS' => 'Sedang Diproses',
-                    'RESOLVED' => 'Terselesaikan',
-                    'CLOSED' => 'Ditutup',
-                ][$newStatus] ?? $newStatus;
                 $locationStr = !empty($ticket['location']) ? ' | Lokasi: ' . $ticket['location'] : '';
                 add_notification(
                     $ticket['reporter_id'],
@@ -353,6 +374,30 @@ class Tickets extends BaseController
                     $id
                 );
             }
+
+            // Kirim notifikasi Telegram perubahan status
+            helper('telegram');
+            $statusEmoji = [
+                'OPEN' => '🔴',
+                'IN_PROGRESS' => '🟡',
+                'PENDING' => '⏸️',
+                'RESOLVED' => '🟢',
+                'CLOSED' => '✅',
+            ][$newStatus] ?? '🔵';
+            $telegramMsg = "{$statusEmoji} <b>STATUS TIKET DIPERBARUI</b>\n";
+            $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+            $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
+            $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+            if (!empty($ticket['location'])) {
+                $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
+            }
+            $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
+            $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
+            if ($notes) {
+                $telegramMsg .= "📝 <b>Catatan:</b> {$notes}\n";
+            }
+            $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
+            send_telegram($telegramMsg);
 
             $db->transComplete();
             return redirect()->back()->with('success', 'Status diperbarui.');
@@ -508,6 +553,7 @@ class Tickets extends BaseController
 
         // Send notifications AFTER transaction completes
         helper('notification');
+        helper('telegram');
 
         // 1. Notify the ticket creator (confirmation)
         add_notification(
@@ -536,6 +582,24 @@ class Tickets extends BaseController
                 );
             }
         }
+
+        // 3. Kirim notifikasi Telegram
+        $location = $this->request->getPost('location');
+        $priority = $this->request->getPost('priority') ?: 'MEDIUM';
+        $priorityEmoji = ['LOW' => '🟢', 'MEDIUM' => '🟡', 'HIGH' => '🟠', 'URGENT' => '🔴'][$priority] ?? '🟡';
+        $telegramMsg = "🎫 <b>TIKET BARU MASUK</b>\n";
+        $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $telegramMsg .= "📋 <b>ID:</b> {$newId}\n";
+        $telegramMsg .= "📌 <b>Judul:</b> {$ticketTitle}\n";
+        $telegramMsg .= "{$priorityEmoji} <b>Prioritas:</b> {$priority}\n";
+        $telegramMsg .= "👤 <b>Pelapor:</b> " . $session->get('name') . "\n";
+        if ($location) {
+            $telegramMsg .= "📍 <b>Lokasi:</b> {$location}\n";
+        }
+        $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB\n";
+        $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $telegramMsg .= "🔗 Segera tangani di sistem helpdesk.";
+        send_telegram($telegramMsg);
 
         return redirect()->to('/tickets/detail/' . $newId)->with('success', 'Tiket berhasil dibuat!');
     }
