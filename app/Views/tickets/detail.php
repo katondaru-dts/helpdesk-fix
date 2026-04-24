@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main') ?>
+﻿<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <style>
@@ -113,7 +113,7 @@
             <div class="card" style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:20px">
                 <div style="font-weight:bold;margin-bottom:15px;font-size:16px"><i class="bi bi-star-fill" style="color:#f59e0b"></i> Rating Kepuasan</div>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                    <span style="color:#f59e0b"><?= str_repeat('★', $rating['rating']) . str_repeat('☆', 5 - $rating['rating']) ?></span>
+                    <span style="color:#f59e0b"><?= str_repeat('â˜…', $rating['rating']) . str_repeat('â˜†', 5 - $rating['rating']) ?></span>
                     <b><?= $rating['rating'] ?>/5</b>
                 </div>
                 <?php if ($rating['feedback']): ?><p style="font-style:italic;color:#6b7280">"<?= esc($rating['feedback']) ?>"</p><?php endif; ?>
@@ -125,11 +125,11 @@
                     <?= csrf_field() ?>
                     <label style="display:block;margin-bottom:5px;font-size:14px">Rating Pelayanan</label>
                     <select name="rating" class="form-select mb-3" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:15px">
-                        <option value="5">⭐⭐⭐⭐⭐ (Sangat Puas)</option>
-                        <option value="4">⭐⭐⭐⭐ (Puas)</option>
-                        <option value="3">⭐⭐⭐ (Cukup)</option>
-                        <option value="2">⭐⭐ (Kurang)</option>
-                        <option value="1">⭐ (Sangat Kurang)</option>
+                        <option value="5">â­â­â­â­â­ (Sangat Puas)</option>
+                        <option value="4">â­â­â­â­ (Puas)</option>
+                        <option value="3">â­â­â­ (Cukup)</option>
+                        <option value="2">â­â­ (Kurang)</option>
+                        <option value="1">â­ (Sangat Kurang)</option>
                     </select>
                     <textarea name="feedback" class="form-control mb-3" rows="2" placeholder="Komentar tambahan..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:15px"></textarea>
                     <button type="submit" class="btn btn-primary" style="background:#3b82f6;color:white;padding:10px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer">Kirim Rating</button>
@@ -174,19 +174,35 @@
                 <?php if ($canUpdateStatus): ?>
                     <form action="<?= base_url('tickets/update-status/' . $ticket['id']) ?>" method="POST" style="margin-bottom:20px">
                         <?= csrf_field() ?>
-                        <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:bold">Update Status</label>
-                        <select name="new_status" class="form-select mb-2" style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:10px">
-                            <?php 
-                            $statuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'];
-                            foreach($statuses as $st): 
-                                // Jika role teknisi (2), jangan tampilkan CLOSED
-                                if (session()->get('role_id') == 2 && $st === 'CLOSED') continue;
-                            ?>
-                                <option value="<?= $st ?>" <?= $ticket['status'] == $st ? 'selected' : '' ?>><?= $st ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="text" name="notes" class="form-control mb-2" placeholder="Catatan..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:10px">
-                        <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer">Update Status</button>
+                        <div style="margin-bottom:10px">
+                            <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:bold">Update Status</label>
+                            <select name="new_status" class="form-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;">
+                                <?php 
+                                $statuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'];
+                                foreach($statuses as $st): 
+                                    if (session()->get('role_id') == 2 && $st === 'CLOSED') continue;
+                                ?>
+                                    <option value="<?= $st ?>" <?= $ticket['status'] == $st ? 'selected' : '' ?>><?= $st ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:10px">
+                            <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:bold">Update Prioritas</label>
+                            <select name="new_priority" class="form-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;">
+                                <option value="LOW" <?= $ticket['priority'] == 'LOW' ? 'selected' : '' ?>>LOW</option>
+                                <option value="MEDIUM" <?= $ticket['priority'] == 'MEDIUM' ? 'selected' : '' ?>>MEDIUM</option>
+                                <option value="HIGH" <?= $ticket['priority'] == 'HIGH' ? 'selected' : '' ?>>HIGH</option>
+                                <option value="URGENT" <?= $ticket['priority'] == 'URGENT' ? 'selected' : '' ?>>URGENT</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:10px">
+                            <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:bold">Catatan Perubahan</label>
+                            <input type="text" name="notes" class="form-control" placeholder="Alasan perubahan..." style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer">Simpan Perubahan</button>
                     </form>
                 <?php endif; ?>
                 

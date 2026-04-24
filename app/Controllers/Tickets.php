@@ -158,8 +158,8 @@ class Tickets extends BaseController
         $isStaff = ($roleId == 1 || $roleId == 2 || $roleId == 4);
 
         $userPerms = $session->get('permissions') ?: [];
-        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms);
-        $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms);
+        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || $roleId == 1 || $roleId == 4;
+        $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || $roleId == 1 || $roleId == 2 || $roleId == 4;
 
         if (!$isStaff && $ticket['reporter_id'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
@@ -313,94 +313,110 @@ class Tickets extends BaseController
         $ticketModel = new TicketModel();
         $historyModel = new TicketHistoryModel();
         $newStatus = $this->request->getPost('new_status');
+        $newPriority = $this->request->getPost('new_priority');
         $notes = $this->request->getPost('notes');
         $session = session();
 
-        if ($newStatus) {
+        if ($newStatus || $newPriority) {
             $db = \Config\Database::connect();
             $db->transStart();
 
             $ticket = $ticketModel->find($id);
-            $updateData = ['status' => $newStatus];
+            $updateData = [];
 
-            // Auto-Assign Logic: If status changed to IN_PROGRESS and ticket is unassigned, 
-            // assign it to the technician who is changing the status.
-            if ($newStatus === 'IN_PROGRESS' && empty($ticket['assigned_to'])) {
-                $updateData['assigned_to'] = $session->get('id');
-                $notes = ($notes ? $notes . " | " : "") . "Sistem: Tiket otomatis ditugaskan kepada " . $session->get('name');
-            }
+            if ($newStatus) {
+                $updateData['status'] = $newStatus;
 
-            // Pause SLA Logic
-            if ($newStatus === 'PENDING' && $ticket['status'] !== 'PENDING') {
-                // Berhenti: Simpan waktu mulai pause
-                $updateData['sla_paused_at'] = date('Y-m-d H:i:s');
-            }
-            elseif ($ticket['status'] === 'PENDING' && $newStatus !== 'PENDING') {
-                // Jalan lagi: Geser deadline berdasarkan durasi pause
-                if (isset($ticket['sla_paused_at']) && $ticket['sla_paused_at'] && isset($ticket['sla_deadline']) && $ticket['sla_deadline']) {
-                    $pauseTime = time() - strtotime($ticket['sla_paused_at']);
-                    $newDeadline = date('Y-m-d H:i:s', strtotime($ticket['sla_deadline']) + $pauseTime);
-                    $updateData['sla_deadline'] = $newDeadline;
-                    $updateData['sla_paused_at'] = null;
+                // Auto-Assign Logic: If status changed to IN_PROGRESS and ticket is unassigned, 
+                // assign it to the technician who is changing the status.
+                if ($newStatus === 'IN_PROGRESS' && empty($ticket['assigned_to'])) {
+                    $updateData['assigned_to'] = $session->get('id');
+                    $notes = ($notes ? $notes . " | " : "") . "Sistem: Tiket otomatis ditugaskan kepada " . $session->get('name');
+                }
+
+                // Pause SLA Logic
+                if ($newStatus === 'PENDING' && $ticket['status'] !== 'PENDING') {
+                    // Berhenti: Simpan waktu mulai pause
+                    $updateData['sla_paused_at'] = date('Y-m-d H:i:s');
+                }
+                elseif ($ticket['status'] === 'PENDING' && $newStatus !== 'PENDING') {
+                    // Jalan lagi: Geser deadline berdasarkan durasi pause
+                    if (isset($ticket['sla_paused_at']) && $ticket['sla_paused_at'] && isset($ticket['sla_deadline']) && $ticket['sla_deadline']) {
+                        $pauseTime = time() - strtotime($ticket['sla_paused_at']);
+                        $newDeadline = date('Y-m-d H:i:s', strtotime($ticket['sla_deadline']) + $pauseTime);
+                        $updateData['sla_deadline'] = $newDeadline;
+                        $updateData['sla_paused_at'] = null;
+                    }
                 }
             }
 
-            $ticketModel->update($id, $updateData);
+            if ($newPriority && $newPriority !== $ticket['priority']) {
+                $updateData['priority'] = $newPriority;
+                // Recalculate SLA deadline from creation time if priority changes
+                $updateData['sla_deadline'] = $ticketModel->calculateSlaDeadline($newPriority, $ticket['created_at']);
+                $notes = ($notes ? $notes . " | " : "") . "Sistem: Prioritas diubah ke " . $newPriority;
+            }
 
-            $historyModel->insert([
-                'ticket_id' => $id,
-                'status' => $newStatus,
-                'notes' => $notes,
-                'changed_by' => $session->get('id')
-            ]);
+            if (!empty($updateData)) {
+                $ticketModel->update($id, $updateData);
+
+                $historyModel->insert([
+                    'ticket_id' => $id,
+                    'status' => $newStatus ?: $ticket['status'],
+                    'notes' => $notes,
+                    'changed_by' => $session->get('id')
+                ]);
+            }
 
             // Notify ticket creator about status change
-            $statusLabel = [
-                'OPEN' => 'Terbuka',
-                'IN_PROGRESS' => 'Sedang Diproses',
-                'PENDING' => 'Ditunda',
-                'RESOLVED' => 'Terselesaikan',
-                'CLOSED' => 'Ditutup',
-            ][$newStatus] ?? $newStatus;
+            if ($newStatus) {
+                $statusLabel = [
+                    'OPEN' => 'Terbuka',
+                    'IN_PROGRESS' => 'Sedang Diproses',
+                    'PENDING' => 'Ditunda',
+                    'RESOLVED' => 'Terselesaikan',
+                    'CLOSED' => 'Ditutup',
+                ][$newStatus] ?? $newStatus;
 
-            if ($ticket && $ticket['reporter_id'] && $ticket['reporter_id'] != $session->get('id')) {
-                helper('notification');
-                $locationStr = !empty($ticket['location']) ? ' | Lokasi: ' . $ticket['location'] : '';
-                add_notification(
-                    $ticket['reporter_id'],
-                    'STATUS_CHANGE',
-                    'Status Tiket Diperbarui',
-                    'Status berubah menjadi: ' . $statusLabel . $locationStr . ' | Pada tiket: "' . $ticket['title'] . '"',
-                    $id
-                );
-            }
+                if ($ticket && $ticket['reporter_id'] && $ticket['reporter_id'] != $session->get('id')) {
+                    helper('notification');
+                    $locationStr = !empty($ticket['location']) ? ' | Lokasi: ' . $ticket['location'] : '';
+                    add_notification(
+                        $ticket['reporter_id'],
+                        'STATUS_CHANGE',
+                        'Status Tiket Diperbarui',
+                        'Status berubah menjadi: ' . $statusLabel . $locationStr . ' | Pada tiket: "' . $ticket['title'] . '"',
+                        $id
+                    );
+                }
 
-            // Kirim notifikasi Telegram perubahan status
-            helper('telegram');
-            $statusEmoji = [
-                'OPEN' => '🔴',
-                'IN_PROGRESS' => '🟡',
-                'PENDING' => '⏸️',
-                'RESOLVED' => '🟢',
-                'CLOSED' => '✅',
-            ][$newStatus] ?? '🔵';
-            $telegramMsg = "{$statusEmoji} <b>STATUS TIKET DIPERBARUI</b>\n";
-            $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
-            $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
-            $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
-            if (!empty($ticket['location'])) {
-                $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
+                // Kirim notifikasi Telegram perubahan status
+                helper('telegram');
+                $statusEmoji = [
+                    'OPEN' => '🔴',
+                    'IN_PROGRESS' => '🟡',
+                    'PENDING' => '⏸️',
+                    'RESOLVED' => '🟢',
+                    'CLOSED' => '✅',
+                ][$newStatus] ?? '🔵';
+                $telegramMsg = "{$statusEmoji} <b>STATUS TIKET DIPERBARUI</b>\n";
+                $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+                $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
+                $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+                if (!empty($ticket['location'])) {
+                    $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
+                }
+                $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
+                $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
+                if ($notes) {
+                    $telegramMsg .= "📝 <b>Catatan:</b> {$notes}\n";
+                }
+                $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
+                send_telegram($telegramMsg);
             }
-            $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
-            $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
-            if ($notes) {
-                $telegramMsg .= "📝 <b>Catatan:</b> {$notes}\n";
-            }
-            $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
-            send_telegram($telegramMsg);
 
             $db->transComplete();
-            return redirect()->back()->with('success', 'Status diperbarui.');
+            return redirect()->back()->with('success', 'Tiket diperbarui.');
         }
         return redirect()->back();
     }
