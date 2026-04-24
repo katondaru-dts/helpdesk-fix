@@ -16,39 +16,32 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0a1628 0%, #0f2847 40%, #1a3a6e 70%, #0f2847 100%);
+            background: #050b14;
             position: relative;
             overflow: hidden;
         }
-        body::before {
-            content: '';
+
+        /* Latar Belakang Jaringan Ultra-HD via Canvas */
+        #network-canvas {
             position: absolute;
-            inset: 0;
-            background-image:
-                radial-gradient(circle at 20% 30%, rgba(59,130,246,0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(59,130,246,0.06) 0%, transparent 50%);
-            pointer-events: none;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: 0;
+            background: radial-gradient(circle at 50% 50%, #0a1628 0%, #02050a 100%);
         }
-        .bg-pattern {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            opacity: 0.08;
-            pointer-events: none;
-        }
+
         .login-card {
             position: relative;
             z-index: 1;
             width: 100%;
             max-width: 420px;
             padding: 40px 36px 32px;
-            background: rgba(180, 200, 230, 0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(15, 25, 45, 0.45);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             text-align: center;
         }
         .logo-wrapper {
@@ -62,7 +55,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         .logo-wrapper img {
             width: 85px;
@@ -131,10 +126,6 @@
             box-shadow: 0 6px 20px rgba(74, 138, 244, 0.5);
             transform: translateY(-1px);
         }
-        .btn-login:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 10px rgba(74, 138, 244, 0.3);
-        }
         .alert-error {
             background: rgba(239, 68, 68, 0.15);
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -152,18 +143,6 @@
             font-size: 13px;
             color: rgba(255, 255, 255, 0.45);
         }
-        .sparkle {
-            position: fixed;
-            bottom: 32px;
-            right: 40px;
-            z-index: 1;
-            opacity: 0.2;
-            animation: sparkle-pulse 3s ease-in-out infinite;
-        }
-        @keyframes sparkle-pulse {
-            0%, 100% { opacity: 0.15; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(1.1); }
-        }
         .divider {
             position: relative;
             margin: 24px 0;
@@ -180,10 +159,11 @@
         }
         .divider span {
             position: relative;
-            background: rgba(30, 50, 85, 0.8);
+            background: rgba(21, 35, 59, 1);
             padding: 0 12px;
             font-size: 13px;
             color: rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
         }
         .btn-google {
             display: flex;
@@ -213,27 +193,12 @@
         @media (max-width: 480px) {
             .login-card { margin: 0 20px; padding: 36px 24px 28px; }
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body>
-    <svg class="bg-pattern" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <defs>
-            <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
-            </pattern>
-            <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
-                <circle cx="15" cy="15" r="1" fill="rgba(255,255,255,0.3)"/>
-            </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)"/>
-        <rect width="100%" height="100%" fill="url(#dots)"/>
-        <line x1="0" y1="100%" x2="30%" y2="50%" stroke="rgba(59,130,246,0.12)" stroke-width="1"/>
-        <line x1="70%" y1="0" x2="100%" y2="60%" stroke="rgba(59,130,246,0.08)" stroke-width="1"/>
-    </svg>
+
+    <!-- Latar Belakang Animasi Jaringan Ultra-HD 4K (Canvas Render) -->
+    <canvas id="network-canvas"></canvas>
 
     <div class="login-card">
         <div class="logo-wrapper">
@@ -262,7 +227,7 @@
             </div>
 
             <?php if (!empty($captcha_required)): ?>
-                <div class="form-group" id="captcha-block" style="animation: fadeIn .3s ease;">
+                <div class="form-group">
                     <label for="captcha_answer">Verifikasi Keamanan</label>
                     <div style="display:flex;align-items:center;gap:12px;">
                         <div style="
@@ -280,11 +245,11 @@
                             text-align: center;
                             flex-shrink: 0;
                             text-shadow: 2px 2px 0 rgba(74,138,244,0.5), -1px -1px 0 rgba(0,0,0,0.5);
-                            transform: skewX(-10deg);
+                            transform: skewX(-5deg);
                             user-select: none;
                         "><?= esc($captcha_question ?? '') ?></div>
                         <input type="text" name="captcha_answer" id="captcha_answer"
-                               placeholder="Ketik kode captcha" required autocomplete="off"
+                               placeholder="Ketik captcha" required autocomplete="off"
                                style="flex:1;padding-right:14px; text-transform: uppercase;">
                     </div>
                 </div>
@@ -298,7 +263,7 @@
             const password = document.querySelector('#password');
             const eyeIcon = document.querySelector('#eyeIcon');
 
-            togglePassword.addEventListener('click', function (e) {
+            togglePassword.addEventListener('click', function () {
                 const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
                 password.setAttribute('type', type);
                 eyeIcon.classList.toggle('bi-eye');
@@ -324,8 +289,105 @@
     <p class="footer-text">Lupa Kata Sandi? Hubungi Administrator.</p>
     <p class="footer-text" style="margin-top: 8px;">&copy; 2026 Universitas Merdeka Malang</p>
 
-    <svg class="sparkle" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 0L23.5 16.5L40 20L23.5 23.5L20 40L16.5 23.5L0 20L16.5 16.5L20 0Z" fill="rgba(140,180,255,0.8)"/>
-    </svg>
+    <!-- Script Jaringan Topologi Bintang Super HD Tanpa Pecah -->
+    <script>
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        const particles = [];
+        const properties = {
+            bgColor: '#02050a',
+            particleColor: 'rgba(74, 138, 244, 0.8)',
+            particleRadius: 3,
+            particleCount: 80,
+            particleMaxVelocity: 0.5,
+            lineLength: 160,
+        };
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.velocityX = Math.random() * (properties.particleMaxVelocity * 2) - properties.particleMaxVelocity;
+                this.velocityY = Math.random() * (properties.particleMaxVelocity * 2) - properties.particleMaxVelocity;
+            }
+            position() {
+                this.x + this.velocityX > width && this.velocityX > 0 || this.x + this.velocityX < 0 && this.velocityX < 0 ? this.velocityX *= -1 : this.velocityX;
+                this.y + this.velocityY > height && this.velocityY > 0 || this.y + this.velocityY < 0 && this.velocityY < 0 ? this.velocityY *= -1 : this.velocityY;
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+            }
+            reDraw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, properties.particleRadius, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fillStyle = properties.particleColor;
+                ctx.fill();
+                // Outer glow effect
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, properties.particleRadius * 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(74, 138, 244, 0.1)';
+                ctx.fill();
+            }
+        }
+
+        function reDrawBackground() {
+            ctx.clearRect(0, 0, width, height);
+        }
+
+        function drawLines() {
+            let x1, y1, x2, y2, length, opacity;
+            for (let i in particles) {
+                for (let j in particles) {
+                    x1 = particles[i].x;
+                    y1 = particles[i].y;
+                    x2 = particles[j].x;
+                    y2 = particles[j].y;
+                    length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                    if (length < properties.lineLength) {
+                        opacity = 1 - length / properties.lineLength;
+                        ctx.lineWidth = '0.5';
+                        ctx.strokeStyle = 'rgba(74, 138, 244, ' + opacity + ')';
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (let i in particles) {
+                particles[i].position();
+                particles[i].reDraw();
+            }
+        }
+
+        function loop() {
+            reDrawBackground();
+            drawLines();
+            drawParticles();
+            requestAnimationFrame(loop);
+        }
+
+        function init() {
+            for (let i = 0 ; i < properties.particleCount ; i++) {
+                particles.push(new Particle());
+            }
+            loop();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        init();
+    </script>
 </body>
 </html>

@@ -366,4 +366,7 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 6. **Routing & Workflow Automation**
    - Aturan pelimpahan tugas bersyarat, seperti otomatis `Assign` staf ahli Jaringan jika kategori yang dilaporkan adalah koneksi Internet.
 
-*Terakhir diperbarui: 23 April 2026 | Versi: 2.11.0 (Integrasi Notifikasi Grup Telegram Asinkron/Non-Blocking)*
+7. **UI/UX Refinements**
+   - Halaman login kini ditenagai oleh animasi matematika interaktif berbasis HTML5 Canvas (*Infinite Node Topology*) yang sangat responsif (anti-pecah). Desain ini dikombinasikan dengan sentuhan akhir *Glassmorphism* dan warna dasar Dark Slate Navy-Blue murni.
+
+*Terakhir diperbarui: 24 April 2026 | Versi: 2.12.0 (UI/UX Refinement: Live Topology UI pada Autentikasi)*
