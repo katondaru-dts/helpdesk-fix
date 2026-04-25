@@ -369,4 +369,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 7. **UI/UX Refinements**
    - Halaman login kini ditenagai oleh animasi matematika interaktif berbasis HTML5 Canvas (*Infinite Node Topology*) yang sangat responsif (anti-pecah). Desain ini dikombinasikan dengan sentuhan akhir *Glassmorphism* dan warna dasar Dark Slate Navy-Blue murni.
 
-*Terakhir diperbarui: 24 April 2026 | Versi: 2.12.0 (UI/UX Refinement: Live Topology UI pada Autentikasi)*
+*Terakhir diperbarui: 24 April 2026 | Versi: 2.12.1 (Penyertaan info Teknisi pada notifikasi Telegram & Notifikasi Penugasan)*

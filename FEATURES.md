@@ -59,6 +59,7 @@
 
 ### 🔔 Notifikasi & Aktivitas Tiket
 - [x] **Global Activity Access** — IT Support (Role 2) kini dapat melihat seluruh riwayat aktivitas tiket melalui halaman "Semua Notifikasi", memudahkan pemantauan tim.
+- [x] **Telegram Integration Enhancement** — Menambahkan informasi teknisi yang ditugaskan pada setiap notifikasi Telegram dan penambahan trigger notifikasi Telegram baru khusus saat tiket di-assign.
 - [x] **Automated Reply Notifications** — Notifikasi otomatis dikirim saat ada balasan pesan:
     - Staf membalas -> Reporter mendapatkan notifikasi.
     - Reporter membalas -> Staf yang ditugaskan (atau seluruh tim jika belum diassign) mendapatkan notifikasi.

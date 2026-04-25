@@ -287,7 +287,7 @@ class Tickets extends BaseController
             // Kirim notifikasi Telegram untuk balasan (hanya pesan publik)
             if (!$isInternal) {
                 helper('telegram');
-                $ticket = $ticketModel->find($id);
+                $ticket = $ticketModel->getTicketDetail($id);
                 if ($ticket) {
                     $telegramMsg = "💬 <b>BALASAN TIKET BARU</b>\n";
                     $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
@@ -296,6 +296,7 @@ class Tickets extends BaseController
                     if (!empty($ticket['location'])) {
                         $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
                     }
+                    $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($ticket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
                     $telegramMsg .= "✍️ <b>Pengirim:</b> " . $session->get('name') . "\n";
                     $telegramMsg .= "💬 <b>Pesan:</b> " . mb_substr($message, 0, 200) . (mb_strlen($message) > 200 ? '...' : '') . "\n";
                     $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
@@ -406,6 +407,8 @@ class Tickets extends BaseController
                 if (!empty($ticket['location'])) {
                     $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
                 }
+                $updatedTicket = $ticketModel->getTicketDetail($id);
+                $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($updatedTicket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
                 $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
                 $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
                 if ($notes) {
@@ -474,6 +477,21 @@ class Tickets extends BaseController
                 $id
             );
         }
+
+        // Kirim notifikasi Telegram penugasan
+        helper('telegram');
+        $notifTicket = $ticketModel->getTicketDetail($id);
+        $telegramMsg = "👨‍🔧 <b>PENUGASAN TIKET</b>\n";
+        $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
+        $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+        if (!empty($ticket['location'])) {
+            $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
+        }
+        $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($notifTicket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
+        $telegramMsg .= "👤 <b>Ditugaskan oleh:</b> " . $session->get('name') . "\n";
+        $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
+        send_telegram($telegramMsg);
 
         $db->transComplete();
 
@@ -612,6 +630,7 @@ class Tickets extends BaseController
         if ($location) {
             $telegramMsg .= "📍 <b>Lokasi:</b> {$location}\n";
         }
+        $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> Belum ditugaskan\n";
         $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB\n";
         $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
         $telegramMsg .= "🔗 Segera tangani di sistem helpdesk.";
