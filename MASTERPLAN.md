@@ -131,6 +131,8 @@ helpdesk-v2/
 | GET | `/` | Redirect ke halaman login |
 | GET | `/login` | Form login |
 | POST | `/login` | Proses login (dengan Rate Limiter) |
+| GET | `/auth/googleLogin` | Redirect ke halaman autentikasi Google SSO |
+| GET | `/auth/googleCallback` | Verifikasi token balik dari Google & proses session |
 | GET | `/register` | Form registrasi (Dinonaktifkan dari UI) |
 | POST | `/register` | Proses registrasi (Dinonaktifkan dari UI) |
 | GET | `/logout` | Logout |
@@ -350,9 +352,9 @@ Sistem Helpdesk ini menggunakan 2 jalur notifikasi secara paralel:
 
 Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpdesk v2 menjadi standar *Enterprise*:
 
-1. **Integrasi SSO (Single Sign-On) via Google Workspace**
+1. ~~**Integrasi SSO (Single Sign-On) via Google Workspace**~~ ✅ *(Sudah diimplementasikan penuh)*
    - Login terpusat menggunakan ekosistem email kampus (`@unmer.ac.id`).
-   - Pencocokan akun secara aman tanpa menimpa *Role* atau kehilangan riwayat tiket lama.
+   - Pencocokan akun secara aman tanpa menimpa *Role* atau kehilangan riwayat tiket lama dengan meminimalisir redundansi network/DB call.
 2. **Email-to-Ticket (Omnichannel)**
    - Konversi email masuk ke kotak pengaduan menjadi tiket baru di aplikasi secara otomatis (menggunakan API/Cron Job).
    - Mendukung balasan *threading* langsung dari antarmuka email.

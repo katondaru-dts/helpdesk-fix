@@ -2,7 +2,8 @@
 
 ### 🔐 Autentikasi & Keamanan
 - [x] Login dengan email & password (password di-hash dengan `password_hash`)
-- [x] Registrasi akun baru (Menu disembunyikan dari halaman login)
+- [x] **SSO (Single Sign-On) via Google Workspace** — Login SSO diintegrasikan dengan efisiensi tinggi (eliminasi network call ganda, parsing `id_token` JWT, 1x DB JOIN query) dan meminimalkan antrean blocking session.
+- [x] Registrasi akun baru (Menu disembunyikan dari halaman login, registrasi diproses otomatis saat SSO login pertama kali)
 - [x] Logout
 - [x] **Rate Limiter** — Membatasi 5 upaya login per menit per IP
 - [x] **AuthFilter** — Melindungi semua route yang membutuhkan login
