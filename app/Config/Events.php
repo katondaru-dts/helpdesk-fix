@@ -53,3 +53,10 @@ Events::on('pre_system', static function (): void {
         }
     }
 });
+
+Events::on('post_system', static function (): void {
+    if (!is_cli()) {
+        $db = \Config\Database::connect();
+        $db->query("SET time_zone = '+07:00'");
+    }
+});

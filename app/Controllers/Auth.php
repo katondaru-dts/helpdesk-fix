@@ -210,53 +210,116 @@ class Auth extends BaseController
         $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
         $client->setRedirectUri(env('GOOGLE_REDIRECT_URI'));
 
+        // Set HTTP timeout agar tidak hang jika Google lambat/timeout
+        $client->setHttpClient(new \GuzzleHttp\Client([
+            'connect_timeout' => 5, // max 5 detik untuk koneksi
+            'timeout' => 8, // max 8 detik total response
+        ]));
+
         $code = $this->request->getVar('code');
         if (!$code) {
             return redirect()->to('/login')->with('error', 'Gagal mendapatkan data dari Google.');
         }
 
         try {
+            // STEP 1: Tukar authorization code → access token (1 network call ke Google)
             $token = $client->fetchAccessTokenWithAuthCode($code);
-            $client->setAccessToken($token);
 
-            $googleService = new \Google\Service\Oauth2($client);
-            $googleUser = $googleService->userinfo->get();
+            if (isset($token['error'])) {
+                return redirect()->to('/login')->with('error', 'OAuth Error: ' . ($token['error_description'] ?? $token['error']));
+            }
 
-            $email = $googleUser->email;
-            $name = $googleUser->name;
+            // STEP 2: Ambil email & name dari id_token (JWT) — TANPA network call tambahan!
+            $idToken = $token['id_token'] ?? null;
+            if (!$idToken) {
+                return redirect()->to('/login')->with('error', 'Gagal mendapatkan identitas dari Google.');
+            }
+
+            $parts = explode('.', $idToken);
+            $b64 = strtr($parts[1] ?? '', '-_', '+/');
+            $b64 = str_pad($b64, strlen($b64) % 4 ? strlen($b64) + (4 - strlen($b64) % 4) : strlen($b64), '=');
+            $payload = json_decode(base64_decode($b64), true);
+
+            $email = $payload['email'] ?? null;
+            $name = $payload['name'] ?? ($payload['email'] ?? 'User Google');
+
+            if (!$email) {
+                return redirect()->to('/login')->with('error', 'Gagal mendapatkan email dari Google.');
+            }
+
             $allowedDomain = env('ALLOWED_EMAIL_DOMAIN', 'unmer.ac.id');
-
-            // Cek domain email
-            if (!str_ends_with($email, "@" . $allowedDomain)) {
+            if (!str_ends_with($email, '@' . $allowedDomain)) {
                 return redirect()->to('/login')->with('error', 'Hanya email @' . $allowedDomain . ' yang diizinkan.');
             }
 
-            $userModel = new UserModel();
-            $user = $userModel->where('email', $email)->first();
+            // STEP 3: Cari user + role dalam 1 JOIN query (sebelumnya 2 query terpisah)
+            $db = \Config\Database::connect();
+            $user = $db->table('users u')
+                ->select('u.*, r.permissions as role_permissions')
+                ->join('roles r', 'r.id = u.role_id', 'left')
+                ->where('u.email', $email)
+                ->get()->getRowArray();
 
             if (!$user) {
-                $userModel->insert([
+                // User baru — INSERT lalu ambil ID langsung dari insertID()
+                // (tanpa SELECT ulang = hemat 1 DB round-trip)
+                $db->table('users')->insert([
                     'name' => $name,
                     'email' => $email,
-                    'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
+                    'password' => password_hash(uniqid((string)rand(), true), PASSWORD_DEFAULT),
                     'role_id' => 3,
                     'dept_id' => null,
                     'is_active' => 1,
-                    'created_at' => date('Y-m-d H:i:s')
+                    'created_at' => date('Y-m-d H:i:s'),
                 ]);
-                $user = $userModel->where('email', $email)->first();
+                $newId = $db->insertID();
+
+                // Bangun array user minimal — tidak perlu SELECT ulang
+                $user = [
+                    'id' => $newId,
+                    'name' => $name,
+                    'email' => $email,
+                    'role_id' => 3,
+                    'dept_id' => null,
+                    'is_active' => 1,
+                    'notif_sound_enabled' => 1,
+                    'notif_sound_type' => 'default',
+                    'role_permissions' => null, // User baru: role User (tidak ada permissions khusus)
+                ];
             }
 
             if (!$user['is_active']) {
                 return redirect()->to('/login')->with('error', 'Akun Anda dinonaktifkan.');
             }
 
-            $this->setUserSession($user);
+            // STEP 4: Set session langsung dari data yang sudah ada (tanpa query tambahan)
+            $permissions = [];
+            if (!empty($user['role_permissions'])) {
+                $permissions = json_decode($user['role_permissions'], true) ?: [];
+            }
+
+            session()->set([
+                'id' => $user['id'],
+                'user_id' => $user['id'],
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'role_id' => $user['role_id'],
+                'dept_id' => $user['dept_id'],
+                'permissions' => $permissions,
+                'isLoggedIn' => true,
+                'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
+                'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
+            ]);
+
             return redirect()->to('/dashboard');
 
+        }
+        catch (\GuzzleHttp\Exception\ConnectException $e) {
+            return redirect()->to('/login')->with('error', 'Koneksi ke Google timeout. Silakan coba lagi.');
         }
         catch (\Exception $e) {
             return redirect()->to('/login')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }
+

@@ -33,6 +33,8 @@ class Session extends BaseConfig
     // Database group (uses default from .env)
     public ?string $DBGroup = null;
 
+    // 100ms interval × 30 retries = max 3 detik tunggu lock (default 300 = 30 detik, terlalu lama!)
     public int $lockRetryInterval = 100_000;
-    public int $lockMaxRetries    = 300;
+    public int $lockMaxRetries = 30;
 }
+

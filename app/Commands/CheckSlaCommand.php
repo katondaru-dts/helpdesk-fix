@@ -16,6 +16,9 @@ class CheckSlaCommand extends BaseCommand
 
     public function run(array $params)
     {
+        $db = \Config\Database::connect();
+        $db->query("SET time_zone = '+07:00'");
+
         $ticketModel = new TicketModel();
         $userModel = new UserModel();
 
