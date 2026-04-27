@@ -9,7 +9,6 @@ use App\Models\CategoryModel;
 use App\Models\DepartmentModel;
 use App\Models\TicketHistoryModel;
 use App\Models\TicketMessageModel;
-use App\Models\TicketRatingModel;
 use App\Models\UserModel;
 use App\Models\NotificationModel;
 
@@ -144,7 +143,6 @@ class Tickets extends BaseController
         $ticketModel = new TicketModel();
         $historyModel = new TicketHistoryModel();
         $messageModel = new TicketMessageModel();
-        $ratingModel = new TicketRatingModel();
         $userModel = new UserModel();
 
         $ticket = $ticketModel->getTicketDetail($id);
@@ -180,7 +178,6 @@ class Tickets extends BaseController
         }
         $messages = $messagesQuery->orderBy('sent_at', 'ASC')->findAll();
 
-        $rating = $ratingModel->where('ticket_id', $id)->first();
 
         $timeline = [];
         foreach ($history as $h) {
@@ -200,7 +197,6 @@ class Tickets extends BaseController
             'activePage' => 'tickets',
             'ticket' => $ticket,
             'timeline' => $timeline,
-            'rating' => $rating,
             'supports' => $supports,
             'isStaff' => $isStaff,
             'canAssign' => $canAssign,
@@ -502,23 +498,6 @@ class Tickets extends BaseController
         return redirect()->back()->with('success', 'Penugasan diperbarui.');
     }
 
-    public function rate($id)
-    {
-        $ratingModel = new TicketRatingModel();
-        $rating = $this->request->getPost('rating');
-        $feedback = $this->request->getPost('feedback');
-
-        if ($rating) {
-            $ratingModel->insert([
-                'ticket_id' => $id,
-                'rated_by' => session()->get('id'),
-                'rating' => $rating,
-                'feedback' => $feedback
-            ]);
-            return redirect()->back()->with('success', 'Terima kasih atas penilaian Anda!');
-        }
-        return redirect()->back();
-    }
 
     public function create()
     {
@@ -649,7 +628,6 @@ class Tickets extends BaseController
         $ticketModel = new TicketModel();
         $historyModel = new TicketHistoryModel();
         $messageModel = new TicketMessageModel();
-        $ratingModel = new TicketRatingModel();
         $notificationModel = new NotificationModel();
 
         $ticket = $ticketModel->find($id);
@@ -663,7 +641,6 @@ class Tickets extends BaseController
         // Delete related data first
         $historyModel->where('ticket_id', $id)->delete();
         $messageModel->where('ticket_id', $id)->delete();
-        $ratingModel->where('ticket_id', $id)->delete();
         $notificationModel->where('ref_id', $id)->delete();
 
         // Delete ticket

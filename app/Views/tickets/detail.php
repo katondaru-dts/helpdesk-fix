@@ -1,4 +1,4 @@
-﻿<?= $this->extend('layouts/main') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <style>
@@ -44,7 +44,7 @@
 
         <!-- History/Messages -->
         <div class="card" style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:20px">
-            <div style="font-weight:bold;margin-bottom:20px;font-size:16px"><i class="bi bi-clock-history" style="color:var(--primary)"></i> Riwayat & Balasan</div>
+            <div style="font-weight:bold;margin-bottom:20px;font-size:16px"><i class="bi bi-clock-history" style="color:var(--primary)"></i> Riwayat &amp; Balasan</div>
             <div class="timeline-scroll" style="display:flex;flex-direction:column;gap:20px">
                 <?php if (empty($timeline)): ?>
                     <p style="text-align:center;color:#9ca3af;font-style:italic">Belum ada balasan.</p>
@@ -104,35 +104,6 @@
                     <button type="submit" class="btn btn-primary" style="background:#3b82f6;color:white;padding:10px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer">
                         <i class="bi bi-send"></i> Kirim Balasan
                     </button>
-                </form>
-            </div>
-        <?php endif; ?>
-
-        <!-- Rating -->
-        <?php if ($rating): ?>
-            <div class="card" style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:20px">
-                <div style="font-weight:bold;margin-bottom:15px;font-size:16px"><i class="bi bi-star-fill" style="color:#f59e0b"></i> Rating Kepuasan</div>
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                    <span style="color:#f59e0b"><?= str_repeat('â˜…', $rating['rating']) . str_repeat('â˜†', 5 - $rating['rating']) ?></span>
-                    <b><?= $rating['rating'] ?>/5</b>
-                </div>
-                <?php if ($rating['feedback']): ?><p style="font-style:italic;color:#6b7280">"<?= esc($rating['feedback']) ?>"</p><?php endif; ?>
-            </div>
-        <?php elseif ($ticket['reporter_id'] == $userId && in_array($ticket['status'], ['RESOLVED', 'CLOSED'])): ?>
-            <div class="card" style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:20px">
-                <div style="font-weight:bold;margin-bottom:15px;font-size:16px"><i class="bi bi-star" style="color:#f59e0b"></i> Beri Rating</div>
-                <form action="<?= base_url('tickets/rate/' . $ticket['id']) ?>" method="POST">
-                    <?= csrf_field() ?>
-                    <label style="display:block;margin-bottom:5px;font-size:14px">Rating Pelayanan</label>
-                    <select name="rating" class="form-select mb-3" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:15px">
-                        <option value="5">â­â­â­â­â­ (Sangat Puas)</option>
-                        <option value="4">â­â­â­â­ (Puas)</option>
-                        <option value="3">â­â­â­ (Cukup)</option>
-                        <option value="2">â­â­ (Kurang)</option>
-                        <option value="1">â­ (Sangat Kurang)</option>
-                    </select>
-                    <textarea name="feedback" class="form-control mb-3" rows="2" placeholder="Komentar tambahan..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:15px"></textarea>
-                    <button type="submit" class="btn btn-primary" style="background:#3b82f6;color:white;padding:10px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer">Kirim Rating</button>
                 </form>
             </div>
         <?php endif; ?>

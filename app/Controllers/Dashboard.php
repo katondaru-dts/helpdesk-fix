@@ -35,7 +35,6 @@ class Dashboard extends BaseController
                 'users' => $userModel->where('is_active', 1)->countAllResults(),
                 'unassigned' => $ticketModel->where('assigned_to', null)->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
                 'urgent' => $ticketModel->whereIn('priority', ['HIGH', 'URGENT'])->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
-                'avgRating' => 0
             ];
 
             // Highlight Notifikasi: Pesan terbaru dari Reporter (User)

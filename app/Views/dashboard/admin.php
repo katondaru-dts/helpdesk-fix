@@ -39,7 +39,6 @@
 .card-urgent { background: #fef2f2 !important; border-color: #fee2e2 !important; }
 .card-reports { background: #ecfdf5 !important; border-color: #d1fae5 !important; }
 .card-audit { background: #f8fafc !important; border-color: #f1f5f9 !important; }
-.card-rating { background: #fffbeb !important; border-color: #fef3c7 !important; }
 
 .card-title-main {
     font-size: 15px;
@@ -354,13 +353,9 @@
             </div>
         </div>
         <?php endif; ?>
-        <div class="dash-card card-rating">
-            <div class="card-title-main" style="font-size:13px;margin-bottom:8px;">Avg Rating</div>
             <div style="display:flex;align-items:center;gap:10px;">
-                <div style="background:#fbbf24; color:white; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;"><i class="bi bi-star-fill"></i></div>
-                <div style="font-size:22px; font-weight:700; color:#111827;">4.8</div>
             </div>
-        </div>
+
     </div>
 
     <!-- ROW 3: CATEGORIES | URGENT & RECENT MESSAGES -->

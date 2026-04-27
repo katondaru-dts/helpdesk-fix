@@ -41,7 +41,6 @@ class Reports extends BaseController
             SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
             SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
             FROM tickets t WHERE $where")->getRowArray();
-        $avgRating = $db->query("SELECT AVG(rating) as r FROM ticket_ratings")->getRow()->r;
         $pager = \Config\Services::pager();
         $page = $this->request->getVar('page') ? (int)$this->request->getVar('page') : 1;
         $perPage = 10;
@@ -61,7 +60,6 @@ class Reports extends BaseController
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'stats' => $stats,
-            'avgRating' => $avgRating,
             'tickets' => $db->query($ticketsQuery)->getResultArray(),
             'pager_links' => $stats['total'] > 0 ? $pager->makeLinks($page, $perPage, $stats['total']) : '',
         ];
@@ -87,7 +85,6 @@ class Reports extends BaseController
             SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
             SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
             FROM tickets t WHERE $where")->getRowArray();
-        $avgRating = $db->query("SELECT AVG(rating) as r FROM ticket_ratings")->getRow()->r;
 
         $tickets = $this->getTickets();
         $filename = "Helpdesk_Laporan_" . date('Ymd_His') . ".xls";
@@ -101,7 +98,6 @@ class Reports extends BaseController
         echo '<tr><td style="font-weight:bold;">Tiket Open</td><td>' . ($stats['open_tickets'] ?? 0) . '</td></tr>';
         echo '<tr><td style="font-weight:bold;">Tiket In Progress</td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>';
         echo '<tr><td style="font-weight:bold;">Tiket Solved/Closed</td><td>' . ($stats['solved'] ?? 0) . '</td></tr>';
-        echo '<tr><td style="font-weight:bold;">Rata-rata Rating</td><td>' . number_format($avgRating ?? 0, 1) . ' / 5</td></tr>';
         echo '</table><br/>';
 
         echo '<h3>Data Tiket</h3>';
@@ -155,7 +151,6 @@ class Reports extends BaseController
             SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
             SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
             FROM tickets t WHERE $where")->getRowArray();
-        $avgRating = $db->query("SELECT AVG(rating) as r FROM ticket_ratings")->getRow()->r;
 
         $tickets = $this->getTickets();
         $dateFrom = $dateFromRaw ?: 'Semua';
@@ -190,7 +185,6 @@ td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(ev
     <tr><td><strong>Tiket Open</strong></td><td>' . ($stats['open_tickets'] ?? 0) . '</td></tr>
     <tr><td><strong>Tiket In Progress</strong></td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>
     <tr><td><strong>Tiket Solved/Closed</strong></td><td>' . ($stats['solved'] ?? 0) . '</td></tr>
-    <tr><td><strong>Rata-rata Rating</strong></td><td>' . number_format($avgRating ?? 0, 1) . ' / 5</td></tr>
 </table>
 <table><tr><th>ID</th><th>Judul</th><th>Prioritas</th><th>Status</th><th>Pengaju</th><th>Kategori</th><th>Deskripsi</th><th>Link Dokumentasi</th><th>Tanggal</th></tr>
 ' . $rows . '</table></body></html>';

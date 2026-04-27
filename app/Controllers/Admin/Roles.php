@@ -18,8 +18,7 @@ class Roles extends BaseController
         'Tugaskan Support' => 'Menugaskan Tiket ke Staff Support',
         'Tambah Solusi' => 'Memberikan Solusi Tiket',
         'Buat Tiket' => 'Membuat Tiket Baru',
-        'Lihat Tiket Sendiri' => 'Melihat Daftar Tiket Pribadi',
-        'Beri Rating' => 'Memberikan Penilaian Layanan'
+        'Lihat Tiket Sendiri' => 'Melihat Daftar Tiket Pribadi'
     ];
 
     public function index()
