@@ -7,6 +7,8 @@ use App\Models\UserModel;
 use App\Models\TicketModel;
 use App\Models\TicketMessageModel;
 
+use App\Models\TicketRatingModel;
+
 class Dashboard extends BaseController
 {
     public function index()
@@ -18,6 +20,7 @@ class Dashboard extends BaseController
         $ticketModel = new TicketModel();
         $userModel = new UserModel();
         $messageModel = new TicketMessageModel();
+        $ratingModel = new TicketRatingModel();
 
         $data = [
             'pageTitle' => 'Dashboard — Helpdesk',
@@ -26,6 +29,8 @@ class Dashboard extends BaseController
 
         if (has_permission('Update Status Tiket')) {
             // Admin or Support
+            $avgRating = $ratingModel->selectAvg('rating')->first();
+            
             $data['stats'] = [
                 'total' => $ticketModel->countAllResults(),
                 'open' => $ticketModel->where('status', 'OPEN')->countAllResults(),
@@ -35,13 +40,27 @@ class Dashboard extends BaseController
                 'users' => $userModel->where('is_active', 1)->countAllResults(),
                 'unassigned' => $ticketModel->where('assigned_to', null)->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
                 'urgent' => $ticketModel->whereIn('priority', ['HIGH', 'URGENT'])->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
+                'avgRating' => $avgRating ? round($avgRating['rating'], 1) : 0,
+                'overdue' => $ticketModel->where('sla_deadline <', date('Y-m-d H:i:s'))
+                                        ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
+                                        ->countAllResults(),
             ];
 
             // Highlight Notifikasi: Pesan terbaru dari Reporter (User)
-            $data['recentMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, tickets.title as ticket_title')
+            $data['recentMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, users.role_id as sender_role, tickets.title as ticket_title')
                 ->join('tickets', 'ticket_messages.ticket_id = tickets.id')
                 ->join('users', 'ticket_messages.sender_id = users.id')
                 ->where('users.role_id', 3) // Hanya pesan dari role User
+                ->where('ticket_messages.is_internal', 0)
+                ->orderBy('ticket_messages.sent_at', 'DESC')
+                ->limit(5)
+                ->findAll();
+
+            // Highlight Notifikasi: Pesan terbaru dari Operator/Support
+            $data['recentOperatorMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, users.role_id as sender_role, tickets.title as ticket_title')
+                ->join('tickets', 'ticket_messages.ticket_id = tickets.id')
+                ->join('users', 'ticket_messages.sender_id = users.id')
+                ->whereIn('users.role_id', [1, 2, 4]) // Admin, Support, Staff
                 ->where('ticket_messages.is_internal', 0)
                 ->orderBy('ticket_messages.sent_at', 'DESC')
                 ->limit(5)
@@ -80,6 +99,15 @@ class Dashboard extends BaseController
                 ->join('categories', 'tickets.cat_id = categories.id', 'left')
                 ->where('assigned_to', null)
                 ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
+                ->orderBy('created_at', 'DESC')
+                ->limit(5)
+                ->findAll();
+
+            // Fetch Tiket Masuk Terbaru
+            $data['newIncomingTickets'] = $ticketModel->select('tickets.*, categories.name as cat_name, reporter.name as reporter_name')
+                ->join('categories', 'tickets.cat_id = categories.id', 'left')
+                ->join('users as reporter', 'tickets.reporter_id = reporter.id', 'left')
+                ->where('tickets.status', 'OPEN')
                 ->orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->findAll();

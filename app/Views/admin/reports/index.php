@@ -117,10 +117,10 @@
         </div>
     </div>
     <div class="report-stat-card">
-        <div class="report-stat-icon" style="background: #ede9fe; color: #7c3aed;"><i class="bi bi-star-fill"></i></div>
+        <div class="report-stat-icon" style="background: #fee2e2; color: #dc2626;"><i class="bi bi-envelope-open-fill"></i></div>
         <div>
-            <div class="report-stat-label">Avg Rating</div>
-            <div class="report-stat-value"><?= number_format($avgRating ?: 0, 1) ?><span style="font-size: 14px; font-weight: 500; color: #94a3b8;">/5</span></div>
+            <div class="report-stat-label">Tiket Open</div>
+            <div class="report-stat-value"><?= number_format($stats['open_tickets'] ?? 0) ?></div>
         </div>
     </div>
 </div>

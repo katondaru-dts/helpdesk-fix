@@ -183,7 +183,7 @@
     align-items: flex-start;
     gap: 12px;
     width: calc(33.333% - 11px);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     background: rgba(255,255,255,0.6);
     padding: 12px;
     border-radius: 12px;
@@ -308,13 +308,8 @@
     </div>
 
     <!-- ROW 2: OTHER STATS -->
-    <?php 
-        $showAudit = has_permission('Lihat Audit Log');
-        $showUsers = has_permission('Kelola User');
-        $gridCols = 4 + ($showAudit ? 1 : 0) + ($showUsers ? 1 : 0);
-    ?>
-    <div style="display:grid;grid-template-columns:repeat(<?= $gridCols ?>,1fr);gap:16px;margin-bottom:16px;">
-        <?php if ($showUsers): ?>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:16px;">
+        <?php if (has_permission('Kelola User')): ?>
         <div class="dash-card card-users" onclick="window.location='<?= base_url('admin/users') ?>'" style="cursor:pointer;">
             <div class="card-title-main" style="font-size:13px;margin-bottom:8px;">User Aktif</div>
             <div style="display:flex;align-items:center;gap:10px;">
@@ -344,22 +339,18 @@
                 <div style="font-size:13px; font-weight:600; color:#111827;">Lihat Detail</div>
             </div>
         </div>
-        <?php if ($showAudit): ?>
-        <div class="dash-card card-audit">
-            <div class="card-title-main" style="font-size:13px;margin-bottom:8px;">Audit Log</div>
+        <div class="dash-card card-open" style="background:#FFF1F2 !important; border-color:#FECACA !important; cursor:pointer;" onclick="window.location='<?= base_url('tickets') ?>?f-overdue=1'">
+            <div class="card-title-main" style="font-size:13px;margin-bottom:8px;color:#E11D48;">Melewati SLA</div>
             <div style="display:flex;align-items:center;gap:10px;">
-                <div style="background:#64748b; color:white; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;"><i class="bi bi-shield-lock-fill"></i></div>
-                <div style="font-size:13px; font-weight:600; color:#111827;">Log Admin</div>
+                <div style="background:#E11D48; color:white; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;"><i class="bi bi-clock-history"></i></div>
+                <div style="font-size:22px; font-weight:700; color:#E11D48;"><?= $stats['overdue'] ?></div>
             </div>
         </div>
-        <?php endif; ?>
-            <div style="display:flex;align-items:center;gap:10px;">
-            </div>
-
     </div>
 
+
     <!-- ROW 3: CATEGORIES | URGENT & RECENT MESSAGES -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start;">
         
         <div class="dash-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -367,7 +358,7 @@
                 <i class="bi bi-arrow-repeat refresh-btn"></i>
             </div>
             <div style="font-size:12px;color:#9CA3AF;margin-bottom:20px; font-weight:500;">Angka menunjukkan jumlah tiket terakumulasi</div>
-            <div class="scroll-area" style="max-height: 350px;">
+            <div class="scroll-area" style="max-height: 370px;">
                 <div style="display:flex;flex-wrap:wrap;gap:16px;padding-right:10px;">
                     <?php if (!empty($categoryStats)): ?>
                         <?php foreach ($categoryStats as $c):
@@ -427,44 +418,46 @@
                 <div style="display:flex;align-items:center;gap:8px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #F3F4F6;">
                     <div style="background:#FEE2E2; padding:6px; border-radius:8px; display:inline-flex;"><i class="bi bi-fire" style="color:#DC2626;"></i></div>
                     <span class="card-title-main" style="margin-bottom:0; flex:1;">Tiket Urgent / High</span>
-                    <a href="<?= base_url('tickets') ?>" class="btn btn-outline-secondary btn-sm">Lihat Semua</a>
+                    <a href="<?= base_url('tickets') ?>" class="btn btn-outline-secondary btn-sm" style="font-size:10px; padding:2px 8px;">Lihat</a>
                 </div>
-                <div class="scroll-area" style="max-height: 250px;">
+                <div class="scroll-area" style="max-height: 80px;">
                     <?php if(!empty($urgentTickets)): foreach($urgentTickets as $t): ?>
                         <div class="ticket-row" onclick="window.location='<?= base_url('tickets/detail/'.$t['id']) ?>'">
                             <div style="min-width:0;flex:1;">
-                                <div style="font-weight:600;font-size:13.5px;"><?= esc($t['title']) ?></div>
-                                <div style="font-size:11.5px;color:#6B7280;">#<?= $t['id'] ?> &middot; <?= esc($t['reporter_name'] ?? '') ?></div>
+                                <div style="font-weight:600;font-size:13px;"><?= esc($t['title']) ?></div>
+                                <div style="font-size:11px;color:#6B7280;">#<?= $t['id'] ?> &middot; <?= esc($t['reporter_name'] ?? '') ?></div>
                             </div>
-                            <span class="badge" style="background:#EF444415; color:#EF4444; border:1px solid #EF444430; font-size:10px;"><?= $t['priority'] ?></span>
+                            <span class="badge" style="background:#EF444415; color:#EF4444; border:1px solid #EF444430; font-size:9px;"><?= $t['priority'] ?></span>
                         </div>
                     <?php endforeach; else: ?>
-                        <div style="padding:16px;text-align:center;color:#9CA3AF;font-size:13px;">Tidak ada tiket mendesak.</div>
+                        <div style="padding:10px;text-align:center;color:#9CA3AF;font-size:12px;">Tidak ada tiket mendesak.</div>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <!-- Respon Terbaru User -->
+            <!-- Tiket Masuk Terbaru -->
             <div class="dash-card">
                 <div style="display:flex;align-items:center;gap:8px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #F3F4F6;">
-                    <div style="background:#E0F2FE; padding:6px; border-radius:8px; display:inline-flex;"><i class="bi bi-chat-left-text-fill" style="color:#0284C7;"></i></div>
-                    <span class="card-title-main" style="margin-bottom:0; flex:1;">Respon Terbaru User</span>
+                    <div style="background:#F0FDF4; padding:6px; border-radius:8px; display:inline-flex;"><i class="bi bi-box-arrow-in-right" style="color:#16A34A;"></i></div>
+                    <span class="card-title-main" style="margin-bottom:0; flex:1;">Tiket Masuk Terbaru (<?= $stats['open'] ?>)</span>
                 </div>
-                <div class="scroll-area" style="max-height: 130px;">
+                <div class="scroll-area" style="max-height: 80px;">
                     <div style="display:flex; flex-direction:column; gap:8px;">
-                        <?php if (count($recentMessages ?? []) > 0): ?>
-                            <?php foreach ($recentMessages as $msg): ?>
-                                <div class="ticket-row" onclick="window.location='<?= base_url('tickets/detail/'.$msg['ticket_id']) ?>'" style="display:block; padding:10px;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                        <span style="font-weight:700; font-size:13px; color:#0369A1;"><?= esc($msg['sender_name']) ?></span>
-                                        <span style="font-size:10.5px; color:#9CA3AF;"><?= date('d M, H:i', strtotime($msg['sent_at'])) ?></span>
-                                    </div>
-                                    <div style="font-size:11.5px; color:#6B7280; margin-bottom:4px; font-weight:500;">Tiket: <?= esc($msg['ticket_title']) ?></div>
-                                    <div style="font-size:12px; color:#374151; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><?= esc($msg['message']) ?></div>
+                        <?php if (!empty($newIncomingTickets)): foreach ($newIncomingTickets as $t): ?>
+                            <div class="ticket-row" onclick="window.location='<?= base_url('tickets/detail/'.$t['id']) ?>'" style="display:block; padding:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                    <span style="font-weight:700; font-size:13px; color:#1e293b;">#<?= $t['id'] ?></span>
+                                    <span style="font-size:10px; color:#9CA3AF;"><?= date('d M, H:i', strtotime($t['created_at'])) ?></span>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div style="padding:16px; text-align:center; color:#9CA3AF; font-size:13px;">Belum ada balasan baru dari user.</div>
+                                <div style="font-weight:600; font-size:12.5px; color:#334155; margin-bottom:4px;"><?= esc($t['title']) ?></div>
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                    <span style="font-size:10.5px; color:#64748b;"><i class="bi bi-person"></i> <?= esc($t['reporter_name']) ?></span>
+                                    <span style="font-size:10.5px; color:#64748b;">&bull;</span>
+                                    <span style="font-size:10.5px; color:#64748b;"><i class="bi bi-tag"></i> <?= esc($t['cat_name']) ?></span>
+                                </div>
+                            </div>
+                        <?php endforeach; else: ?>
+                            <div style="padding:10px; text-align:center; color:#9CA3AF; font-size:12px;">Belum ada tiket masuk.</div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -476,17 +469,17 @@
                     <div style="background:#FEF3C7; padding:6px; border-radius:8px; display:inline-flex;"><i class="bi bi-person-x-fill" style="color:#D97706;"></i></div>
                     <span class="card-title-main" style="margin-bottom:0; flex:1;">Belum Diassign (<?= $stats['unassigned'] ?>)</span>
                 </div>
-                <div class="scroll-area" style="max-height: 250px;">
+                <div class="scroll-area" style="max-height: 80px;">
                     <?php if(!empty($pendingTickets)): foreach($pendingTickets as $t): ?>
                         <div class="ticket-row" onclick="window.location='<?= base_url('tickets/detail/'.$t['id']) ?>'">
                             <div style="min-width:0;flex:1;">
-                                <div style="font-weight:600;font-size:13.5px;"><?= esc($t['title']) ?></div>
-                                <div style="font-size:11.5px;color:#6B7280;">#<?= $t['id'] ?> &middot; <?= esc($t['cat_name'] ?? '') ?></div>
+                                <div style="font-weight:600;font-size:13px;"><?= esc($t['title']) ?></div>
+                                <div style="font-size:11px;color:#6B7280;">#<?= $t['id'] ?> &middot; <?= esc($t['cat_name'] ?? '') ?></div>
                             </div>
-                            <button class="btn btn-sm btn-primary" style="font-size:11px; padding:4px 8px;">Assign</button>
+                            <button class="btn btn-sm btn-primary" style="font-size:10px; padding:2px 8px;">Assign</button>
                         </div>
                     <?php endforeach; else: ?>
-                        <div style="padding:16px;text-align:center;color:#9CA3AF;font-size:13px;">Semua tiket sudah diassign.</div>
+                        <div style="padding:10px;text-align:center;color:#9CA3AF;font-size:12px;">Semua tiket sudah diassign.</div>
                     <?php endif; ?>
                 </div>
             </div>

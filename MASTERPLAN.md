@@ -118,7 +118,6 @@ helpdesk-v2/
 | `tickets` | Data tiket (id, title, description, drive_link, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
 | `ticket_replies` | Balasan/komentar pada tiket |
-| `ticket_ratings` | Rating kepuasan dari user (1-5 bintang) - Mencatat `rated_by` dan `rated_at` |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
 
 ---
@@ -148,7 +147,6 @@ helpdesk-v2/
 | POST | `/tickets/reply/{id}` | Balas tiket |
 | POST | `/tickets/status/{id}` | Update status tiket |
 | POST | `/tickets/assign/{id}` | Assign tiket ke support |
-| POST | `/tickets/rate/{id}` | Beri rating tiket |
 | GET | `/tickets/export` | Export tiket ke CSV |
 | POST | `/tickets/delete/{id}` | Hapus tiket (khusus Administrator) |
 | GET | `/notifications` | Halaman notifikasi personal (Filter & Pagination) |
@@ -272,7 +270,7 @@ flowchart TD
     subgraph Pelapor[PENGGUNA / USER]
         direction TB
         A[Buat Laporan Gangguan]:::user
-        G[Cek Hasil & Beri Rating]:::user
+        G[Selesai]:::user
         B1[Beri Klarifikasi]:::user
     end
 
@@ -370,5 +368,7 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 
 7. **UI/UX Refinements**
    - Halaman login kini ditenagai oleh animasi matematika interaktif berbasis HTML5 Canvas (*Infinite Node Topology*) yang sangat responsif (anti-pecah). Desain ini dikombinasikan dengan sentuhan akhir *Glassmorphism* dan warna dasar Dark Slate Navy-Blue murni.
+   - **Dashboard Admin**: Menggantikan panel "Respon Terbaru" dengan "Tiket Masuk Terbaru" untuk pemantauan antrean secara real-time. Panel ini menampilkan 10 tiket terbaru dengan sistem *scrollbar* vertikal otomatis.
+   - **Navigasi Global**: Perbaikan presisi *hover/hitbox* dropdown profil pada *topbar* dengan implementasi *gap-bridge pseudo-element* CSS untuk mencegah menu tertutup secara tidak sengaja.
 
-*Terakhir diperbarui: 27 April 2026 | Versi: 2.12.4 (Optimasi SSO lanjutan: Guzzle timeout, JOIN query user+role, eliminasi SELECT redundan via insertID)*
+*Terakhir diperbarui: 28 April 2026 | Versi: 2.12.8 (Optimalisasi Dashboard & Perbaikan UX Topbar)*

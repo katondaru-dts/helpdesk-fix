@@ -14,10 +14,10 @@
 ### 📊 Dashboard (Dashboard Status & Kinerja Layanan)
 - [x] **Vivid Design System** — Implementasi warna pastel solid pada kartu statistik untuk identifikasi visual cepat.
 - [x] **Defined Donut Charts** — Grafik donat memiliki garis luar tipis (*outline*) dan jalur putih untuk tampilan yang lebih tajam dan profesional.
-- [x] **Highlight Notifikasi (Dua Arah)**:
-    - **Admin/Staff**: Melihat cuplikan balasan pesan terbaru dari User/Reporter.
-    - **User**: Melihat cuplikan balasan pesan terbaru dari tim IT Support.
-- [x] **Modern Scrollbars** — Penambahan scroll vertikal mandiri dengan desain minimalis pada panel *Urgent*, *Respon Terbaru*, *Kategori*, dan *Belum Diassign* untuk efisiensi ruang.
+- [x] **Highlight Antrean Tiket**: Menampilkan widget "**Tiket Masuk Terbaru**" (khusus status `OPEN`) dengan indikator jumlah total antrean untuk pemantauan real-time.
+- [x] **Tata Letak Simetris Presisi** — Implementasi sistem tinggi terkunci (*fixed height*) pada seluruh panel di baris ketiga agar garis bawah setiap panel sejajar secara sempurna (simetris).
+- [x] **Optimalisasi Ruang Kategori** — Statistik kategori tiket kini disusun dalam tata letak 3 kolom per baris untuk efisiensi visual.
+- [x] **Modern Scrollbars** — Penambahan scroll vertikal mandiri dengan desain minimalis pada panel *Urgent*, *Tiket Masuk Terbaru*, *Kategori*, dan *Belum Diassign* untuk efisiensi ruang.
 - [x] **Interaktivitas Grafik (Chart.js)**:
     - **Area Chart Bergradasi**: Grafik kinerja teknisi menggunakan gradien warna lembut dan kurva mulus (*smooth curves*).
     - **Multi-Colored Bar Chart**: Grafik waktu respons menggunakan palet warna variatif untuk setiap kategori (Biru, Hijau, Oranye, dsb) guna memberikan pembedaan visual yang lebih cepat.
@@ -36,9 +36,6 @@
 - [x] Detail tiket dengan riwayat perubahan
 - [x] Balas tiket (komentar/respons support)
 - [x] Update status tiket (OPEN → IN_PROGRESS → RESOLVED → CLOSED)
-- [x] **Restriksi Status Teknisi** — Role Teknisi (IT Support) dibatasi hanya bisa mengubah status hingga RESOLVED; opsi CLOSED disembunyikan untuk memastikan penutupan tiket dilakukan oleh Admin atau sistem.
-- [x] Assign tiket ke staf IT Support (Manual Assign tetap tersedia untuk Admin/Operator)
-- [x] Rating tiket setelah selesai (1-5 bintang) - Perbaikan bug mismatch schema (rated_by & rated_at)
 - [x] **Export tiket ke CSV/Excel** — Menyertakan deskripsi dan Link Dokumentasi.
 - [x] **Perbaikan Tampilan Riwayat & Balasan** — Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual, serta dilengkapi dengan **Scrollbar Vertikal Custom** (max-height 800px) untuk mencegah halaman memanjang saat obrolan tiket lebih dari ~10-15 balasan.
 - [x] **Penghapusan Tiket Menyeluruh** — Notifikasi yang terkait dengan tiket akan ikut terhapus secara otomatis ketika tiket tersebut dihapus untuk mencegah data notifikasi tertinggal (*orphan data*).
