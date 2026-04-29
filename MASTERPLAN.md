@@ -370,5 +370,6 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - Halaman login kini ditenagai oleh animasi matematika interaktif berbasis HTML5 Canvas (*Infinite Node Topology*) yang sangat responsif (anti-pecah). Desain ini dikombinasikan dengan sentuhan akhir *Glassmorphism* dan warna dasar Dark Slate Navy-Blue murni.
    - **Dashboard Admin**: Menggantikan panel "Respon Terbaru" dengan "Tiket Masuk Terbaru" untuk pemantauan antrean secara real-time. Panel ini menampilkan 10 tiket terbaru dengan sistem *scrollbar* vertikal otomatis.
    - **Navigasi Global**: Perbaikan presisi *hover/hitbox* dropdown profil pada *topbar* dengan implementasi *gap-bridge pseudo-element* CSS untuk mencegah menu tertutup secara tidak sengaja.
+   - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
 
-*Terakhir diperbarui: 28 April 2026 | Versi: 2.12.8 (Optimalisasi Dashboard & Perbaikan UX Topbar)*
+*Terakhir diperbarui: 29 April 2026 | Versi: 2.12.9 (Perbaikan Alignment Card Dashboard)*
