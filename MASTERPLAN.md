@@ -371,5 +371,6 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Dashboard Admin**: Menggantikan panel "Respon Terbaru" dengan "Tiket Masuk Terbaru" untuk pemantauan antrean secara real-time. Panel ini menampilkan 10 tiket terbaru dengan sistem *scrollbar* vertikal otomatis.
    - **Navigasi Global**: Perbaikan presisi *hover/hitbox* dropdown profil pada *topbar* dengan implementasi *gap-bridge pseudo-element* CSS untuk mencegah menu tertutup secara tidak sengaja.
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
+   - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 
-*Terakhir diperbarui: 29 April 2026 | Versi: 2.12.9 (Perbaikan Alignment Card Dashboard)*
+*Terakhir diperbarui: 29 April 2026 | Versi: 2.12.10 (Peningkatan Fitur Pencarian Tiket)*

@@ -26,8 +26,8 @@ function exportTickets() {
     <div class="card-body" style="padding:14px 20px">
         <form action="<?= base_url('tickets') ?>" method="GET" class="filter-bar" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
             <div class="search-wrap" style="flex: 1; min-width: 200px; display:flex; align-items:center; background:#f3f4f6; border-radius:8px; padding:0 10px;">
-                <i class="bi bi-search" id="searchIconBtn" style="color:#666; cursor:pointer; padding:4px 2px;" title="Klik untuk mencari"></i>
-                <input type="text" name="search" id="searchInput" value="<?= esc($filters['search']) ?>" class="form-control" placeholder="Cari judul, isi atau ID..." style="background:transparent; border:none; box-shadow:none;">
+                <i class="bi bi-search" style="color:#666"></i>
+                <input type="text" name="search" value="<?= esc($filters['search']) ?>" class="form-control" placeholder="Cari judul atau ID..." style="background:transparent; border:none; box-shadow:none;">
             </div>
             <select name="f-status" class="form-select" style="width:auto">
                 <option value="">Status</option>
@@ -173,23 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateTimers();
     setInterval(updateTimers, 1000);
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    var searchIcon = document.getElementById("searchIconBtn");
-    var searchInput = document.getElementById("searchInput");
-    if (searchIcon && searchInput) {
-        searchIcon.addEventListener("click", function() {
-            searchInput.closest("form").submit();
-        });
-        searchInput.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                searchInput.closest("form").submit();
-            }
-        });
-    }
 });
 </script>
 <?= $this->endSection() ?>

@@ -50,6 +50,7 @@ class TicketModel extends Model
             $builder->groupStart()
                 ->like('tickets.title', $filters['search'])
                 ->orLike('tickets.id', $filters['search'])
+                ->orLike('tickets.description', $filters['search'])
                 ->groupEnd();
         }
 
@@ -126,3 +127,5 @@ class TicketModel extends Model
         return date('Y-m-d H:i:s', $start + $duration);
     }
 }
+
+
