@@ -34,7 +34,7 @@ class Auth extends BaseController
     {
         $userModel = new UserModel();
         $email = $this->request->getPost('email');
-        $password = (string)$this->request->getPost('password');
+        $password = (string) $this->request->getPost('password');
 
         $user = $userModel->where('email', $email)->first();
 
@@ -51,7 +51,7 @@ class Auth extends BaseController
 
         // ── 2. CEK LOCKOUT ──────────────────────────────────────────
         $lockoutTime = $user['lockout_time'] ?? null;
-        $loginAttempts = (int)($user['login_attempts'] ?? 0);
+        $loginAttempts = (int) ($user['login_attempts'] ?? 0);
 
         if (!empty($lockoutTime) && strtotime($lockoutTime) > time()) {
             // Masih terkunci
@@ -59,7 +59,8 @@ class Auth extends BaseController
             $minutes = floor($remainingTime / 60);
             $seconds = $remainingTime % 60;
             clear_captcha();
-            return redirect()->back()->with('error',
+            return redirect()->back()->with(
+                'error',
                 "Akun Anda terkunci. Silakan coba lagi dalam {$minutes} menit {$seconds} detik."
             );
         }
@@ -73,7 +74,7 @@ class Auth extends BaseController
 
         // ── 3. VALIDASI CAPTCHA (jika diperlukan) ───────────────────
         if (session()->get('captcha_required')) {
-            $userInput = (string)$this->request->getPost('captcha_answer');
+            $userInput = (string) $this->request->getPost('captcha_answer');
             if (!verify_captcha($userInput)) {
                 // CAPTCHA salah → generate soal baru, jangan increment attempt
                 generate_captcha();
@@ -106,8 +107,7 @@ class Auth extends BaseController
             ]);
             clear_captcha();
             $errorMessage = 'Terlalu banyak percobaan gagal. Akun Anda dikunci selama 1 menit.';
-        }
-        else {
+        } else {
             $userModel->update($user['id'], ['login_attempts' => $newAttempts]);
             $attemptsLeft = 3 - $newAttempts;
             $errorMessage = "Email atau Password salah. Sisa percobaan: {$attemptsLeft}x";
@@ -175,7 +175,7 @@ class Auth extends BaseController
         $userModel->insert([
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
-            'password' => password_hash((string)$this->request->getPost('password'), PASSWORD_DEFAULT),
+            'password' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
             'dept_id' => $this->request->getPost('dept_id'),
             'gender' => $this->request->getPost('gender'),
             'role_id' => 3, // Default User
@@ -247,9 +247,20 @@ class Auth extends BaseController
                 return redirect()->to('/login')->with('error', 'Gagal mendapatkan email dari Google.');
             }
 
-            $allowedDomain = env('ALLOWED_EMAIL_DOMAIN', 'unmer.ac.id');
-            if (!str_ends_with($email, '@' . $allowedDomain)) {
-                return redirect()->to('/login')->with('error', 'Hanya email @' . $allowedDomain . ' yang diizinkan.');
+            $allowedDomains = explode(',', env('ALLOWED_EMAIL_DOMAIN', 'unmer.ac.id'));
+            $allowedDomains = array_map('trim', $allowedDomains);
+
+            $isAllowed = false;
+            foreach ($allowedDomains as $domain) {
+                if (str_ends_with($email, '@' . $domain)) {
+                    $isAllowed = true;
+                    break;
+                }
+            }
+
+            if (!$isAllowed) {
+                $domainText = implode(', @', $allowedDomains);
+                return redirect()->to('/login')->with('error', 'Hanya email @' . $domainText . ' yang diizinkan.');
             }
 
             // STEP 3: Cari user + role dalam 1 JOIN query (sebelumnya 2 query terpisah)
@@ -266,7 +277,7 @@ class Auth extends BaseController
                 $db->table('users')->insert([
                     'name' => $name,
                     'email' => $email,
-                    'password' => password_hash(uniqid((string)rand(), true), PASSWORD_DEFAULT),
+                    'password' => password_hash(uniqid((string) rand(), true), PASSWORD_DEFAULT),
                     'role_id' => 3,
                     'dept_id' => null,
                     'is_active' => 1,
@@ -313,11 +324,9 @@ class Auth extends BaseController
 
             return redirect()->to('/dashboard');
 
-        }
-        catch (\GuzzleHttp\Exception\ConnectException $e) {
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
             return redirect()->to('/login')->with('error', 'Koneksi ke Google timeout. Silakan coba lagi.');
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->to('/login')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }

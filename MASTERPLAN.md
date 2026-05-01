@@ -351,7 +351,7 @@ Sistem Helpdesk ini menggunakan 2 jalur notifikasi secara paralel:
 Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpdesk v2 menjadi standar *Enterprise*:
 
 1. ~~**Integrasi SSO (Single Sign-On) via Google Workspace**~~ ✅ *(Sudah diimplementasikan penuh)*
-   - Login terpusat menggunakan ekosistem email kampus (`@unmer.ac.id`).
+   - Login terpusat menggunakan ekosistem email kampus (`@unmer.ac.id` dan `@student.unmer.ac.id`).
    - Pencocokan akun secara aman tanpa menimpa *Role* atau kehilangan riwayat tiket lama dengan meminimalisir redundansi network/DB call.
 2. **Email-to-Ticket (Omnichannel)**
    - Konversi email masuk ke kotak pengaduan menjadi tiket baru di aplikasi secara otomatis (menggunakan API/Cron Job).
@@ -373,4 +373,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 
-*Terakhir diperbarui: 29 April 2026 | Versi: 2.12.10 (Peningkatan Fitur Pencarian Tiket)*
+*Terakhir diperbarui: 01 Mei 2026 | Versi: 2.12.11 (Menambahkan support subdomain student.unmer.ac.id untuk login SSO)*
