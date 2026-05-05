@@ -124,3 +124,8 @@ _modules/*
 
 /results/
 /phpunit*.xml
+.env
+env
+new_hash.txt
+bot token tele.txt
+googleclient dan sec.txt
