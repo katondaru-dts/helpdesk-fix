@@ -8,7 +8,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class Auth extends BaseController
 {
-    protected $helpers = ['auth', 'url', 'captcha'];
+    protected $helpers = ['auth', 'url', 'captcha', 'telegram'];
     public function login()
     {
         if (session()->get('isLoggedIn')) {
@@ -284,6 +284,14 @@ class Auth extends BaseController
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $newId = $db->insertID();
+
+                // Notifikasi User Baru Via SSO ke Telegram
+                $msg = "<b>[USER BARU VIA SSO GOOGLE]</b>\n"
+                    . "Nama: {$name}\n"
+                    . "Email: {$email}\n"
+                    . "Role: User\n"
+                    . "Status: Auto-Register via SSO";
+                send_telegram($msg);
 
                 // Bangun array user minimal — tidak perlu SELECT ulang
                 $user = [
