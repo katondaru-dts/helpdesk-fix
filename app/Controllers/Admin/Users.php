@@ -101,6 +101,19 @@ class Users extends BaseController
             $newId = $userModel->getInsertID();
             unset($data['password']);
             $auditLog->logAction('CREATE', 'users', $newId, $data);
+
+            // Kirim Notifikasi ke Telegram
+            $roleData = (new \App\Models\RoleModel())->find($role_id);
+            $roleName = $roleData ? $roleData['name'] : 'Unknown';
+            $msg = "<b>[USER BARU DIDAFTARKAN]</b>\n"
+                . "Nama: {$name}\n"
+                . "Email: {$email}\n"
+                . "Role: {$roleName}\n";
+            if (!empty($phone)) {
+                $msg .= "No. HP: {$phone}\n";
+            }
+            send_telegram($msg);
+
             return redirect()->to('/admin/users')->with('success', 'User spesifik berhasil ditambahkan.');
         }
     }
