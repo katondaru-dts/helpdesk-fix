@@ -259,8 +259,7 @@ class Auth extends BaseController
             }
 
             if (!$isAllowed) {
-                $domainText = implode(', @', $allowedDomains);
-                return redirect()->to('/login')->with('error', 'Hanya email @' . $domainText . ' yang diizinkan.');
+                return redirect()->to('/login')->with('error', 'Email yang digunakan harus terdaftar sebagai civitas akademika Universitas Merdeka Malang.');
             }
 
             // STEP 3: Cari user + role dalam 1 JOIN query (sebelumnya 2 query terpisah)
