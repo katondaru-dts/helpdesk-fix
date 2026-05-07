@@ -1,4 +1,5 @@
-name: Deploy Helpdesk
+ cd /home/katondaru/helpdesk-fix
+          git pull github mainname: Deploy Helpdesk
 
 on:
   push:
@@ -16,7 +17,7 @@ jobs:
       - name: Pull latest code
         run: |
           cd /home/katondaru/helpdesk-fix
-          git pull github main
+          git pull https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/katondaru-dts/helpdesk-fix.git main
 
       - name: Deploy dengan Docker Compose
         run: |
