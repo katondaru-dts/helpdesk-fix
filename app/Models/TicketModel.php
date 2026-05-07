@@ -87,7 +87,31 @@ class TicketModel extends Model
                 ->whereNotIn('tickets.status', ['RESOLVED', 'CLOSED']);
         }
 
-        return $builder->orderBy('tickets.created_at', 'DESC');
+        $allowedSort = [
+            'id'            => 'tickets.id',
+            'title'         => 'tickets.title',
+            'priority'      => 'FIELD(tickets.priority,"URGENT","HIGH","MEDIUM","LOW")',
+            'status'        => 'tickets.status',
+            'cat_name'      => 'categories.name',
+            'reporter_name' => 'reporter.name',
+            'assigned_name' => 'assigned.name',
+            'created_at'    => 'tickets.created_at',
+            'sla_deadline'  => 'tickets.sla_deadline',
+        ];
+
+        $sortCol = $filters['sort'] ?? 'created_at';
+        $sortDir = strtoupper($filters['dir'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
+
+        if (isset($allowedSort[$sortCol])) {
+            $builder->orderBy($allowedSort[$sortCol], $sortCol === 'priority' ? '' : $sortDir);
+            if ($sortCol === 'priority' && $sortDir === 'ASC') {
+                $builder->orderBy('FIELD(tickets.priority,"LOW","MEDIUM","HIGH","URGENT")', '');
+            }
+        } else {
+            $builder->orderBy('tickets.created_at', 'DESC');
+        }
+
+        return $builder;
     }
 
     public function getTicketDetail($id)

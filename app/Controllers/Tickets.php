@@ -48,6 +48,8 @@ class Tickets extends BaseController
             'date_from' => $this->request->getGet('f-from'),
             'date_to' => $this->request->getGet('f-to'),
             'unassigned' => $this->request->getGet('f-unassigned'),
+            'sort' => $this->request->getGet('sort') ?: 'created_at',
+            'dir'  => $this->request->getGet('dir')  ?: 'DESC',
         ];
 
         $query = $ticketModel->getFilteredTickets($filters, $isStaff, $userId);

@@ -76,16 +76,31 @@ function exportTickets() {
     <div class="table-wrap">
         <table class="table">
             <thead>
+                <?php
+                $sortCol = $filters['sort'] ?? 'created_at';
+                $sortDir = $filters['dir'] ?? 'DESC';
+                $nextDir = $sortDir === 'ASC' ? 'DESC' : 'ASC';
+                $baseParams = array_filter($filters, fn($k) => !in_array($k, ['sort','dir']), ARRAY_FILTER_USE_KEY);
+                $sortLink = function($col, $label) use ($sortCol, $sortDir, $nextDir, $baseParams) {
+                    $dir = ($sortCol === $col) ? $nextDir : 'ASC';
+                    $icon = '';
+                    if ($sortCol === $col) {
+                        $icon = $sortDir === 'ASC' ? ' <i class="bi bi-caret-up-fill" style="font-size:10px"></i>' : ' <i class="bi bi-caret-down-fill" style="font-size:10px"></i>';
+                    }
+                    $params = http_build_query(array_merge($baseParams, ['sort' => $col, 'dir' => $dir]));
+                    return '<a href="?' . $params . '" style="color:inherit;text-decoration:none;white-space:nowrap">' . $label . $icon . '</a>';
+                };
+                ?>
                 <tr>
-                    <th>ID</th>
-                    <th>Judul</th>
-                    <th>Kategori</th>
-                    <?php if ($isStaff): ?><th>Pelapor</th><?php endif; ?>
-                    <th>Prioritas</th>
-                    <th>Status</th>
-                    <th>SLA</th>
-                    <?php if ($isStaff): ?><th>Ditangani</th><?php endif; ?>
-                    <th>Tanggal</th>
+                    <th><?= $sortLink('id', 'ID') ?></th>
+                    <th><?= $sortLink('title', 'Judul') ?></th>
+                    <th><?= $sortLink('cat_name', 'Kategori') ?></th>
+                    <?php if ($isStaff): ?><th><?= $sortLink('reporter_name', 'Pelapor') ?></th><?php endif; ?>
+                    <th><?= $sortLink('priority', 'Prioritas') ?></th>
+                    <th><?= $sortLink('status', 'Status') ?></th>
+                    <th><?= $sortLink('sla_deadline', 'SLA') ?></th>
+                    <?php if ($isStaff): ?><th><?= $sortLink('assigned_name', 'Ditangani') ?></th><?php endif; ?>
+                    <th><?= $sortLink('created_at', 'Tanggal') ?></th>
                     <th>Aksi</th>
                 </tr>
             </thead>
