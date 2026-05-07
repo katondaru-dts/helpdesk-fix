@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Pull latest code
+        run: |
+          cd /home/katondaru/helpdesk-fix
+          git pull origin main
+
       - name: Deploy dengan Docker Compose
         run: |
           cd /home/katondaru/helpdesk-fix
