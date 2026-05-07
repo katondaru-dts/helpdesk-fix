@@ -1,0 +1,25 @@
+name: Deploy Helpdesk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Pull latest code
+        run: |
+          cd /home/katondaru/helpdesk-fix
+          git pull https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/katondaru-dts/helpdesk-fix.git main
+
+      - name: Deploy dengan Docker Compose
+        run: |
+          cd /home/katondaru/helpdesk-fix
+          docker compose pull
+          docker compose up -d --remove-orphans

@@ -13,9 +13,6 @@ deploy:
     - docker compose version
   script:
     - cd /home/katondaru/helpdesk-fix
-    - git fetch origin
-    - git reset --hard origin/main
-    - git clean -fd
     - docker compose pull
     - docker compose up -d --remove-orphans
   only:

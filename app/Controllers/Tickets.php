@@ -48,6 +48,8 @@ class Tickets extends BaseController
             'date_from' => $this->request->getGet('f-from'),
             'date_to' => $this->request->getGet('f-to'),
             'unassigned' => $this->request->getGet('f-unassigned'),
+            'sort' => $this->request->getGet('sort') ?: 'created_at',
+            'dir'  => $this->request->getGet('dir')  ?: 'DESC',
         ];
 
         $query = $ticketModel->getFilteredTickets($filters, $isStaff, $userId);
@@ -297,6 +299,25 @@ class Tickets extends BaseController
                     $telegramMsg .= "💬 <b>Pesan:</b> " . mb_substr($message, 0, 200) . (mb_strlen($message) > 200 ? '...' : '') . "\n";
                     $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
                     send_telegram($telegramMsg);
+
+                    // Kirim email ke reporter jika: pengirim bukan reporter DAN reporter adalah role user (role_id=3)
+                    $userModel2 = new \App\Models\UserModel();
+                    $reporter = $userModel2->find($ticket['reporter_id']);
+                    if (
+                        $reporter &&
+                        !empty($reporter['email']) &&
+                        $reporter['role_id'] == 3 &&
+                        $session->get('id') != $ticket['reporter_id']
+                    ) {
+                        helper('email');
+                        $emailBody = email_template_reply($ticket, $session->get('name'), $message);
+                        send_email_notification(
+                            $reporter['email'],
+                            $reporter['name'],
+                            '[Helpdesk] Balasan Baru pada Tiket #' . $ticket['id'] . ': ' . $ticket['title'],
+                            $emailBody
+                        );
+                    }
                 }
             }
 
@@ -335,8 +356,7 @@ class Tickets extends BaseController
                 if ($newStatus === 'PENDING' && $ticket['status'] !== 'PENDING') {
                     // Berhenti: Simpan waktu mulai pause
                     $updateData['sla_paused_at'] = date('Y-m-d H:i:s');
-                }
-                elseif ($ticket['status'] === 'PENDING' && $newStatus !== 'PENDING') {
+                } elseif ($ticket['status'] === 'PENDING' && $newStatus !== 'PENDING') {
                     // Jalan lagi: Geser deadline berdasarkan durasi pause
                     if (isset($ticket['sla_paused_at']) && $ticket['sla_paused_at'] && isset($ticket['sla_deadline']) && $ticket['sla_deadline']) {
                         $pauseTime = time() - strtotime($ticket['sla_paused_at']);
@@ -385,6 +405,27 @@ class Tickets extends BaseController
                         'Status berubah menjadi: ' . $statusLabel . $locationStr . ' | Pada tiket: "' . $ticket['title'] . '"',
                         $id
                     );
+
+                    // Kirim email ke reporter jika status RESOLVED dan reporter adalah role user (role_id=3)
+                    if ($newStatus === 'RESOLVED') {
+                        $userModelEmail = new \App\Models\UserModel();
+                        $reporter = $userModelEmail->find($ticket['reporter_id']);
+                        if ($reporter && !empty($reporter['email']) && $reporter['role_id'] == 3) {
+                            helper('email');
+                            $ticketDetail = $ticketModel->getTicketDetail($id);
+                            $emailBody = email_template_resolved(
+                                $ticketDetail ?: $ticket,
+                                $session->get('name'),
+                                $notes ?? ''
+                            );
+                            send_email_notification(
+                                $reporter['email'],
+                                $reporter['name'],
+                                '[Helpdesk] Tiket #' . $ticket['id'] . ' Telah Terselesaikan',
+                                $emailBody
+                            );
+                        }
+                    }
                 }
 
                 // Kirim notifikasi Telegram perubahan status

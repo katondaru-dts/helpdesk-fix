@@ -8,7 +8,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class Auth extends BaseController
 {
-    protected $helpers = ['auth', 'url', 'captcha'];
+    protected $helpers = ['auth', 'url', 'captcha', 'telegram'];
     public function login()
     {
         if (session()->get('isLoggedIn')) {
@@ -259,8 +259,7 @@ class Auth extends BaseController
             }
 
             if (!$isAllowed) {
-                $domainText = implode(', @', $allowedDomains);
-                return redirect()->to('/login')->with('error', 'Hanya email @' . $domainText . ' yang diizinkan.');
+                return redirect()->to('/login')->with('error', 'Email yang digunakan harus terdaftar sebagai civitas akademika Universitas Merdeka Malang.');
             }
 
             // STEP 3: Cari user + role dalam 1 JOIN query (sebelumnya 2 query terpisah)
@@ -272,18 +271,29 @@ class Auth extends BaseController
                 ->get()->getRowArray();
 
             if (!$user) {
+                // Cari dept_id "End User"
+                $endUserDept = $db->table('departments')->where('name', 'End User')->get()->getRowArray();
+                $endUserDeptId = $endUserDept ? $endUserDept['id'] : null;
+
                 // User baru — INSERT lalu ambil ID langsung dari insertID()
-                // (tanpa SELECT ulang = hemat 1 DB round-trip)
                 $db->table('users')->insert([
                     'name' => $name,
                     'email' => $email,
                     'password' => password_hash(uniqid((string) rand(), true), PASSWORD_DEFAULT),
                     'role_id' => 3,
-                    'dept_id' => null,
+                    'dept_id' => $endUserDeptId,
                     'is_active' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $newId = $db->insertID();
+
+                // Notifikasi User Baru Via SSO ke Telegram
+                $msg = "<b>[USER BARU VIA SSO GOOGLE]</b>\n"
+                    . "Nama: {$name}\n"
+                    . "Email: {$email}\n"
+                    . "Role: User\n"
+                    . "Status: Auto-Register via SSO";
+                send_telegram($msg);
 
                 // Bangun array user minimal — tidak perlu SELECT ulang
                 $user = [
@@ -291,11 +301,11 @@ class Auth extends BaseController
                     'name' => $name,
                     'email' => $email,
                     'role_id' => 3,
-                    'dept_id' => null,
+                    'dept_id' => $endUserDeptId,
                     'is_active' => 1,
                     'notif_sound_enabled' => 1,
                     'notif_sound_type' => 'default',
-                    'role_permissions' => null, // User baru: role User (tidak ada permissions khusus)
+                    'role_permissions' => null,
                 ];
             }
 

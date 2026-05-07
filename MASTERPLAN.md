@@ -316,12 +316,17 @@ flowchart TD
 
 ## 📢 Sistem Notifikasi Cerdas
 
-Sistem Helpdesk ini menggunakan 2 jalur notifikasi secara paralel:
+Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 1. **In-App Notification**: Notifikasi lonceng *real-time* di dalam aplikasi (dengan *audio alert* dan sistem *polling*).
 2. **Telegram Bot Integration**: Notifikasi instan langsung dikirim ke Grup Telegram staf IT Support/Teknisi secara asinkron (*non-blocking fire-and-forget* via eksekusi cURL OS) demi memastikan aplikasi tetap responsif 100%. Momen trigger Telegram meliputi:
     - **Tiket Baru**: Menampilkan ID, Prioritas, Lokasi, dan Judul.
     - **Balasan (Pesan Publik)**: Notifikasi diskusi / kendala lanjutan ke teknisi.
     - **Perubahan Status**: Pemberitahuan setiap status diupdate (misal OPEN menjadi IN_PROGRESS).
+3. **Email Notification (SMTP)**: Email HTML otomatis dikirim ke **User (role_id=3)** berdasarkan 2 event:
+    - **Balasan Komentar Baru**: Dikirim saat staf/teknisi membalas tiket milik user. Template berwarna biru dengan detail ID tiket, judul, preview pesan, dan tombol "Lihat Tiket & Balas".
+    - **Tiket RESOLVED**: Dikirim saat status tiket diubah ke RESOLVED. Template berwarna hijau dengan catatan teknisi (jika ada) dan tombol "Lihat Detail Tiket".
+    - Konfigurasi via `.env` (`email.SMTPHost`, `email.SMTPUser`, `email.SMTPPass`, dll.).
+    - Helper: `app/Helpers/email_helper.php` — berisi fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`.
 
 ---
 
@@ -341,6 +346,7 @@ Sistem Helpdesk ini menggunakan 2 jalur notifikasi secara paralel:
 | `auth_helper.php` | `app/Helpers/` | Fungsi `has_permission()` untuk validasi izin granular per role |
 | `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
 | `telegram_helper.php` | `app/Helpers/` | Fungsi `send_telegram()`: wrapper API asinkron non-blocking mengirim JSON ke API Bot Telegram |
+| `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`: notifikasi email HTML ke user |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 
@@ -373,4 +379,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 
-*Terakhir diperbarui: 01 Mei 2026 | Versi: 2.12.11 (Menambahkan support subdomain student.unmer.ac.id untuk login SSO)*
+*Terakhir diperbarui: 07 Mei 2026 | Versi: 2.13.1 (Memperbaiki fatal error DotEnv pada Docker dengan menambahkan tanda kutip pada variabel environment yang mengandung spasi)*
