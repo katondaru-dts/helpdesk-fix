@@ -1,5 +1,4 @@
- cd /home/katondaru/helpdesk-fix
-          git pull github mainname: Deploy Helpdesk
+name: Deploy Helpdesk
 
 on:
   push:
