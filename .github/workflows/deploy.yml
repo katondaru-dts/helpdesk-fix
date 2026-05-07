@@ -16,7 +16,7 @@ jobs:
       - name: Pull latest code
         run: |
           cd /home/katondaru/helpdesk-fix
-          git pull origin main
+          git pull https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/katondaru-dts/helpdesk-fix.git main
 
       - name: Deploy dengan Docker Compose
         run: |
