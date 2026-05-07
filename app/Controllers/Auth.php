@@ -271,14 +271,17 @@ class Auth extends BaseController
                 ->get()->getRowArray();
 
             if (!$user) {
+                // Cari dept_id "End User"
+                $endUserDept = $db->table('departments')->where('name', 'End User')->get()->getRowArray();
+                $endUserDeptId = $endUserDept ? $endUserDept['id'] : null;
+
                 // User baru — INSERT lalu ambil ID langsung dari insertID()
-                // (tanpa SELECT ulang = hemat 1 DB round-trip)
                 $db->table('users')->insert([
                     'name' => $name,
                     'email' => $email,
                     'password' => password_hash(uniqid((string) rand(), true), PASSWORD_DEFAULT),
                     'role_id' => 3,
-                    'dept_id' => null,
+                    'dept_id' => $endUserDeptId,
                     'is_active' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
@@ -298,11 +301,11 @@ class Auth extends BaseController
                     'name' => $name,
                     'email' => $email,
                     'role_id' => 3,
-                    'dept_id' => null,
+                    'dept_id' => $endUserDeptId,
                     'is_active' => 1,
                     'notif_sound_enabled' => 1,
                     'notif_sound_type' => 'default',
-                    'role_permissions' => null, // User baru: role User (tidak ada permissions khusus)
+                    'role_permissions' => null,
                 ];
             }
 
