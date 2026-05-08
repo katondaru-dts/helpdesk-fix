@@ -61,6 +61,7 @@
 - [x] **Automated Reply Notifications** — Notifikasi otomatis dikirim saat ada balasan pesan:
     - Staf membalas -> Reporter mendapatkan notifikasi.
     - Reporter membalas -> Staf yang ditugaskan (atau seluruh tim jika belum diassign) mendapatkan notifikasi.
+- [x] **Email Notifikasi Perubahan Status** — Email HTML otomatis dikirim ke User (role_id=3) setiap kali status tiket diubah oleh staf, **kecuali status CLOSED**. Setiap status memiliki warna template berbeda (merah untuk OPEN, kuning untuk IN_PROGRESS, ungu untuk PENDING, hijau khusus untuk RESOLVED).
 - [x] **Omnipresent Admin Notifications** — Seluruh Administrator (Role 1) kini selalu menerima notifikasi untuk setiap balasan baru tanpa terkecuali, menjamin pemantauan penuh (*oversight*) terhadap seluruh antrean tiket.
 - [x] **Deleted Ticket Graceful Error** — Mencegah error layar *blank* (404/Whoops) jika pengguna mengakses notifikasi dari tiket yang sebelumnya sudah dihapus dari server.
 - [x] **New Ticket Alerts for IT Support** — Tim IT Support kini otomatis mendapatkan notifikasi setiap ada tiket baru yang masuk.

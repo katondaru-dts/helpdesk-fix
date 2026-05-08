@@ -322,11 +322,15 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
     - **Tiket Baru**: Menampilkan ID, Prioritas, Lokasi, dan Judul.
     - **Balasan (Pesan Publik)**: Notifikasi diskusi / kendala lanjutan ke teknisi.
     - **Perubahan Status**: Pemberitahuan setiap status diupdate (misal OPEN menjadi IN_PROGRESS).
-3. **Email Notification (SMTP)**: Email HTML otomatis dikirim ke **User (role_id=3)** berdasarkan 2 event:
-    - **Balasan Komentar Baru**: Dikirim saat staf/teknisi membalas tiket milik user. Template berwarna biru dengan detail ID tiket, judul, preview pesan, dan tombol "Lihat Tiket & Balas".
-    - **Tiket RESOLVED**: Dikirim saat status tiket diubah ke RESOLVED. Template berwarna hijau dengan catatan teknisi (jika ada) dan tombol "Lihat Detail Tiket".
+3. **Email Notification (SMTP)**: Email HTML otomatis dikirim ke **User (role_id=3)** berdasarkan event berikut:
+    - **Balasan Komentar Baru**: Dikirim saat staf/teknisi membalas tiket milik user (pesan publik). Template berwarna biru dengan detail ID tiket, judul, preview pesan, dan tombol "Lihat Tiket & Balas".
+    - **Perubahan Status Tiket**: Dikirim saat status tiket diubah oleh staf, **kecuali status CLOSED**. Setiap status memiliki warna template berbeda:
+        - 🔴 **OPEN** → Template merah
+        - 🟡 **IN_PROGRESS** → Template kuning/amber
+        - ⏸️ **PENDING** → Template ungu
+        - ✅ **RESOLVED** → Template hijau khusus dengan catatan teknisi (jika ada)
     - Konfigurasi via `.env` (`email.SMTPHost`, `email.SMTPUser`, `email.SMTPPass`, dll.).
-    - Helper: `app/Helpers/email_helper.php` — berisi fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`.
+    - Helper: `app/Helpers/email_helper.php` — berisi fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`.
 
 ---
 
@@ -346,7 +350,7 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 | `auth_helper.php` | `app/Helpers/` | Fungsi `has_permission()` untuk validasi izin granular per role |
 | `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
 | `telegram_helper.php` | `app/Helpers/` | Fungsi `send_telegram()`: wrapper API asinkron non-blocking mengirim JSON ke API Bot Telegram |
-| `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`: notifikasi email HTML ke user |
+| `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`: notifikasi email HTML ke user |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 
