@@ -406,25 +406,34 @@ class Tickets extends BaseController
                         $id
                     );
 
-                    // Kirim email ke reporter jika status RESOLVED dan reporter adalah role user (role_id=3)
-                    if ($newStatus === 'RESOLVED') {
-                        $userModelEmail = new \App\Models\UserModel();
-                        $reporter = $userModelEmail->find($ticket['reporter_id']);
-                        if ($reporter && !empty($reporter['email']) && $reporter['role_id'] == 3) {
-                            helper('email');
-                            $ticketDetail = $ticketModel->getTicketDetail($id);
+                    // Kirim email ke reporter jika reporter adalah role user (role_id=3), kecuali status CLOSED
+                    $userModelEmail = new \App\Models\UserModel();
+                    $reporter = $newStatus !== 'CLOSED' ? $userModelEmail->find($ticket['reporter_id']) : null;
+                    if ($reporter && !empty($reporter['email']) && $reporter['role_id'] == 3) {
+                        helper('email');
+                        $ticketDetail = $ticketModel->getTicketDetail($id);
+                        if ($newStatus === 'RESOLVED') {
                             $emailBody = email_template_resolved(
                                 $ticketDetail ?: $ticket,
                                 $session->get('name'),
                                 $notes ?? ''
                             );
-                            send_email_notification(
-                                $reporter['email'],
-                                $reporter['name'],
-                                '[Helpdesk] Tiket #' . $ticket['id'] . ' Telah Terselesaikan',
-                                $emailBody
+                            $emailSubject = '[Helpdesk] Tiket #' . $ticket['id'] . ' Telah Terselesaikan';
+                        } else {
+                            $emailBody = email_template_status_change(
+                                $ticketDetail ?: $ticket,
+                                $newStatus,
+                                $session->get('name'),
+                                $notes ?? ''
                             );
+                            $emailSubject = '[Helpdesk] Status Tiket #' . $ticket['id'] . ' Diperbarui: ' . $statusLabel;
                         }
+                        send_email_notification(
+                            $reporter['email'],
+                            $reporter['name'],
+                            $emailSubject,
+                            $emailBody
+                        );
                     }
                 }
 
