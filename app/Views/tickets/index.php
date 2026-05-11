@@ -1,13 +1,21 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
+<style>
+@media (max-width: 768px) {
+    .ticket-header-actions { flex-direction: column; width: 100%; }
+    .ticket-header-actions .btn { width: 100%; justify-content: center; }
+    .filter-date-row { flex-direction: column; align-items: stretch !important; }
+    .filter-date-row input { width: 100% !important; }
+}
+</style>
 <!-- DEBUG:  -->
 <div class="page-header">
     <div>
         <div class="page-header-title"><?= $isStaff ? 'Semua Tiket' : 'Tiket Saya' ?></div>
         <div class="page-header-sub"><?= $totalRows ?> tiket ditemukan</div>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div class="ticket-header-actions" style="display:flex; gap:10px;">
         <button class="btn btn-outline" onclick="exportTickets()" style="background:white; color:#10b981; border:1px solid #10b981; font-weight:bold; cursor:pointer; padding:8px 15px; border-radius:8px"><i class="bi bi-file-earmark-excel"></i> Ekspor CSV/Excel</button>
         <?php if (has_permission('Buat Tiket') || $role == 4): ?>
             <a href="<?= base_url('tickets/create') ?>" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Buat Tiket</a>
@@ -24,50 +32,52 @@ function exportTickets() {
 
 <div class="card mb-4">
     <div class="card-body" style="padding:14px 20px">
-        <form action="<?= base_url('tickets') ?>" method="GET" class="filter-bar" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-            <div class="search-wrap" style="flex: 1; min-width: 200px; display:flex; align-items:center; background:#f3f4f6; border-radius:8px; padding:0 10px;">
+        <form action="<?= base_url('tickets') ?>" method="GET" class="filter-bar">
+            <div class="search-wrap" style="display:flex; align-items:center; background:#f3f4f6; border-radius:8px; padding:0 10px;">
                 <i class="bi bi-search" id="searchIconBtn" style="color:#666; cursor:pointer; padding:4px 2px;" title="Klik untuk mencari"></i>
                 <input type="text" name="search" id="searchInput" value="<?= esc($filters['search']) ?>" class="form-control" placeholder="Cari judul, isi atau ID..." style="background:transparent; border:none; box-shadow:none;">
             </div>
-            <select name="f-status" class="form-select" style="width:auto">
+            <select name="f-status" class="form-select">
                 <option value="">Status</option>
                 <?php foreach(['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'] as $s): ?>
                     <option value="<?= $s ?>" <?= $filters['status'] == $s ? 'selected' : '' ?>><?= $s ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="f-priority" class="form-select" style="width:auto">
+            <select name="f-priority" class="form-select">
                 <option value="">Prioritas</option>
                 <?php foreach(['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as $p): ?>
                     <option value="<?= $p ?>" <?= $filters['priority'] == $p ? 'selected' : '' ?>><?= $p ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="f-cat" class="form-select" style="width:auto">
+            <select name="f-cat" class="form-select">
                 <option value="">Kategori</option>
                 <?php foreach ($categories as $c): ?>
                     <option value="<?= $c['id'] ?>" <?= $filters['cat_id'] == $c['id'] ? 'selected' : '' ?>><?= esc($c['name']) ?></option>
                 <?php endforeach; ?>
             </select>
             <?php if ($isStaff): ?>
-                <select name="f-dept" class="form-select" style="width:auto">
+                <select name="f-dept" class="form-select">
                     <option value="">Dept</option>
                     <?php foreach ($departments as $d): ?>
                         <option value="<?= $d['id'] ?>" <?= $filters['dept_id'] == $d['id'] ? 'selected' : '' ?>><?= esc($d['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <select name="f-assigned" class="form-select" style="width:auto">
+                <select name="f-assigned" class="form-select">
                     <option value="">Teknisi</option>
                     <?php foreach ($technicians as $tech): ?>
                         <option value="<?= $tech['id'] ?>" <?= $filters['assigned_to'] == $tech['id'] ? 'selected' : '' ?>><?= esc($tech['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             <?php endif; ?>
-            <div style="display: flex; gap: 5px; align-items: center;">
+            <div class="filter-date-row" style="display: flex; gap: 5px; align-items: center;">
                 <input type="date" name="f-from" value="<?= esc($filters['date_from']) ?>" class="form-control" style="width: auto;">
                 <span class="text-muted">s/d</span>
                 <input type="date" name="f-to" value="<?= esc($filters['date_to']) ?>" class="form-control" style="width: auto;">
             </div>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-filter"></i> Filter</button>
-            <a href="<?= base_url('tickets') ?>" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i></a>
+            <div style="display:flex; gap:6px;">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-filter"></i> Filter</button>
+                <a href="<?= base_url('tickets') ?>" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
         </form>
     </div>
 </div>

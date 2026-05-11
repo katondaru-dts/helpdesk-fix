@@ -189,12 +189,30 @@
     border-radius: 12px;
     border: 1px solid rgba(0,0,0,0.05);
 }
+
+/* Responsive Dashboard */
+@media (max-width: 1024px) {
+    .dash-stats-row { grid-template-columns: repeat(3, 1fr) !important; }
+    .cat-item-wrap { width: calc(50% - 8px); }
+}
+@media (max-width: 768px) {
+    .dash-header-row { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+    .dash-header-row .d-flex { flex-wrap: wrap; width: 100%; }
+    .dash-header-row .d-flex .btn { flex: 1; justify-content: center; }
+    .dash-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+    .cat-item-wrap { width: calc(50% - 8px); }
+}
+@media (max-width: 480px) {
+    .dash-stats-row { grid-template-columns: 1fr !important; }
+    .cat-item-wrap { width: 100%; }
+    .dash-header-row .d-flex .btn { font-size: 12px; padding: 7px 10px; }
+}
 </style>
 
 <div class="admin-dash-wrapper">
 
     <!-- Header Section -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <div class="dash-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size:24px; font-weight:700; color:#111827; letter-spacing:-0.5px;">Dashboard Status & Kinerja Layanan</div>
             <i class="bi bi-arrow-repeat refresh-btn" title="Refresh Dasbor"></i>
@@ -209,7 +227,7 @@
     </div>
 
     <!-- ROW 1: MAIN STATS -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:16px;">
+    <div class="dash-stats-row" style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:16px;">
         
         <div class="dash-card card-total">
             <div class="card-title-main">Total Tiket</div>

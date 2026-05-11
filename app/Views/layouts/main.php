@@ -65,6 +65,9 @@
 
     <div class="main-wrapper">
         <header class="topbar">
+            <button class="btn-icon sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+                <i class="bi bi-list"></i>
+            </button>
             <div class="page-title" style="flex:1;">
                 <?= $pageTitle ?? 'Halaman' ?>
             </div>
@@ -102,6 +105,26 @@
         </div>
     </div>
 </div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script>
+(function() {
+    const toggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        });
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        });
+    }
+})();
+</script>
 
 <script>
 (function() {

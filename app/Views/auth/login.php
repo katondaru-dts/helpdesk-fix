@@ -191,7 +191,10 @@
             height: 20px;
         }
         @media (max-width: 480px) {
-            .login-card { margin: 0 20px; padding: 36px 24px 28px; }
+            .login-card { margin: 16px; padding: 32px 20px 24px; }
+            h1 { font-size: 22px; }
+            .logo-wrapper { width: 90px; height: 90px; margin-top: -62px; }
+            .logo-wrapper img { width: 70px; height: 70px; }
         }
     </style>
 </head>
