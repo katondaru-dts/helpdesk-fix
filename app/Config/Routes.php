@@ -34,7 +34,9 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('notifications/bulk-mark-read', 'Notifications::bulkMarkRead');
 
     // Ticket routes
-    $routes->group('tickets', function ($routes) {
+    $routes->group(
+        'tickets',
+        function ($routes) {
             $routes->get('/', 'Tickets::index');
             $routes->get('create', 'Tickets::create');
             $routes->post('store', 'Tickets::store');
@@ -48,8 +50,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
             $routes->post('delete/(:segment)', 'Tickets::delete/$1');
             $routes->get('delete/(:segment)', 'Tickets::delete/$1');
         }
-        );
-    });
+    );
+});
 
 // Admin routes
 $routes->group('admin', ['filter' => 'admin'], function ($routes) {
@@ -84,4 +86,30 @@ $routes->group('admin', ['filter' => 'staff'], function ($routes) {
     $routes->get('reports/print', 'Admin\Reports::printReport');
     $routes->get('reports/printReport', 'Admin\Reports::printReport');
     $routes->post('reports/update-link/(:segment)', 'Admin\Reports::updateLink/$1');
+
+    // Knowledge Base Admin
+    $routes->get('knowledge-base', 'Admin\KnowledgeBase::index');
+    $routes->get('knowledge-base/create', 'Admin\KnowledgeBase::create');
+    $routes->post('knowledge-base/store', 'Admin\KnowledgeBase::store');
+    $routes->get('knowledge-base/(:num)/edit', 'Admin\KnowledgeBase::edit/$1');
+    $routes->post('knowledge-base/(:num)/update', 'Admin\KnowledgeBase::update/$1');
+    $routes->post('knowledge-base/(:num)/delete', 'Admin\KnowledgeBase::delete/$1');
+    $routes->post('knowledge-base/(:num)/reembed', 'Admin\KnowledgeBase::reembed/$1');
+    // Category JSON API
+    $routes->get('knowledge-base/categories', 'Admin\KnowledgeBase::getCategories');
+    $routes->post('knowledge-base/categories', 'Admin\KnowledgeBase::storeCategory');
+    $routes->post('knowledge-base/categories/(:num)', 'Admin\KnowledgeBase::updateCategory/$1');
+    $routes->delete('knowledge-base/categories/(:num)', 'Admin\KnowledgeBase::deleteCategory/$1');
 });
+
+// Knowledge Base (user)
+$routes->group('knowledge-base', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'KnowledgeBase::index');
+    $routes->get('search', 'KnowledgeBase::search');
+    $routes->get('(:segment)', 'KnowledgeBase::show/$1');
+});
+
+// AI Assistant
+$routes->post('ai/chat', 'AiAssistant::chat', ['filter' => 'auth']);
+$routes->get('ai/models', 'AiAssistant::models', ['filter' => 'auth']);
+

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup - Admin Knowledge Base</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+:root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-light: #DBEAFE;
+    --secondary: #7C3AED; --sidebar-bg: #0F172A; --sidebar-width: 260px;
+    --gray-50: #F8FAFC; --gray-100: #F1F5F9; --gray-200: #E2E8F0;
+    --gray-300: #CBD5E1; --gray-400: #94A3B8; --gray-500: #64748B;
+    --gray-600: #475569; --gray-700: #334155; --gray-800: #1E293B; --gray-900: #0F172A;
+    --radius: 10px; --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08); --shadow-lg: 0 4px 16px rgba(0,0,0,.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--gray-100); color: var(--gray-800); font-size: 14px; }
+a { text-decoration: none; color: inherit; }
+
+.app-wrapper { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width); background: var(--sidebar-bg);
+    position: fixed; top: 0; left: 0; height: 100vh;
+    overflow-y: auto; z-index: 100; display: flex; flex-direction: column;
+}
+.sidebar-brand {
+    padding: 18px 20px; display: flex; align-items: center; gap: 10px;
+    color: #fff; font-size: 17px; font-weight: 700;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.sidebar-brand i { font-size: 22px; color: var(--primary); }
+.sidebar-nav { padding: 10px 0; flex: 1; }
+.nav-section { padding: 10px 20px 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: #475569; }
+.sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: #94A3B8; font-size: 13.5px; font-weight: 500; transition: all .2s; }
+.sidebar-nav a:hover { background: rgba(255,255,255,.07); color: #fff; }
+.sidebar-nav a.active { background: rgba(37,99,235,.25); color: #fff; }
+.sidebar-nav a i { font-size: 16px; width: 20px; text-align: center; }
+
+/* Main */
+.main-wrapper { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; }
+.topbar {
+    height: 64px; background: #fff; border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; padding: 0 24px; gap: 14px;
+    position: sticky; top: 0; z-index: 50;
+}
+.page-title { font-size: 16px; font-weight: 600; flex: 1; }
+.main-content { flex: 1; padding: 24px; }
+
+/* Page header */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-header-title { font-size: 20px; font-weight: 700; color: var(--gray-900); }
+.page-header-sub { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: none; font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all .2s; font-family: inherit; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: transparent; color: var(--gray-700); border: 1.5px solid var(--gray-300); }
+.btn-outline:hover { background: var(--gray-100); }
+.btn-danger { background: #DC2626; color: #fff; }
+.btn-danger:hover { background: #B91C1C; }
+.btn-success { background: #059669; color: #fff; }
+.btn-sm { padding: 5px 12px; font-size: 12.5px; }
+
+/* Stats row */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card {
+    background: #fff; border-radius: var(--radius); padding: 18px 20px;
+    border: 1px solid var(--gray-200); box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 14px;
+}
+.stat-icon { width: 46px; height: 46px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.stat-val { font-size: 24px; font-weight: 700; color: var(--gray-900); line-height: 1; }
+.stat-lbl { font-size: 12px; color: var(--gray-500); margin-top: 3px; }
+
+/* Card */
+.card { background: #fff; border-radius: var(--radius); border: 1px solid var(--gray-200); box-shadow: var(--shadow); }
+.card-header { padding: 14px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 10px; }
+.card-title { font-size: 15px; font-weight: 600; flex: 1; }
+.card-body { padding: 20px; }
+
+/* Filter bar */
+.filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.form-control, .form-select {
+    padding: 8px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px;
+    font-size: 13.5px; font-family: inherit; color: var(--gray-800); background: #fff;
+    outline: none; transition: border-color .2s;
+}
+.form-control:focus, .form-select:focus { border-color: var(--primary); }
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--gray-400); }
+.search-wrap .form-control { padding-left: 34px; width: 100%; }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--gray-500); background: var(--gray-50); border-bottom: 1px solid var(--gray-200); white-space: nowrap; }
+.table td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); font-size: 13.5px; color: var(--gray-700); vertical-align: middle; }
+.table tbody tr:hover { background: var(--gray-50); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-published { background: #D1FAE5; color: #065F46; }
+.badge-draft { background: #FEF3C7; color: #92400E; }
+.badge-archived { background: #F1F5F9; color: #475569; }
+
+/* Category badge */
+.cat-badge { padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 500; }
+.cb-it { background: #DBEAFE; color: #1D4ED8; }
+.cb-net { background: #D1FAE5; color: #065F46; }
+.cb-faq { background: #FEF3C7; color: #92400E; }
+.cb-akun { background: #EDE9FE; color: #5B21B6; }
+
+/* Modal */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box {
+    background: #fff; border-radius: var(--radius-lg); padding: 28px;
+    width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
+.form-control-full { width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--gray-800); outline: none; }
+.form-control-full:focus { border-color: var(--primary); }
+textarea.form-control-full { resize: vertical; min-height: 80px; }
+.editor-toolbar {
+    display: flex; gap: 4px; flex-wrap: wrap;
+    padding: 8px 10px; background: var(--gray-50);
+    border: 1.5px solid var(--gray-300); border-bottom: none;
+    border-radius: 8px 8px 0 0;
+}
+.editor-btn {
+    width: 30px; height: 30px; border: none; background: transparent;
+    border-radius: 6px; cursor: pointer; color: var(--gray-600);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    transition: background .15s;
+}
+.editor-btn:hover { background: var(--gray-200); color: var(--gray-900); }
+.editor-sep { width: 1px; background: var(--gray-300); margin: 4px 2px; }
+.editor-area {
+    width: 100%; min-height: 200px; padding: 12px;
+    border: 1.5px solid var(--gray-300); border-top: none;
+    border-radius: 0 0 8px 8px; font-family: inherit; font-size: 14px;
+    color: var(--gray-800); outline: none; resize: vertical;
+}
+.editor-area:focus { border-color: var(--primary); }
+.input-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+
+/* Pagination */
+.pagination { display: flex; gap: 4px; justify-content: center; padding: 16px 0 4px; }
+.pg-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--gray-200); border-radius: 8px; background: #fff; color: var(--gray-600); font-size: 13px; cursor: pointer; transition: all .15s; }
+.pg-btn:hover { border-color: var(--primary); color: var(--primary); }
+.pg-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* Responsive */
+@media (max-width: 1024px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+    .sidebar { transform: translateX(-260px); }
+    .main-wrapper { margin-left: 0; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .input-row2 { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .search-wrap { min-width: unset; }
+}
+@media (max-width: 480px) {
+    .main-content { padding: 14px; }
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-box { padding: 18px; }
+}
+</style>
+</head>
+
+<body>
+<div class="app-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand"><i class="bi bi-headset"></i><span>Helpdesk Pusim</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Menu Utama</div>
+      <a href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="#"><i class="bi bi-ticket-detailed"></i> Semua Tiket</a>
+      <div class="nav-section" style="margin-top:16px">Administrasi</div>
+      <a href="#"><i class="bi bi-people"></i> Kelola User</a>
+      <a href="#" class="active"><i class="bi bi-book"></i> Knowledge Base</a>
+      <a href="#"><i class="bi bi-graph-up"></i> Laporan</a>
+      <div class="nav-section" style="margin-top:16px">Akun</div>
+      <a href="#"><i class="bi bi-bell"></i> Notifikasi</a>
+      <a href="#" style="color:#f87171"><i class="bi bi-box-arrow-right"></i> Keluar</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="page-title">Admin Knowledge Base</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <i class="bi bi-bell" style="font-size:18px;color:#94A3B8"></i>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">A</div>
+          <span style="font-size:13px;font-weight:600;color:#334155">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <div class="page-header-title">Kelola Knowledge Base</div>
+          <div class="page-header-sub">Buat, edit, dan kelola artikel panduan untuk pengguna</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outline" onclick="document.getElementById('catModal').style.display='flex'"><i class="bi bi-folder-plus"></i> Kelola Kategori</button>
+          <button class="btn btn-primary" onclick="document.getElementById('articleModal').style.display='flex'"><i class="bi bi-plus-circle"></i> Artikel Baru</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#2563EB"><i class="bi bi-file-text"></i></div>
+          <div><div class="stat-val">48</div><div class="stat-lbl">Total Artikel</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#059669"><i class="bi bi-check-circle"></i></div>
+          <div><div class="stat-val">36</div><div class="stat-lbl">Dipublikasikan</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="bi bi-pencil-square"></i></div>
+          <div><div class="stat-val">8</div><div class="stat-lbl">Draft</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-eye"></i></div>
+          <div><div class="stat-val">1.2k</div><div class="stat-lbl">Total Dibaca</div></div>
+        </div>
+      </div>
+
+      <!-- Article Table -->
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-file-text" style="color:var(--primary)"></i>
+          <span class="card-title">Daftar Artikel</span>
+          <span style="font-size:12px;color:var(--gray-400)">48 artikel</span>
+        </div>
+        <div class="card-body" style="padding:14px 20px">
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <i class="bi bi-search"></i>
+              <input type="text" class="form-control" placeholder="Cari judul artikel...">
+            </div>
+            <select class="form-select" style="width:auto">
+              <option>Semua Kategori</option>
+              <option>IT & Komputer</option>
+              <option>Jaringan</option>
+              <option>Akun & Keamanan</option>
+              <option>FAQ Umum</option>
+            </select>
+            <select class="form-select" style="width:auto">
+              <option>Semua Status</option>
+              <option>Published</option>
+              <option>Draft</option>
+              <option>Archived</option>
+            </select>
+            <button class="btn btn-outline"><i class="bi bi-funnel"></i> Filter</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Judul Artikel</th>
+                <th>Kategori</th>
+                <th>Status</th>
+                <th>Dibaca</th>
+                <th>Penulis</th>
+                <th>Diperbarui</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color:var(--gray-400);font-size:12px">1</td>
+                <td>
+                  <div style="font-weight:600;color:var(--gray-900)">Cara Reset Password Akun Universitas</div>
+                  <div style="font-size:12px;color:var(--gray-400)">Panduan reset password melalui portal SSO...</div>
+                </td>
+                <td><span class="cat-badge cb-akun">Akun & Keamanan</span></td>
+                <td><span class="badge badge-published"><i class="bi bi-circle-fill" style="font-size:7px"></i> Published</span></td>
+                <td><span style="font-weight:600">342</span></td>
+                <td>Admin</td>
+                <td style="color:var(--gray-400);font-size:12.5px">5 Mei 2026</td>
+                <td>
+                  <div style="display:flex;gap:5px">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('articleModal').style.display='flex'" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626" title="Hapus"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:var(--gray-400);font-size:12px">2</td>
+                <td>
+                  <div style="font-weight:600;color:var(--gray-900)">Troubleshooting Koneksi WiFi Kampus</div>
+                  <div style="font-size:12px;color:var(--gray-400)">Langkah mengatasi masalah WiFi di area kampus...</div>
+                </td>
+                <td><span class="cat-badge cb-net">Jaringan</span></td>
+                <td><span class="badge badge-published"><i class="bi bi-circle-fill" style="font-size:7px"></i> Published</span></td>
+                <td><span style="font-weight:600">218</span></td>
+                <td>Admin</td>
+                <td style="color:var(--gray-400);font-size:12.5px">3 Mei 2026</td>
+                <td>
+                  <div style="display:flex;gap:5px">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('articleModal').style.display='flex'" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626" title="Hapus"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:var(--gray-400);font-size:12px">3</td>
+                <td>
+                  <div style="font-weight:600;color:var(--gray-900)">Panduan Membuat dan Melacak Tiket Helpdesk</div>
+                  <div style="font-size:12px;color:var(--gray-400)">Cara membuat tiket baru dan memantau statusnya...</div>
+                </td>
+                <td><span class="cat-badge cb-faq">FAQ Umum</span></td>
+                <td><span class="badge badge-published"><i class="bi bi-circle-fill" style="font-size:7px"></i> Published</span></td>
+                <td><span style="font-weight:600">189</span></td>
+                <td>Staff IT</td>
+                <td style="color:var(--gray-400);font-size:12.5px">1 Mei 2026</td>
+                <td>
+                  <div style="display:flex;gap:5px">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('articleModal').style.display='flex'" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626" title="Hapus"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:var(--gray-400);font-size:12px">4</td>
+                <td>
+                  <div style="font-weight:600;color:var(--gray-900)">Instalasi Software Antivirus Kampus</div>
+                  <div style="font-size:12px;color:var(--gray-400)">Cara mengunduh dan menginstal antivirus berlisensi...</div>
+                </td>
+                <td><span class="cat-badge cb-it">IT & Komputer</span></td>
+                <td><span class="badge badge-draft"><i class="bi bi-circle-fill" style="font-size:7px"></i> Draft</span></td>
+                <td><span style="font-weight:600">0</span></td>
+                <td>Staff IT</td>
+                <td style="color:var(--gray-400);font-size:12.5px">28 Apr 2026</td>
+                <td>
+                  <div style="display:flex;gap:5px">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('articleModal').style.display='flex'" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626" title="Hapus"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:var(--gray-400);font-size:12px">5</td>
+                <td>
+                  <div style="font-weight:600;color:var(--gray-900)">Konfigurasi Email Kampus di Outlook</div>
+                  <div style="font-size:12px;color:var(--gray-400)">Cara menambahkan akun email institusi ke Outlook...</div>
+                </td>
+                <td><span class="cat-badge cb-it">Email</span></td>
+                <td><span class="badge badge-archived"><i class="bi bi-circle-fill" style="font-size:7px"></i> Archived</span></td>
+                <td><span style="font-weight:600">134</span></td>
+                <td>Admin</td>
+                <td style="color:var(--gray-400);font-size:12.5px">20 Apr 2026</td>
+                <td>
+                  <div style="display:flex;gap:5px">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('articleModal').style.display='flex'" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626" title="Hapus"><i class="bi bi-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <div class="pg-btn"><i class="bi bi-chevron-left"></i></div>
+          <div class="pg-btn active">1</div>
+          <div class="pg-btn">2</div>
+          <div class="pg-btn">3</div>
+          <div class="pg-btn"><i class="bi bi-chevron-right"></i></div>
+        </div>
+      </div>
+
+    </div><!-- /main-content -->
+  </div><!-- /main-wrapper -->
+</div><!-- /app-wrapper -->
+
+
+<!-- ── MODAL: Tambah/Edit Artikel ── -->
+<div class="modal-overlay" id="articleModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title"><i class="bi bi-file-earmark-plus" style="color:var(--primary)"></i> Tambah Artikel Baru</div>
+
+    <div class="form-group">
+      <label class="form-label">Judul Artikel <span style="color:#EF4444">*</span></label>
+      <input type="text" class="form-control-full" placeholder="Masukkan judul artikel yang jelas dan deskriptif...">
+    </div>
+
+    <div class="input-row2">
+      <div class="form-group">
+        <label class="form-label">Kategori <span style="color:#EF4444">*</span></label>
+        <select class="form-control-full">
+          <option>Pilih kategori...</option>
+          <option>IT & Komputer</option>
+          <option>Jaringan & Internet</option>
+          <option>Akun & Keamanan</option>
+          <option>Printer & Perangkat</option>
+          <option>Email & Komunikasi</option>
+          <option>FAQ Umum</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control-full">
+          <option>Draft</option>
+          <option>Published</option>
+          <option>Archived</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Ringkasan / Excerpt</label>
+      <textarea class="form-control-full" rows="2" placeholder="Deskripsi singkat artikel (tampil di daftar artikel)..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Konten Artikel <span style="color:#EF4444">*</span></label>
+      <div class="editor-toolbar">
+        <button class="editor-btn" title="Bold"><i class="bi bi-type-bold"></i></button>
+        <button class="editor-btn" title="Italic"><i class="bi bi-type-italic"></i></button>
+        <button class="editor-btn" title="Underline"><i class="bi bi-type-underline"></i></button>
+        <div class="editor-sep"></div>
+        <button class="editor-btn" title="Heading"><i class="bi bi-type-h1"></i></button>
+        <button class="editor-btn" title="Heading 2"><i class="bi bi-type-h2"></i></button>
+        <div class="editor-sep"></div>
+        <button class="editor-btn" title="Bullet list"><i class="bi bi-list-ul"></i></button>
+        <button class="editor-btn" title="Numbered list"><i class="bi bi-list-ol"></i></button>
+        <div class="editor-sep"></div>
+        <button class="editor-btn" title="Link"><i class="bi bi-link-45deg"></i></button>
+        <button class="editor-btn" title="Image"><i class="bi bi-image"></i></button>
+        <button class="editor-btn" title="Code"><i class="bi bi-code-slash"></i></button>
+      </div>
+      <textarea class="editor-area" placeholder="Tulis konten artikel di sini...&#10;&#10;Gunakan toolbar di atas untuk memformat teks."></textarea>
+    </div>
+
+    <div class="input-row2">
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <input type="text" class="form-control-full" placeholder="password, reset, SSO (pisahkan koma)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estimasi Waktu Baca</label>
+        <input type="text" class="form-control-full" placeholder="cth: 3 menit">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;color:var(--gray-700)">
+        <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--primary)">
+        Jadikan sebagai sumber untuk AI Assistant (RAG)
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('articleModal').style.display='none'">Batal</button>
+      <button class="btn btn-outline"><i class="bi bi-floppy"></i> Simpan Draft</button>
+      <button class="btn btn-primary"><i class="bi bi-send"></i> Publikasikan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Kelola Kategori ── -->
+<div class="modal-overlay" id="catModal" style="display:none">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title"><i class="bi bi-folder2-open" style="color:var(--primary)"></i> Kelola Kategori</div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="text" class="form-control-full" placeholder="Nama kategori baru..." style="flex:1">
+      <button class="btn btn-primary"><i class="bi bi-plus"></i> Tambah</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200)">
+        <i class="bi bi-laptop" style="color:#2563EB;font-size:16px;width:20px;text-align:center"></i>
+        <span style="flex:1;font-size:13.5px;font-weight:500">IT & Komputer</span>
+        <span style="font-size:12px;color:var(--gray-400)">14 artikel</span>
+        <button class="btn btn-sm btn-outline"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626"><i class="bi bi-trash"></i></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200)">
+        <i class="bi bi-wifi" style="color:#059669;font-size:16px;width:20px;text-align:center"></i>
+        <span style="flex:1;font-size:13.5px;font-weight:500">Jaringan & Internet</span>
+        <span style="font-size:12px;color:var(--gray-400)">9 artikel</span>
+        <button class="btn btn-sm btn-outline"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626"><i class="bi bi-trash"></i></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200)">
+        <i class="bi bi-shield-lock" style="color:#7C3AED;font-size:16px;width:20px;text-align:center"></i>
+        <span style="flex:1;font-size:13.5px;font-weight:500">Akun & Keamanan</span>
+        <span style="font-size:12px;color:var(--gray-400)">11 artikel</span>
+        <button class="btn btn-sm btn-outline"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626"><i class="bi bi-trash"></i></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:8px;border:1px solid var(--gray-200)">
+        <i class="bi bi-question-circle" style="color:#D97706;font-size:16px;width:20px;text-align:center"></i>
+        <span style="flex:1;font-size:13.5px;font-weight:500">FAQ Umum</span>
+        <span style="font-size:12px;color:var(--gray-400)">12 artikel</span>
+        <button class="btn btn-sm btn-outline"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626"><i class="bi bi-trash"></i></button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="document.getElementById('catModal').style.display='none'">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+});
+</script>
+</body>
+</html>

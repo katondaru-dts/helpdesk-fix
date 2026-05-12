@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup - Knowledge Base</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+:root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #DBEAFE;
+    --secondary: #7C3AED;
+    --sidebar-bg: #0F172A;
+    --sidebar-width: 260px;
+    --topbar-h: 64px;
+    --gray-50: #F8FAFC;
+    --gray-100: #F1F5F9;
+    --gray-200: #E2E8F0;
+    --gray-300: #CBD5E1;
+    --gray-400: #94A3B8;
+    --gray-500: #64748B;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1E293B;
+    --gray-900: #0F172A;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--gray-100); color: var(--gray-800); font-size: 14px; }
+a { text-decoration: none; color: inherit; }
+
+/* ── LAYOUT ── */
+.app-wrapper { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    position: fixed; top: 0; left: 0; height: 100vh;
+    overflow-y: auto; z-index: 100;
+    display: flex; flex-direction: column;
+}
+.sidebar-brand {
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 10px;
+    color: #fff; font-size: 17px; font-weight: 700;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.sidebar-brand i { font-size: 22px; color: var(--primary); }
+.sidebar-nav { padding: 10px 0; flex: 1; }
+.nav-section {
+    padding: 10px 20px 4px;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .1em; color: #475569;
+}
+.sidebar-nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px; color: #94A3B8;
+    font-size: 13.5px; font-weight: 500; transition: all .2s;
+}
+.sidebar-nav a:hover { background: rgba(255,255,255,.07); color: #fff; }
+.sidebar-nav a.active { background: rgba(37,99,235,.25); color: #fff; }
+.sidebar-nav a i { font-size: 16px; width: 20px; text-align: center; }
+
+/* ── MAIN ── */
+.main-wrapper { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; }
+.topbar {
+    height: var(--topbar-h); background: #fff;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; padding: 0 24px; gap: 14px;
+    position: sticky; top: 0; z-index: 50;
+}
+.page-title { font-size: 16px; font-weight: 600; flex: 1; }
+.main-content { flex: 1; padding: 24px; }
+
+/* ── HERO SEARCH ── */
+.kb-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: var(--radius-lg);
+    padding: 40px 32px;
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+}
+.kb-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.kb-hero h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 8px; position: relative; }
+.kb-hero p { color: rgba(255,255,255,.8); margin-bottom: 24px; position: relative; }
+.kb-search-wrap {
+    max-width: 520px; margin: 0 auto;
+    display: flex; gap: 0;
+    background: #fff; border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2);
+    position: relative;
+}
+.kb-search-wrap input {
+    flex: 1; padding: 14px 18px;
+    border: none; outline: none;
+    font-family: 'Inter', sans-serif; font-size: 14px; color: var(--gray-800);
+}
+.kb-search-wrap button {
+    padding: 0 20px;
+    background: var(--primary); color: #fff;
+    border: none; cursor: pointer; font-size: 18px;
+    transition: background .15s;
+}
+.kb-search-wrap button:hover { background: var(--primary-dark, #1D4ED8); }
+.kb-stats {
+    display: flex; justify-content: center; gap: 28px;
+    margin-top: 20px; position: relative;
+}
+.kb-stat { color: rgba(255,255,255,.85); font-size: 13px; }
+.kb-stat strong { color: #fff; font-size: 18px; font-weight: 700; display: block; }
+
+/* ── CATEGORIES ── */
+.section-title {
+    font-size: 16px; font-weight: 700; color: var(--gray-900);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.cat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.cat-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    border: 1.5px solid var(--gray-200);
+    cursor: pointer;
+    transition: all .2s;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.cat-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.cat-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+}
+.cat-card h4 { font-size: 13.5px; font-weight: 600; color: var(--gray-900); }
+.cat-card span { font-size: 12px; color: var(--gray-500); }
+
+/* ── ARTICLE LIST ── */
+.kb-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+
+.article-list { display: flex; flex-direction: column; gap: 12px; }
+.article-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all .2s;
+    display: flex; gap: 16px; align-items: flex-start;
+}
+.article-card:hover { border-color: var(--primary); box-shadow: var(--shadow-lg); }
+.article-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--primary-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: var(--primary); flex-shrink: 0;
+}
+.article-body { flex: 1; }
+.article-title { font-size: 14.5px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+.article-excerpt { font-size: 13px; color: var(--gray-500); line-height: 1.5; margin-bottom: 8px; }
+.article-meta { display: flex; align-items: center; gap: 12px; font-size: 11.5px; color: var(--gray-400); }
+.article-meta i { font-size: 12px; }
+.article-badge {
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+}
+.badge-it { background: #DBEAFE; color: #1D4ED8; }
+.badge-hr { background: #D1FAE5; color: #065F46; }
+.badge-umum { background: #FEF3C7; color: #92400E; }
+.badge-jaringan { background: #EDE9FE; color: #5B21B6; }
+
+/* ── SIDEBAR WIDGET ── */
+.kb-sidebar { display: flex; flex-direction: column; gap: 16px; }
+.widget {
+    background: #fff;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+.widget-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 13.5px; font-weight: 600; color: var(--gray-900);
+    display: flex; align-items: center; gap: 8px;
+}
+.widget-header i { color: var(--primary); }
+.widget-body { padding: 12px 16px; }
+.popular-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--gray-100);
+    cursor: pointer; transition: color .15s;
+}
+.popular-item:last-child { border-bottom: none; }
+.popular-item:hover .popular-title { color: var(--primary); }
+.popular-num {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--gray-100); color: var(--gray-500);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.popular-title { font-size: 13px; color: var(--gray-700); flex: 1; line-height: 1.4; }
+.popular-views { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
+
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--gray-100); color: var(--gray-600);
+    font-size: 12px; cursor: pointer; transition: all .15s;
+}
+.tag:hover { background: var(--primary-light); color: var(--primary); }
+
+/* ── PAGINATION ── */
+.pagination { display: flex; gap: 4px; justify-content: center; padding: 20px 0 4px; }
+.pg-btn {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--gray-200); border-radius: 8px;
+    background: #fff; color: var(--gray-600); font-size: 13px; cursor: pointer;
+    transition: all .15s;
+}
+.pg-btn:hover { border-color: var(--primary); color: var(--primary); }
+.pg-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+    .sidebar { transform: translateX(-260px); }
+    .main-wrapper { margin-left: 0; }
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .kb-layout { grid-template-columns: 1fr; }
+    .kb-sidebar { display: none; }
+    .kb-hero { padding: 28px 20px; }
+    .kb-hero h1 { font-size: 20px; }
+    .kb-stats { gap: 16px; }
+}
+@media (max-width: 480px) {
+    .main-content { padding: 14px; }
+    .cat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .article-card { flex-direction: column; gap: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="app-wrapper">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-headset"></i>
+            <span>Helpdesk Pusim</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">Menu Utama</div>
+            <a href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="#"><i class="bi bi-ticket-detailed"></i> Tiket Saya</a>
+            <a href="#"><i class="bi bi-plus-circle"></i> Buat Tiket</a>
+            <a href="#" class="active"><i class="bi bi-book"></i> Knowledge Base</a>
+            <div class="nav-section" style="margin-top:16px">Akun</div>
+            <a href="#"><i class="bi bi-bell"></i> Notifikasi</a>
+            <a href="#"><i class="bi bi-person-circle"></i> Profil Saya</a>
+            <a href="#" style="color:#f87171"><i class="bi bi-box-arrow-right"></i> Keluar</a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="page-title">Knowledge Base</div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <i class="bi bi-bell" style="font-size:18px;color:#94A3B8"></i>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563EB,#7C3AED);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">A</div>
+                    <span style="font-size:13px;font-weight:600;color:#334155">Ahmad</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+
+            <!-- Hero Search -->
+            <div class="kb-hero">
+                <h1>Pusat Bantuan & Knowledge Base</h1>
+                <p>Temukan jawaban cepat dari artikel panduan dan FAQ kami</p>
+                <div class="kb-search-wrap">
+                    <input type="text" placeholder="Cari artikel, panduan, atau FAQ...">
+                    <button><i class="bi bi-search"></i></button>
+                </div>
+                <div class="kb-stats">
+                    <div class="kb-stat"><strong>48</strong>Artikel</div>
+                    <div class="kb-stat"><strong>8</strong>Kategori</div>
+                    <div class="kb-stat"><strong>1.2k</strong>Dibaca bulan ini</div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="section-title"><i class="bi bi-grid-3x3-gap" style="color:var(--primary)"></i> Kategori</div>
+            <div class="cat-grid">
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#DBEAFE;color:#2563EB"><i class="bi bi-laptop"></i></div>
+                    <h4>IT & Komputer</h4>
+                    <span>14 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#D1FAE5;color:#059669"><i class="bi bi-wifi"></i></div>
+                    <h4>Jaringan & Internet</h4>
+                    <span>9 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#FEF3C7;color:#D97706"><i class="bi bi-printer"></i></div>
+                    <h4>Printer & Perangkat</h4>
+                    <span>7 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#EDE9FE;color:#7C3AED"><i class="bi bi-shield-lock"></i></div>
+                    <h4>Akun & Keamanan</h4>
+                    <span>11 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#FEE2E2;color:#DC2626"><i class="bi bi-envelope"></i></div>
+                    <h4>Email & Komunikasi</h4>
+                    <span>6 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#CFFAFE;color:#0891B2"><i class="bi bi-cloud-arrow-up"></i></div>
+                    <h4>Cloud & Storage</h4>
+                    <span>5 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#F0FDF4;color:#16A34A"><i class="bi bi-people"></i></div>
+                    <h4>SDM & Kepegawaian</h4>
+                    <span>8 artikel</span>
+                </div>
+                <div class="cat-card">
+                    <div class="cat-icon" style="background:#FFF7ED;color:#EA580C"><i class="bi bi-question-circle"></i></div>
+                    <h4>FAQ Umum</h4>
+                    <span>12 artikel</span>
+                </div>
+            </div>
+
+            <!-- Articles + Sidebar -->
+            <div class="kb-layout">
+                <div>
+                    <div class="section-title" style="margin-bottom:14px">
+                        <i class="bi bi-file-text" style="color:var(--primary)"></i> Artikel Terbaru
+                        <span style="font-size:12px;color:var(--gray-400);font-weight:400;margin-left:4px">48 artikel</span>
+                    </div>
+                    <div class="article-list">
+
+                        <div class="article-card">
+                            <div class="article-icon"><i class="bi bi-key"></i></div>
+                            <div class="article-body">
+                                <div class="article-title">Cara Reset Password Akun Universitas</div>
+                                <div class="article-excerpt">Panduan langkah demi langkah untuk mereset password akun email dan sistem informasi universitas melalui portal SSO.</div>
+                                <div class="article-meta">
+                                    <span class="article-badge badge-it">IT & Komputer</span>
+                                    <span><i class="bi bi-eye"></i> 342 dibaca</span>
+                                    <span><i class="bi bi-clock"></i> 3 menit baca</span>
+                                    <span><i class="bi bi-calendar3"></i> 5 Mei 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="article-card">
+                            <div class="article-icon"><i class="bi bi-wifi-off"></i></div>
+                            <div class="article-body">
+                                <div class="article-title">Troubleshooting Koneksi WiFi Kampus</div>
+                                <div class="article-excerpt">Langkah-langkah mengatasi masalah koneksi WiFi di area kampus, termasuk cara menghubungkan ke jaringan eduroam.</div>
+                                <div class="article-meta">
+                                    <span class="article-badge badge-jaringan">Jaringan</span>
+                                    <span><i class="bi bi-eye"></i> 218 dibaca</span>
+                                    <span><i class="bi bi-clock"></i> 5 menit baca</span>
+                                    <span><i class="bi bi-calendar3"></i> 3 Mei 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="article-card">
+                            <div class="article-icon"><i class="bi bi-ticket-detailed"></i></div>
+                            <div class="article-body">
+                                <div class="article-title">Panduan Membuat dan Melacak Tiket Helpdesk</div>
+                                <div class="article-excerpt">Cara membuat tiket baru, memantau status, dan berkomunikasi dengan teknisi melalui sistem helpdesk.</div>
+                                <div class="article-meta">
+                                    <span class="article-badge badge-umum">FAQ Umum</span>
+                                    <span><i class="bi bi-eye"></i> 189 dibaca</span>
+                                    <span><i class="bi bi-clock"></i> 4 menit baca</span>
+                                    <span><i class="bi bi-calendar3"></i> 1 Mei 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="article-card">
+                            <div class="article-icon"><i class="bi bi-printer"></i></div>
+                            <div class="article-body">
+                                <div class="article-title">Cara Menghubungkan Printer Jaringan</div>
+                                <div class="article-excerpt">Panduan instalasi dan konfigurasi printer jaringan di Windows dan macOS untuk pengguna di lingkungan kampus.</div>
+                                <div class="article-meta">
+                                    <span class="article-badge badge-it">IT & Komputer</span>
+                                    <span><i class="bi bi-eye"></i> 156 dibaca</span>
+                                    <span><i class="bi bi-clock"></i> 6 menit baca</span>
+                                    <span><i class="bi bi-calendar3"></i> 28 Apr 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="article-card">
+                            <div class="article-icon"><i class="bi bi-envelope-check"></i></div>
+                            <div class="article-body">
+                                <div class="article-title">Konfigurasi Email Kampus di Outlook & Gmail</div>
+                                <div class="article-excerpt">Cara menambahkan akun email institusi ke aplikasi Outlook, Gmail, dan klien email lainnya di perangkat mobile maupun desktop.</div>
+                                <div class="article-meta">
+                                    <span class="article-badge badge-it">Email</span>
+                                    <span><i class="bi bi-eye"></i> 134 dibaca</span>
+                                    <span><i class="bi bi-clock"></i> 4 menit baca</span>
+                                    <span><i class="bi bi-calendar3"></i> 25 Apr 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <div class="pg-btn"><i class="bi bi-chevron-left"></i></div>
+                        <div class="pg-btn active">1</div>
+                        <div class="pg-btn">2</div>
+                        <div class="pg-btn">3</div>
+                        <div class="pg-btn">4</div>
+                        <div class="pg-btn"><i class="bi bi-chevron-right"></i></div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Widgets -->
+                <div class="kb-sidebar">
+                    <div class="widget">
+                        <div class="widget-header"><i class="bi bi-fire"></i> Artikel Populer</div>
+                        <div class="widget-body">
+                            <div class="popular-item">
+                                <div class="popular-num">1</div>
+                                <div class="popular-title">Cara Reset Password Akun</div>
+                                <div class="popular-views">342 👁</div>
+                            </div>
+                            <div class="popular-item">
+                                <div class="popular-num">2</div>
+                                <div class="popular-title">Troubleshooting WiFi Kampus</div>
+                                <div class="popular-views">218 👁</div>
+                            </div>
+                            <div class="popular-item">
+                                <div class="popular-num">3</div>
+                                <div class="popular-title">Panduan Membuat Tiket</div>
+                                <div class="popular-views">189 👁</div>
+                            </div>
+                            <div class="popular-item">
+                                <div class="popular-num">4</div>
+                                <div class="popular-title">Instalasi Printer Jaringan</div>
+                                <div class="popular-views">156 👁</div>
+                            </div>
+                            <div class="popular-item">
+                                <div class="popular-num">5</div>
+                                <div class="popular-title">Konfigurasi Email Outlook</div>
+                                <div class="popular-views">134 👁</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="widget">
+                        <div class="widget-header"><i class="bi bi-tags"></i> Tag Populer</div>
+                        <div class="widget-body">
+                            <div class="tag-cloud">
+                                <span class="tag">password</span>
+                                <span class="tag">wifi</span>
+                                <span class="tag">email</span>
+                                <span class="tag">printer</span>
+                                <span class="tag">VPN</span>
+                                <span class="tag">SSO</span>
+                                <span class="tag">outlook</span>
+                                <span class="tag">jaringan</span>
+                                <span class="tag">antivirus</span>
+                                <span class="tag">backup</span>
+                                <span class="tag">zoom</span>
+                                <span class="tag">google drive</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="widget" style="background:linear-gradient(135deg,#2563EB,#7C3AED);border:none">
+                        <div class="widget-body" style="padding:20px;text-align:center">
+                            <i class="bi bi-stars" style="font-size:28px;color:#fff;display:block;margin-bottom:10px"></i>
+                            <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">Tidak menemukan jawaban?</div>
+                            <div style="font-size:12.5px;color:rgba(255,255,255,.8);margin-bottom:14px">Tanya AI Assistant atau buat tiket baru</div>
+                            <button style="width:100%;padding:9px;background:#fff;color:#2563EB;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;margin-bottom:8px">
+                                <i class="bi bi-stars"></i> Tanya AI
+                            </button>
+                            <button style="width:100%;padding:9px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-weight:600;font-size:13px;cursor:pointer">
+                                <i class="bi bi-plus-circle"></i> Buat Tiket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

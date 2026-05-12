@@ -15,7 +15,12 @@ abstract class BaseController extends Controller
     {
         parent::initController($request, $response, $logger);
 
-        if (session()->get('isLoggedIn')) {
+        // Skip heavy session refresh for AJAX/polling requests (e.g. unread-count)
+        $isAjax = $request->isAJAX()
+            || str_contains($request->getUri()->getPath(), 'unread-count')
+            || str_contains($request->getUri()->getPath(), 'ai/chat');
+
+        if (!$isAjax && session()->get('isLoggedIn')) {
             $this->refreshSessionIfNeeded();
         }
     }
