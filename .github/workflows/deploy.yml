@@ -30,4 +30,4 @@ jobs:
           done
       - name: Fix Permissions
         run: |
-          docker exec helpdesk-app chmod -R 777 /var/www/html/writable
+          docker exec helpdesk-app chmod -R 777 /var/www/html/writable  
