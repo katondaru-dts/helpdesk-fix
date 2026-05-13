@@ -95,6 +95,7 @@ $routes->group('admin', ['filter' => 'staff'], function ($routes) {
     $routes->post('knowledge-base/(:num)/update', 'Admin\KnowledgeBase::update/$1');
     $routes->post('knowledge-base/(:num)/delete', 'Admin\KnowledgeBase::delete/$1');
     $routes->post('knowledge-base/(:num)/reembed', 'Admin\KnowledgeBase::reembed/$1');
+    $routes->post('knowledge-base/reembed-all', 'Admin\KnowledgeBase::reembedAll');
     // Category JSON API
     $routes->get('knowledge-base/categories', 'Admin\KnowledgeBase::getCategories');
     $routes->post('knowledge-base/categories', 'Admin\KnowledgeBase::storeCategory');

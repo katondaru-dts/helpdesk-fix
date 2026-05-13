@@ -17,6 +17,7 @@ class KnowledgeBase extends BaseController
     {
         $this->articleModel  = new KbArticleModel();
         $this->categoryModel = new KbCategoryModel();
+        $this->db = \Config\Database::connect();
     }
 
     public function index()
@@ -156,6 +157,31 @@ class KnowledgeBase extends BaseController
         $this->articleModel->update($id, ['embedding' => $embedding]);
 
         return $this->response->setJSON(['success' => true, 'message' => 'Embedding berhasil diperbarui']);
+    }
+
+    public function reembedAll()
+    {
+        $articles = $this->db->query(
+            "SELECT id, title, content FROM kb_articles WHERE status='published' AND use_for_ai=1"
+        )->getResultArray();
+
+        $ok = 0; $fail = 0;
+        foreach ($articles as $article) {
+            $embedding = $this->generateEmbedding($article['title'], $article['content']);
+            if ($embedding) {
+                $this->articleModel->update($article['id'], ['embedding' => $embedding]);
+                $ok++;
+            } else {
+                $fail++;
+            }
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'embedded' => $ok,
+            'failed'   => $fail,
+            'message'  => "Re-embed selesai: {$ok} berhasil, {$fail} gagal.",
+        ]);
     }
 
     // ── CATEGORY CRUD (JSON response) ──

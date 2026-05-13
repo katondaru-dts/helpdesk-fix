@@ -8,6 +8,7 @@
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline" onclick="openCatModal()"><i class="bi bi-folder-plus"></i> Kelola Kategori</button>
+        <button class="btn btn-outline" onclick="reembedAll()" style="color:#7C3AED;border-color:#7C3AED"><i class="bi bi-stars"></i> Re-embed Semua</button>
         <a href="<?= base_url('admin/knowledge-base/create') ?>" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Artikel Baru</a>
     </div>
 </div>
@@ -204,6 +205,21 @@ function reembed(id, btn) {
             setTimeout(() => { btn.innerHTML = '<i class="bi bi-stars"></i>'; btn.style.color = '#7C3AED'; btn.disabled = false; }, 2000);
         })
         .catch(() => { btn.innerHTML = '<i class="bi bi-stars"></i>'; btn.disabled = false; });
+}
+
+function reembedAll() {
+    if (!confirm('Generate ulang embedding untuk semua artikel? Proses ini membutuhkan beberapa detik.')) return;
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Memproses...';
+    fetch('<?= base_url('admin/knowledge-base/reembed-all') ?>', {method:'POST'})
+        .then(r => r.json())
+        .then(d => {
+            alert(d.message);
+            btn.innerHTML = '<i class="bi bi-stars"></i> Re-embed Semua';
+            btn.disabled = false;
+        })
+        .catch(() => { btn.innerHTML = '<i class="bi bi-stars"></i> Re-embed Semua'; btn.disabled = false; });
 }
 </script>
 
