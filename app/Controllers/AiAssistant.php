@@ -67,6 +67,19 @@ class AiAssistant extends BaseController
         }
     }
 
+    public function clearCache()
+    {
+        $cache = \Config\Services::cache();
+        // Hapus semua cache ai_rag_*
+        $path = WRITEPATH . 'cache/';
+        $deleted = 0;
+        foreach (glob($path . 'ai_rag_*') as $file) {
+            unlink($file);
+            $deleted++;
+        }
+        return $this->response->setJSON(['success' => true, 'deleted' => $deleted]);
+    }
+
     /**
      * Deteksi apakah pertanyaan bersifat operasional/spesifik
      * yang butuh penanganan tim (bukan pertanyaan umum).

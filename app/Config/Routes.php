@@ -113,4 +113,5 @@ $routes->group('knowledge-base', ['filter' => 'auth'], function ($routes) {
 // AI Assistant
 $routes->post('ai/chat', 'AiAssistant::chat', ['filter' => 'auth']);
 $routes->get('ai/models', 'AiAssistant::models', ['filter' => 'auth']);
+$routes->post('ai/clear-cache', 'AiAssistant::clearCache', ['filter' => 'admin']);
 

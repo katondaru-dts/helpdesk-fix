@@ -195,12 +195,12 @@ class GeminiHelper
         if (!empty($words)) {
             $scored = [];
             foreach ($articles as $article) {
-                $haystack = mb_strtolower(
-                    $article['title'] . ' ' . ($article['excerpt'] ?? '') . ' ' . mb_substr(strip_tags($article['content']), 0, 500)
-                );
+                $title   = mb_strtolower($article['title']);
+                $body    = mb_strtolower(($article['excerpt'] ?? '') . ' ' . mb_substr(strip_tags($article['content']), 0, 500));
                 $hits = 0;
                 foreach ($words as $w) {
-                    $hits += substr_count($haystack, $w);
+                    $hits += substr_count($title, $w) * 3; // title match bobot 3x
+                    $hits += substr_count($body, $w);
                 }
                 if ($hits > 0)
                     $scored[] = ['article' => $article, 'score' => $hits];

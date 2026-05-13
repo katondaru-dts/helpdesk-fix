@@ -9,6 +9,7 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-outline" onclick="openCatModal()"><i class="bi bi-folder-plus"></i> Kelola Kategori</button>
         <button class="btn btn-outline" onclick="reembedAll()" style="color:#7C3AED;border-color:#7C3AED"><i class="bi bi-stars"></i> Re-embed Semua</button>
+        <button class="btn btn-outline" onclick="clearAiCache()" style="color:#DC2626;border-color:#DC2626"><i class="bi bi-trash"></i> Clear Cache AI</button>
         <a href="<?= base_url('admin/knowledge-base/create') ?>" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Artikel Baru</a>
     </div>
 </div>
@@ -220,6 +221,15 @@ function reembedAll() {
             btn.disabled = false;
         })
         .catch(() => { btn.innerHTML = '<i class="bi bi-stars"></i> Re-embed Semua'; btn.disabled = false; });
+}
+
+function clearAiCache() {
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    fetch('<?= base_url('ai/clear-cache') ?>', {method:'POST'})
+        .then(r => r.json())
+        .then(d => { alert('Cache AI dihapus: ' + d.deleted + ' item.'); btn.disabled = false; })
+        .catch(() => btn.disabled = false);
 }
 </script>
 
