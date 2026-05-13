@@ -373,7 +373,7 @@
             border-bottom-left-radius: 4px;
             max-width: 100%;
             word-break: break-word;
-            text-align: justify;
+            text-align: left;
         }
         .ai-msg.bot .ai-bubble br + br {
             display: block;
