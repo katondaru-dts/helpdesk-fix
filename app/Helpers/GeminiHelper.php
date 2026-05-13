@@ -179,8 +179,8 @@ class GeminiHelper
     }
 
     /**
-     * Cari artikel paling relevan berdasarkan cosine similarity.
-     * Fallback ke keyword search jika embed gagal (rate limit).
+     * Cari artikel paling relevan.
+     * Prioritas: 1) keyword match di title/content, 2) embedding similarity.
      *
      * @param array $articles hasil KbArticleModel::getForRag()
      * @return array top-N artikel
@@ -190,47 +190,48 @@ class GeminiHelper
         if (empty($articles))
             return [];
 
-        // ── Coba embedding dulu (model ringan: embedding-001) ──
+        // ── 1. Keyword search dulu (cepat, tanpa API call) ──
+        $words = array_values(array_filter(explode(' ', mb_strtolower($query)), fn($w) => mb_strlen($w) >= 3));
+        if (!empty($words)) {
+            $scored = [];
+            foreach ($articles as $article) {
+                $haystack = mb_strtolower(
+                    $article['title'] . ' ' . ($article['excerpt'] ?? '') . ' ' . mb_substr(strip_tags($article['content']), 0, 500)
+                );
+                $hits = 0;
+                foreach ($words as $w) {
+                    $hits += substr_count($haystack, $w);
+                }
+                if ($hits > 0)
+                    $scored[] = ['article' => $article, 'score' => $hits];
+            }
+            if (!empty($scored)) {
+                usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+                return array_map(fn($s) => $s['article'], array_slice($scored, 0, $topN));
+            }
+        }
+
+        // ── 2. Fallback: embedding similarity (jika keyword tidak menemukan) ──
         try {
             $queryVec = $this->embed($query);
         } catch (\RuntimeException $e) {
-            $queryVec = null; // rate limit — fallback ke keyword
+            return [];
         }
 
-        if ($queryVec) {
-            $scored = [];
-            foreach ($articles as $article) {
-                if (empty($article['embedding']))
-                    continue;
-                $vec = is_string($article['embedding'])
-                    ? json_decode($article['embedding'], true)
-                    : $article['embedding'];
-                if (!is_array($vec))
-                    continue;
-                $scored[] = ['article' => $article, 'score' => self::cosineSimilarity($queryVec, $vec)];
-            }
-            usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
-            $filtered = array_filter($scored, fn($s) => $s['score'] >= 0.5);
-            return array_map(fn($s) => $s['article'], array_slice(array_values($filtered), 0, $topN));
-        }
+        if (!$queryVec) return [];
 
-        // ── Fallback: keyword search sederhana ──
-        $words = array_filter(explode(' ', mb_strtolower($query)));
         $scored = [];
         foreach ($articles as $article) {
-            $haystack = mb_strtolower(
-                $article['title'] . ' ' . $article['excerpt'] . ' ' . mb_substr(strip_tags($article['content']), 0, 500)
-            );
-            $hits = 0;
-            foreach ($words as $w) {
-                if (mb_strlen($w) >= 3)
-                    $hits += substr_count($haystack, $w);
-            }
-            if ($hits > 0)
-                $scored[] = ['article' => $article, 'score' => $hits];
+            if (empty($article['embedding'])) continue;
+            $vec = is_string($article['embedding'])
+                ? json_decode($article['embedding'], true)
+                : $article['embedding'];
+            if (!is_array($vec)) continue;
+            $scored[] = ['article' => $article, 'score' => self::cosineSimilarity($queryVec, $vec)];
         }
         usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
-        return array_map(fn($s) => $s['article'], array_slice($scored, 0, $topN));
+        $filtered = array_filter($scored, fn($s) => $s['score'] >= 0.5);
+        return array_map(fn($s) => $s['article'], array_slice(array_values($filtered), 0, $topN));
     }
 
     private function post(string $url, array $data): array

@@ -34,7 +34,7 @@ class AiAssistant extends BaseController
             } else {
                 $allArticles = $articleModel->getForRag();
                 $relevant = $gemini->findRelevant($message, $allArticles, 3);
-                $cache->save($cacheKey, $relevant, 3600); // cache 1 jam
+                if (!empty($relevant)) $cache->save($cacheKey, $relevant, 3600); // cache 1 jam, hanya jika ada hasil
             }
 
             // Bangun konteks dari artikel relevan
