@@ -210,7 +210,7 @@ class GeminiHelper
                 $scored[] = ['article' => $article, 'score' => self::cosineSimilarity($queryVec, $vec)];
             }
             usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
-            $filtered = array_filter($scored, fn($s) => $s['score'] >= 0.7);
+            $filtered = array_filter($scored, fn($s) => $s['score'] >= 0.5);
             return array_map(fn($s) => $s['article'], array_slice(array_values($filtered), 0, $topN));
         }
 
