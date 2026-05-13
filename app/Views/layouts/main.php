@@ -661,9 +661,8 @@
                 inner += '<div class="ai-bubble">' + html + '</div>';
 
                 if (sources && sources.length) {
-                    inner += sources.map(function (s) {
-                        return '<div class="ai-source"><i class="bi bi-book" style="color:#2563EB"></i> Sumber: <a href="' + kbUrl + (s.slug || '') + '" target="_blank">' + s.title + '</a></div>';
-                    }).join('');
+                    var s = sources[0];
+                    inner += '<div class="ai-source"><i class="bi bi-book" style="color:#2563EB"></i> Sumber: <a href="' + kbUrl + (s.slug || '') + '" target="_blank">' + s.title + '</a></div>';
                 }
 
                 if (showFeedback) {
