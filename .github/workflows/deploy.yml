@@ -24,9 +24,10 @@ jobs:
           docker compose pull
           docker compose up -d --remove-orphans
       - name: Run Database Migrations
-        run: |
-          docker exec helpdesk-app php /var/www/html/spark migrate --continue-on-error
-
+        run: | 
+          for f in /home/katondaru/helpdesk-fix/db/*.sql; do
+            docker exec -i helpdesk-db mariadb -u root -proot_password helpdesk_v2 < "$f"
+          done
       - name: Fix Permissions
         run: |
           docker exec helpdesk-app chmod -R 777 /var/www/html/writable
