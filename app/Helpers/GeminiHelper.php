@@ -5,6 +5,7 @@ namespace App\Helpers;
 class GeminiHelper
 {
     private string $apiKey;
+    private array $apiKeys = [];
     private string $embedModel = 'gemini-embedding-001';
     private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -42,8 +43,13 @@ class GeminiHelper
 
     public function __construct(string $modelKey = 'flash25')
     {
-        $this->apiKey = env('GEMINI_API_KEY', '');
-        // Pastikan model key valid, jika tidak → default flash25
+        // Kumpulkan semua API key yang tersedia (GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3)
+        foreach (['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3', 'GEMINI_API_KEY_4'] as $envKey) {
+            $val = env($envKey, '');
+            if (!empty($val)) $this->apiKeys[] = $val;
+        }
+        $this->apiKey = $this->apiKeys[0] ?? '';
+        log_message('debug', 'GeminiHelper: ' . count($this->apiKeys) . ' API key(s) loaded.');
         $this->selectedModelKey = array_key_exists($modelKey, self::$availableModels)
             ? $modelKey
             : 'flash25';
@@ -109,7 +115,7 @@ class GeminiHelper
             'contents' => [
                 ['role' => 'user', 'parts' => [['text' => $systemPrompt . "\n\nPertanyaan: " . $userMessage]]],
             ],
-            'generationConfig' => ['maxOutputTokens' => 1024, 'temperature' => 0.7],
+            'generationConfig' => ['maxOutputTokens' => 2048, 'temperature' => 0.7],
         ];
 
         // ── Coba model yang dipilih user dulu, lalu fallback ──
@@ -229,28 +235,41 @@ class GeminiHelper
 
     private function post(string $url, array $data): array
     {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_TIMEOUT => 30,
-        ]);
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $keys = !empty($this->apiKeys) ? $this->apiKeys : [$this->apiKey];
 
-        $decoded = json_decode($result ?: '{}', true) ?? [];
+        foreach ($keys as $i => $key) {
+            // Ganti key di URL
+            $targetUrl = preg_replace('/key=[^&]+/', 'key=' . $key, $url);
 
-        if ($httpCode === 429) {
-            throw new \RuntimeException('Gemini API quota exceeded (429). Rate limit aktif.');
+            $ch = curl_init($targetUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                CURLOPT_TIMEOUT        => 30,
+            ]);
+            $result   = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            $decoded = json_decode($result ?: '{}', true) ?? [];
+
+            if ($httpCode === 429) {
+                log_message('warning', "GeminiHelper: API key ke-" . ($i + 1) . " rate limit (429), coba key berikutnya...");
+                continue; // coba key berikutnya
+            }
+            if ($httpCode >= 500) {
+                throw new \RuntimeException("Gemini API server error ({$httpCode}).");
+            }
+
+            // Sukses — set apiKey aktif ke key ini untuk request berikutnya
+            $this->apiKey = $key;
+            return $decoded;
         }
-        if ($httpCode >= 500) {
-            throw new \RuntimeException("Gemini API server error ({$httpCode}).");
-        }
 
-        return $decoded;
+        // Semua key kena rate limit
+        throw new \RuntimeException('Gemini API quota exceeded (429). Semua API key sedang rate limit.');
     }
 }
 

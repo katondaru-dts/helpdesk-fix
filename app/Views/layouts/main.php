@@ -216,8 +216,8 @@
             position: fixed;
             bottom: 94px;
             right: 28px;
-            width: 370px;
-            height: 540px;
+            width: 440px;
+            height: 680px;
             background: #fff;
             border-radius: 20px;
             box-shadow: 0 8px 40px rgba(0, 0, 0, .18);
@@ -361,16 +361,36 @@
         }
 
         .ai-bubble {
-            padding: 9px 12px;
+            padding: 11px 14px;
             border-radius: 14px;
-            font-size: 13px;
-            line-height: 1.55;
+            font-size: 14px;
+            line-height: 1.7;
         }
 
         .ai-msg.bot .ai-bubble {
             background: #F1F5F9;
             color: #1E293B;
             border-bottom-left-radius: 4px;
+            max-width: 100%;
+            word-break: break-word;
+            text-align: justify;
+        }
+        .ai-msg.bot .ai-bubble br + br {
+            display: block;
+            content: '';
+            margin-top: 6px;
+        }
+        .ai-msg.bot .ai-bubble li {
+            margin-bottom: 4px;
+        }
+        .ai-msg.bot .ai-bubble strong {
+            display: inline;
+            font-weight: 600;
+        }
+        .ai-msg.bot .ai-bubble strong.ai-heading {
+            display: block;
+            margin-top: 8px;
+            margin-bottom: 2px;
         }
 
         .ai-msg.user .ai-bubble {
@@ -574,8 +594,7 @@
             <div class="ai-msg bot">
                 <div class="ai-msg-av"><i class="bi bi-stars"></i></div>
                 <div>
-                    <div class="ai-bubble">Halo! Saya <strong>Helpdesk AI Pusim</strong> 👋<br>Tanya apa saja seputar
-                        layanan helpdesk, saya siap membantu!</div>
+                    <div class="ai-bubble">Halo! Saya <span style="font-weight:600">Helpdesk AI Pusim</span> 👋<br>Tanya apa saja seputar layanan helpdesk, saya siap membantu!</div>
                 </div>
             </div>
             <div class="ai-msg bot" id="aiTyping" style="display:none">
@@ -696,13 +715,33 @@
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
                         typing.style.display = 'none';
-                        const answer = (data.answer || 'Maaf, terjadi kesalahan.').replace(/\n/g, '<br>');
+                        const answer = parseMd(data.answer || 'Maaf, terjadi kesalahan.');
                         addMsg('bot', answer, data.sources || [], true, data.suggest_ticket || false, data.model_used || null);
                     })
                     .catch(function () {
                         typing.style.display = 'none';
                         addMsg('bot', 'Maaf, tidak dapat terhubung ke AI saat ini.', null, false, true);
                     });
+            }
+
+            function parseMd(text) {
+                text = text.replace(/^[ \t]+/gm, '').trim();
+                // Proses inline formatting dulu
+                text = text
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/^### (.+)$/gm, '<strong class="ai-heading" style="font-size:13px">$1</strong>')
+                    .replace(/^## (.+)$/gm, '<strong class="ai-heading" style="font-size:14px">$1</strong>')
+                    .replace(/^# (.+)$/gm, '<strong class="ai-heading" style="font-size:15px">$1</strong>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                    .replace(/_(.+?)_/g, '<em>$1</em>')
+                    .replace(/`([^`]+)`/g, '<code style="background:#e2e8f0;padding:1px 5px;border-radius:4px;font-size:12px">$1</code>')
+                    .replace(/^\s*[-*] (.+)$/gm, '<li style="margin-left:16px;list-style:disc">$1</li>')
+                    .replace(/^\s*\d+\. (.+)$/gm, '<li style="margin-left:16px;list-style:decimal">$1</li>');
+                // Bungkus tiap blok paragraf (dipisah double newline) dengan <p>
+                return text.split(/\n{2,}/)
+                    .map(function(p) { return '<p style="margin:0 0 8px 0">' + p.replace(/\n/g, '<br>') + '</p>'; })
+                    .join('');
             }
 
             sendBtn.addEventListener('click', sendMsg);
