@@ -92,6 +92,7 @@ $routes->group('admin', ['filter' => 'staff'], function ($routes) {
     $routes->get('knowledge-base/create', 'Admin\KnowledgeBase::create');
     $routes->post('knowledge-base/store', 'Admin\KnowledgeBase::store');
     $routes->get('knowledge-base/(:num)/edit', 'Admin\KnowledgeBase::edit/$1');
+    $routes->get('knowledge-base/(:num)/preview', 'Admin\KnowledgeBase::preview/$1');
     $routes->post('knowledge-base/(:num)/update', 'Admin\KnowledgeBase::update/$1');
     $routes->post('knowledge-base/(:num)/delete', 'Admin\KnowledgeBase::delete/$1');
     $routes->post('knowledge-base/(:num)/reembed', 'Admin\KnowledgeBase::reembed/$1');

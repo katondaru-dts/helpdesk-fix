@@ -142,6 +142,24 @@ class KnowledgeBase extends BaseController
         }
     }
 
+    public function preview(int $id)
+    {
+        $article = $this->articleModel
+            ->select('kb_articles.*, kb_categories.name as category_name, kb_categories.icon as category_icon, kb_categories.color as category_color')
+            ->join('kb_categories', 'kb_categories.id = kb_articles.category_id')
+            ->find($id);
+
+        if (!$article) throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+
+        return view('knowledge_base/show', [
+            'activePage' => 'admin-kb',
+            'pageTitle'  => '[Preview] ' . $article['title'],
+            'article'    => $article,
+            'related'    => [],
+            'isPreview'  => true,
+        ]);
+    }
+
     public function delete(int $id)
     {
         $this->articleModel->delete($id);

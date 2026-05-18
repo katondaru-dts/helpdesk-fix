@@ -101,7 +101,7 @@
                 <td>
                     <div style="display:flex;gap:4px">
                         <a href="<?= base_url('admin/knowledge-base/'.$a['id'].'/edit') ?>" class="btn btn-sm btn-outline" title="Edit"><i class="bi bi-pencil"></i></a>
-                        <a href="<?= base_url('knowledge-base/'.$a['slug']) ?>" target="_blank" class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></a>
+                        <a href="<?= base_url('admin/knowledge-base/'.$a['id'].'/preview') ?>" target="_blank" class="btn btn-sm btn-outline" title="Preview"><i class="bi bi-eye"></i></a>
                         <?php if ($a['use_for_ai'] && $a['status']==='published'): ?>
                         <button type="button" class="btn btn-sm btn-outline" title="Generate Embedding" onclick="reembed(<?= $a['id'] ?>, this)" style="color:#7C3AED;border-color:#7C3AED"><i class="bi bi-stars"></i></button>
                         <?php endif; ?>
