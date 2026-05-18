@@ -143,7 +143,7 @@ class GeminiHelper
             }
         }
 
-        return 'Maaf, semua model AI sedang tidak tersedia saat ini. Silakan buat tiket untuk mendapat bantuan.';
+        return 'Maaf, semua model AI sedang tidak tersedia saat ini. Silakan **buat tiket** untuk mendapat bantuan.';
     }
 
     /**
