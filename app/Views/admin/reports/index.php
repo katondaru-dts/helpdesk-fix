@@ -49,11 +49,11 @@
     .sta-PENDING    { background: #ede9fe; color: #5b21b6; }
     .sta-RESOLVED   { background: #d1fae5; color: #065f46; }
     .sta-CLOSED     { background: #f1f5f9; color: #475569; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-cetak' : 'btn-cetak-hidden'; ?> { display: none !important;   padding: 8px 16px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; }
+    .<?php echo has_permission('Ekspor Data') ? 'btn-cetak' : 'btn-cetak-hidden'; ?> { padding: 8px 16px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s; }
     .<?php echo has_permission('Ekspor Data') ? 'btn-cetak' : 'btn-cetak-hidden'; ?>:hover { background: #f1f5f9; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-excel' : 'btn-excel-hidden'; ?> { display: none !important;   padding: 8px 16px; border-radius: 8px; border: none; background: #059669; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
+    .<?php echo has_permission('Ekspor Data') ? 'btn-excel' : 'btn-excel-hidden'; ?> { padding: 8px 16px; border-radius: 8px; border: none; background: #059669; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
     .<?php echo has_permission('Ekspor Data') ? 'btn-excel' : 'btn-excel-hidden'; ?>:hover { background: #047857; }
-    .<?php echo has_permission('Ekspor Data') ? 'btn-pdf' : 'btn-pdf-hidden'; ?> { display: none !important;   padding: 8px 16px; border-radius: 8px; border: none; background: #dc2626; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
+    .<?php echo has_permission('Ekspor Data') ? 'btn-pdf' : 'btn-pdf-hidden'; ?> { padding: 8px 16px; border-radius: 8px; border: none; background: #dc2626; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: background 0.2s; }
     .<?php echo has_permission('Ekspor Data') ? 'btn-pdf' : 'btn-pdf-hidden'; ?>:hover { background: #b91c1c; }
     .btn-filter { padding: 10px 20px; border-radius: 8px; border: none; background: #2563eb; color: white; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .btn-filter:hover { background: #1d4ed8; }
