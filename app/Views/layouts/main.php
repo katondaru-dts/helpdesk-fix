@@ -151,7 +151,7 @@
     <style>
         .ai-fab-wrap {
             position: fixed;
-            bottom: 28px;
+            bottom: 72px;
             right: 28px;
             display: flex;
             flex-direction: column;

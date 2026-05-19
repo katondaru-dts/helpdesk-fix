@@ -49,3 +49,11 @@ Setelah semua terisi, klik tombol **Kirim Tiket**. Sistem akan memberikan ID tik
 - Semakin detail deskripsi yang Anda berikan, semakin cepat masalah dapat diselesaikan
 - Sertakan pesan error yang muncul jika ada
 - Cantumkan lokasi dengan lengkap agar teknisi mudah menemukan Anda
+
+---
+
+📞 Masih mengalami kendala?
+
+Jangan ragu untuk menghubungi layanan dukungan IT kami!
+
+Kirimkan detail keluhan Anda melalui email ke support@unmer.ac.id atau buat tiket pelaporan di helpdesk.unmer.ac.id agar tim kami dapat segera menindaklanjuti kendala Anda.

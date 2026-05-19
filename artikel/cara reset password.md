@@ -40,3 +40,11 @@ Reset password **tidak bisa dilakukan sendiri**. Hubungi Administrator IT untuk 
 ## Akun Terkunci
 
 Jika akun terkunci karena terlalu banyak percobaan login gagal (3x), tunggu **1 menit** lalu coba login kembali. Jika masih tidak bisa, hubungi Administrator IT.
+
+---
+
+📞 Masih mengalami kendala?
+
+Jangan ragu untuk menghubungi layanan dukungan IT kami!
+
+Kirimkan detail keluhan Anda melalui email ke support@unmer.ac.id atau buat tiket pelaporan di helpdesk.unmer.ac.id agar tim kami dapat segera menindaklanjuti kendala Anda.

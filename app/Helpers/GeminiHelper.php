@@ -46,7 +46,8 @@ class GeminiHelper
         // Kumpulkan semua API key yang tersedia (GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3)
         foreach (['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3', 'GEMINI_API_KEY_4'] as $envKey) {
             $val = env($envKey, '');
-            if (!empty($val)) $this->apiKeys[] = $val;
+            if (!empty($val))
+                $this->apiKeys[] = $val;
         }
         $this->apiKey = $this->apiKeys[0] ?? '';
         log_message('debug', 'GeminiHelper: ' . count($this->apiKeys) . ' API key(s) loaded.');
@@ -143,7 +144,7 @@ class GeminiHelper
             }
         }
 
-        return 'Maaf, semua model AI sedang tidak tersedia saat ini. Silakan **buat tiket** untuk mendapat bantuan.';
+        return 'Maaf, semua model AI sedang tidak tersedia saat ini. Silakan <b>buat tiket</b> untuk mendapat bantuan.';
     }
 
     /**
@@ -195,8 +196,8 @@ class GeminiHelper
         if (!empty($words)) {
             $scored = [];
             foreach ($articles as $article) {
-                $title   = mb_strtolower($article['title']);
-                $body    = mb_strtolower(($article['excerpt'] ?? '') . ' ' . mb_substr(strip_tags($article['content']), 0, 500));
+                $title = mb_strtolower($article['title']);
+                $body = mb_strtolower(($article['excerpt'] ?? '') . ' ' . mb_substr(strip_tags($article['content']), 0, 500));
                 $hits = 0;
                 foreach ($words as $w) {
                     $hits += substr_count($title, $w) * 3; // title match bobot 3x
@@ -218,15 +219,18 @@ class GeminiHelper
             return [];
         }
 
-        if (!$queryVec) return [];
+        if (!$queryVec)
+            return [];
 
         $scored = [];
         foreach ($articles as $article) {
-            if (empty($article['embedding'])) continue;
+            if (empty($article['embedding']))
+                continue;
             $vec = is_string($article['embedding'])
                 ? json_decode($article['embedding'], true)
                 : $article['embedding'];
-            if (!is_array($vec)) continue;
+            if (!is_array($vec))
+                continue;
             $scored[] = ['article' => $article, 'score' => self::cosineSimilarity($queryVec, $vec)];
         }
         usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
@@ -245,12 +249,12 @@ class GeminiHelper
             $ch = curl_init($targetUrl);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => json_encode($data),
-                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-                CURLOPT_TIMEOUT        => 30,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($data),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_TIMEOUT => 30,
             ]);
-            $result   = curl_exec($ch);
+            $result = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
