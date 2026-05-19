@@ -108,47 +108,47 @@ function exportTickets() {
                         $icon = $sortDir === 'ASC' ? ' <i class="bi bi-caret-up-fill" style="font-size:10px"></i>' : ' <i class="bi bi-caret-down-fill" style="font-size:10px"></i>';
                     }
                     $params = http_build_query(array_merge($baseParams, ['sort' => $col, 'dir' => $dir]));
-                    return '<a href="?' . $params . '" style="color:inherit;text-decoration:none;white-space:nowrap">' . $label . $icon . '</a>';
+                    return '<a href="?' . $params . '" style="color:inherit;text-decoration:none">' . $label . $icon . '</a>';
                 };
                 ?>
                 <tr>
-                    <th><?= $sortLink('id', 'ID') ?></th>
-                    <th><?= $sortLink('title', 'Judul') ?></th>
-                    <th>Nama Pemohon</th>
-                    <th><?= $sortLink('cat_name', 'Kategori') ?></th>
-                    <?php if ($isStaff): ?><th><?= $sortLink('reporter_name', 'Pelapor') ?></th><?php endif; ?>
-                    <th><?= $sortLink('priority', 'Prioritas') ?></th>
-                    <th><?= $sortLink('status', 'Status') ?></th>
-                    <th><?= $sortLink('sla_deadline', 'SLA') ?></th>
-                    <?php if ($isStaff): ?><th><?= $sortLink('assigned_name', 'Ditangani') ?></th><?php endif; ?>
-                    <th><?= $sortLink('created_at', 'Tanggal') ?></th>
-                    <th>Aksi</th>
+                    <th style="width:90px;padding-left:16px"><?= $sortLink('id', 'ID') ?></th>
+                    <th style="width:200px"><?= $sortLink('title', 'Judul') ?></th>
+                    <th style="width:120px">Nama Pemohon</th>
+                    <th style="width:100px"><?= $sortLink('cat_name', 'Kategori') ?></th>
+                    <?php if ($isStaff): ?><th style="width:120px"><?= $sortLink('reporter_name', 'Pelapor') ?></th><?php endif; ?>
+                    <th style="width:80px;text-align:center"><?= $sortLink('priority', 'Prioritas') ?></th>
+                    <th style="width:100px;text-align:center"><?= $sortLink('status', 'Status') ?></th>
+                    <th style="width:110px"><?= $sortLink('sla_deadline', 'SLA') ?></th>
+                    <?php if ($isStaff): ?><th style="width:110px"><?= $sortLink('assigned_name', 'Ditangani') ?></th><?php endif; ?>
+                    <th style="width:90px"><?= $sortLink('created_at', 'Tanggal') ?></th>
+                    <th style="width:80px">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (!empty($tickets)): ?>
                     <?php foreach ($tickets as $t): ?>
                         <tr onclick="window.location='<?= base_url('tickets/detail/' . $t['id']) ?>'" style="cursor:pointer">
-                            <td><span class="fw-600" style="color:var(--primary)"><?= $t['id'] ?></span></td>
-                            <td><div class="truncate" style="max-width:200px"><?= esc($t['title']) ?></div></td>
-                            <td><span class="text-sm"><?= esc($t['requester_name'] ?? '') ?></span></td>
-                            <td><span class="text-sm"><?= esc($t['cat_name']) ?></span></td>
-                            <?php if ($isStaff): ?><td><span class="text-sm"><?= esc($t['reporter_name']) ?></span></td><?php endif; ?>
-                            <td><span class="priority-badge pri-<?= strtoupper($t['priority']) ?>"><?= $t['priority'] ?></span></td>
-                            <td><span class="status-badge sta-<?= strtoupper(str_replace(' ', '_', $t['status'])) ?>"><?= $t['status'] ?></span></td>
+                            <td style="padding-left:16px"><span style="font-family:monospace;font-size:12px;font-weight:700;color:#2563eb;background:#dbeafe;padding:2px 8px;border-radius:6px"><?= $t['id'] ?></span></td>
+                            <td><div style="font-weight:600;font-size:13.5px;word-break:break-word;line-height:1.4"><?= esc($t['title']) ?></div></td>
+                            <td><span style="font-size:13px;color:#475569;font-weight:500"><?= esc($t['requester_name'] ?? '') ?></span></td>
+                            <td><span class="text-sm" style="font-size:13px"><?= esc($t['cat_name']) ?></span></td>
+                            <?php if ($isStaff): ?><td><span style="font-size:13px;color:#475569;font-weight:500"><?= esc($t['reporter_name']) ?></span></td><?php endif; ?>
+                            <td style="text-align:center"><span class="priority-badge pri-<?= strtoupper($t['priority']) ?>"><?= $t['priority'] ?></span></td>
+                            <td style="text-align:center"><span class="status-badge sta-<?= strtoupper(str_replace(' ', '_', $t['status'])) ?>"><?= $t['status'] ?></span></td>
                             <td>
                                 <?php if (in_array($t['status'], ['RESOLVED', 'CLOSED'])): ?>
-                                    <span class="text-sm text-muted">Selesai</span>
+                                    <span class="status-badge sta-RESOLVED">Selesai</span>
                                 <?php elseif ($t['status'] === 'PENDING'): ?>
-                                    <span class="badge" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b"><i class="bi bi-pause-fill"></i> Paused</span>
+                                    <span class="status-badge sta-PENDING"><i class="bi bi-pause-fill"></i> Paused</span>
                                 <?php elseif ($t['sla_deadline']): ?>
-                                    <span class="sla-timer badge" data-deadline="<?= date('c', strtotime($t['sla_deadline'])) ?>">Menghitung...</span>
+                                    <span class="sla-timer" data-deadline="<?= date('c', strtotime($t['sla_deadline'])) ?>" style="font-size:12px;color:#2563eb;font-weight:700">Menghitung...</span>
                                 <?php else: ?>
                                     <span class="text-muted">&mdash;</span>
                                 <?php endif; ?>
                             </td>
-                            <?php if ($isStaff): ?><td><span class="text-sm"><?= $t['assigned_name'] ?: '<span class="text-muted">&mdash;</span>' ?></span></td><?php endif; ?>
-                            <td class="text-sm text-muted"><?= date('d/m/y', strtotime($t['created_at'])) ?></td>
+                            <?php if ($isStaff): ?><td><span style="font-size:13px;color:#475569;font-weight:500"><?= $t['assigned_name'] ?: '<span class="text-muted">&mdash;</span>' ?></span></td><?php endif; ?>
+                            <td><span style="font-size:12px;color:#64748b"><?= date('d/m/Y', strtotime($t['created_at'])) ?></span></td>
                             <td onclick="event.stopPropagation()" style="display:flex; gap:5px; align-items:center;">
                                 <a href="<?= base_url('tickets/detail/' . $t['id']) ?>" class="btn btn-sm btn-outline"><i class="bi bi-eye"></i></a>
                                 <?php if (session()->get('role_id') == 1): ?>
@@ -185,27 +185,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const diff = deadline - now;
 
             if (diff <= 0) {
-                el.innerHTML = '<i class="bi bi-clock-history"></i> Overdue';
-                el.style.backgroundColor = '#fee2e2';
-                el.style.color = '#ef4444';
-                el.style.border = '1px solid #ef4444';
-            } else {
-                const hours = Math.floor(diff / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                
-                el.innerHTML = hours + 'j ' + minutes + 'm ' + seconds + 's';
-                
-                if (hours < 2) {
-                    el.style.backgroundColor = '#fff7ed';
-                    el.style.color = '#f97316';
-                    el.style.border = '1px solid #f97316';
-                } else {
-                    el.style.backgroundColor = '#f0fdf4';
-                    el.style.color = '#22c55e';
-                    el.style.border = '1px solid #22c55e';
-                }
-            }
+                        el.innerHTML = '<i class="bi bi-clock-history"></i> Overdue';
+                        el.style.color = '#ef4444';
+                    } else {
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                        el.innerHTML = hours + 'j ' + minutes + 'm ' + seconds + 's';
+
+                        if (hours < 2) {
+                            el.style.color = '#f97316';
+                        } else {
+                            el.style.color = '#22c55e';
+                        }
+                    }
         });
     }
     updateTimers();
