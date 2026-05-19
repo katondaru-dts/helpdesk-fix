@@ -102,33 +102,50 @@ class Tickets extends BaseController
         header("Expires: 0");
 
         echo '<table border="1">';
-        echo '<tr>
-                <th style="background-color: #f2f2f2;">ID Tiket</th>
-                <th style="background-color: #f2f2f2;">Judul</th>
-                <th style="background-color: #f2f2f2;">Prioritas</th>
-                <th style="background-color: #f2f2f2;">Status</th>
-                <th style="background-color: #f2f2f2;">Pengaju</th>
-                <th style="background-color: #f2f2f2;">Departemen</th>
-                <th style="background-color: #f2f2f2;">Kategori</th>
-                <th style="background-color: #f2f2f2;">Deskripsi</th>
-                <th style="background-color: #f2f2f2;">Link Dokumentasi</th>
-                <th style="background-color: #f2f2f2;">Tanggal Dibuat</th>
-                <th style="background-color: #f2f2f2;">Assigned To</th>
-              </tr>';
+
+        $headers = ['ID', 'Judul', 'Kategori'];
+        if ($isStaff) {
+            $headers[] = 'Pelapor';
+        }
+        $headers = array_merge($headers, ['Prioritas', 'Status', 'SLA', 'Lokasi']);
+        if ($isStaff) {
+            $headers[] = 'Ditangani';
+        }
+        $headers[] = 'Tanggal';
+
+        echo '<tr>';
+        foreach ($headers as $h) {
+            echo '<th style="background-color: #f2f2f2;">' . $h . '</th>';
+        }
+        echo '</tr>';
 
         foreach ($tickets as $row) {
             echo '<tr>';
             echo '<td>' . ($row['id']) . '</td>';
             echo '<td>' . ($row['title']) . '</td>';
+            echo '<td>' . ($row['cat_name'] ?? '') . '</td>';
+            if ($isStaff) {
+                echo '<td>' . ($row['reporter_name'] ?? '') . '</td>';
+            }
             echo '<td>' . ($row['priority']) . '</td>';
             echo '<td>' . ($row['status']) . '</td>';
-            echo '<td>' . ($row['reporter_name'] ?? '') . '</td>';
-            echo '<td>' . ($row['dept_name'] ?? '') . '</td>';
-            echo '<td>' . ($row['cat_name'] ?? '') . '</td>';
-            echo '<td>' . ($row['description'] ?? '') . '</td>';
-            echo '<td>' . ($row['drive_link'] ?? '') . '</td>';
-            echo '<td>' . ($row['created_at']) . '</td>';
-            echo '<td>' . ($row['assigned_name'] ?? 'Unassigned') . '</td>';
+
+            // SLA column
+            if (in_array($row['status'], ['RESOLVED', 'CLOSED'])) {
+                echo '<td>Selesai</td>';
+            } elseif ($row['status'] === 'PENDING') {
+                echo '<td>Paused</td>';
+            } elseif ($row['sla_deadline']) {
+                echo '<td>' . $row['sla_deadline'] . '</td>';
+            } else {
+                echo '<td>&mdash;</td>';
+            }
+
+            echo '<td>' . ($row['location'] ?? '') . '</td>';
+            if ($isStaff) {
+                echo '<td>' . ($row['assigned_name'] ?? 'Unassigned') . '</td>';
+            }
+            echo '<td>' . date('d/m/y', strtotime($row['created_at'])) . '</td>';
             echo '</tr>';
         }
         echo '</table>';
