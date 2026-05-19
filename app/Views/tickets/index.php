@@ -104,6 +104,7 @@ function exportTickets() {
                 <tr>
                     <th><?= $sortLink('id', 'ID') ?></th>
                     <th><?= $sortLink('title', 'Judul') ?></th>
+                    <th>Nama Pemohon</th>
                     <th><?= $sortLink('cat_name', 'Kategori') ?></th>
                     <?php if ($isStaff): ?><th><?= $sortLink('reporter_name', 'Pelapor') ?></th><?php endif; ?>
                     <th><?= $sortLink('priority', 'Prioritas') ?></th>
@@ -120,6 +121,7 @@ function exportTickets() {
                         <tr onclick="window.location='<?= base_url('tickets/detail/' . $t['id']) ?>'" style="cursor:pointer">
                             <td><span class="fw-600" style="color:var(--primary)"><?= $t['id'] ?></span></td>
                             <td><div class="truncate" style="max-width:200px"><?= esc($t['title']) ?></div></td>
+                            <td><span class="text-sm"><?= esc($t['requester_name'] ?? '') ?></span></td>
                             <td><span class="text-sm"><?= esc($t['cat_name']) ?></span></td>
                             <?php if ($isStaff): ?><td><span class="text-sm"><?= esc($t['reporter_name']) ?></span></td><?php endif; ?>
                             <td><span class="badge"><?= $t['priority'] ?></span></td>
@@ -148,7 +150,7 @@ function exportTickets() {
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="10" class="text-center p-4 text-muted">Tidak ada tiket yang ditemukan.</td></tr>
+                    <tr><td colspan="11" class="text-center p-4 text-muted">Tidak ada tiket yang ditemukan.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

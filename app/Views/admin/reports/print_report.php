@@ -38,7 +38,8 @@ tr:nth-child(even) td { background: #f8f9fa; }
             <th>Judul</th>
             <th>Prioritas</th>
             <th>Status</th>
-            <th>Pengaju</th>
+            <th>Pelapor</th>
+            <th>Pemohon</th>
             <th>Departemen</th>
             <th>Kategori</th>
             <th>Tanggal Dibuat</th>
@@ -46,7 +47,7 @@ tr:nth-child(even) td { background: #f8f9fa; }
     </thead>
     <tbody>
         <?php if (empty($tickets)): ?>
-        <tr><td colspan="8" class="no-data">Tidak ada data tiket untuk periode ini.</td></tr>
+        <tr><td colspan="9" class="no-data">Tidak ada data tiket untuk periode ini.</td></tr>
         <?php else: ?>
         <?php foreach ($tickets as $t): ?>
         <tr>
@@ -55,6 +56,7 @@ tr:nth-child(even) td { background: #f8f9fa; }
             <td><?= esc($t['priority']) ?></td>
             <td><?= esc($t['status']) ?></td>
             <td><?= esc($t['reporter_name']) ?></td>
+            <td><?= esc($t['requester_name'] ?? '') ?></td>
             <td><?= esc($t['dept_name'] ?? '-') ?></td>
             <td><?= esc($t['cat_name']) ?></td>
             <td><?= date('d/m/Y H:i', strtotime($t['created_at'])) ?></td>

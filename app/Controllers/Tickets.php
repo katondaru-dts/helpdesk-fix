@@ -103,7 +103,7 @@ class Tickets extends BaseController
 
         echo '<table border="1">';
 
-        $headers = ['ID', 'Judul', 'Kategori'];
+        $headers = ['ID', 'Judul', 'Nama Pemohon', 'Kategori'];
         if ($isStaff) {
             $headers[] = 'Pelapor';
         }
@@ -123,6 +123,7 @@ class Tickets extends BaseController
             echo '<tr>';
             echo '<td>' . ($row['id']) . '</td>';
             echo '<td>' . ($row['title']) . '</td>';
+            echo '<td>' . ($row['requester_name'] ?? '') . '</td>';
             echo '<td>' . ($row['cat_name'] ?? '') . '</td>';
             if ($isStaff) {
                 echo '<td>' . ($row['reporter_name'] ?? '') . '</td>';
@@ -604,6 +605,7 @@ class Tickets extends BaseController
             'cat_id' => 'required',
             'description' => 'required',
             'location' => 'required',
+            'requester_name' => 'required|max_length[100]',
         ];
 
         if (!$this->validate($rules)) {
@@ -632,6 +634,7 @@ class Tickets extends BaseController
             'cat_id' => $this->request->getPost('cat_id'),
             'priority' => $priority,
             'reporter_id' => $session->get('id'),
+            'requester_name' => $this->request->getPost('requester_name'),
             'dept_id' => $session->get('dept_id'),
             'location' => $this->request->getPost('location'),
             'drive_link' => $this->request->getPost('drive_link'),

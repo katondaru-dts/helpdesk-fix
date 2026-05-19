@@ -118,6 +118,9 @@
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">PRIORITAS</div><span class="badge"><?= $ticket['priority'] ?></span></div>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">KATEGORI</div><div style="font-size:14px;font-weight:600"><?= esc($ticket['cat_name']) ?></div></div>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">PELAPOR</div><div style="font-size:14px"><?= esc($ticket['reporter_name']) ?></div></div>
+                <?php if ($ticket['requester_name']): ?>
+                <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">NAMA PEMOHON</div><div style="font-size:14px"><?= esc($ticket['requester_name']) ?></div></div>
+                <?php endif; ?>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DITANGANI</div><div style="font-size:14px"><?= esc($ticket['assigned_name'] ?: 'Belum diassign') ?></div></div>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DIBUAT</div><div style="font-size:14px"><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></div></div>
                 

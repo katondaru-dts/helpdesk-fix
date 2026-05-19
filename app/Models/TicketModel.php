@@ -12,7 +12,7 @@ class TicketModel extends Model
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'created_at', 'updated_at', 'closed_at'];
+    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'requester_name', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'created_at', 'updated_at', 'closed_at'];
 
     // Dates
     protected $useTimestamps = true;

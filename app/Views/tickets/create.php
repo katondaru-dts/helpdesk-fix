@@ -16,13 +16,13 @@
         <form action="<?= base_url('tickets/store') ?>" method="POST">
             <?= csrf_field() ?>
             <div style="margin-bottom:20px">
-                <label style="display:block;margin-bottom:8px;font-weight:600">Judul Gangguan *</label>
+                <label style="display:block;margin-bottom:8px;font-weight:600">Judul Gangguan <span style="color:#991b1b">*</span></label>
                 <input type="text" name="title" required maxlength="200" style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;" placeholder="Contoh: Printer ruang finance tidak bisa print">
             </div>
             <?php $isStaff = in_array(session()->get('role_id'), [1, 2, 4]); ?>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
                 <div style="<?= $isStaff ? '' : 'grid-column:span 2' ?>">
-                    <label style="display:block;margin-bottom:8px;font-weight:600">Kategori *</label>
+                    <label style="display:block;margin-bottom:8px;font-weight:600">Kategori <span style="color:#991b1b">*</span></label>
                     <select name="cat_id" required style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;">
                         <option value="">-- Pilih Kategori --</option>
                         <?php foreach ($categories as $c): ?>
@@ -43,6 +43,10 @@
                 <?php endif; ?>
             </div>
             <div style="margin-bottom:20px">
+                <label style="display:block;margin-bottom:8px;font-weight:600">Nama Pemohon <span style="color:#991b1b">*</span></label>
+                <input type="text" name="requester_name" required maxlength="100" style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;" placeholder="Contoh: John Doe">
+            </div>
+            <div style="margin-bottom:20px">
                 <label style="display:block;margin-bottom:8px;font-weight:600">Lokasi Gangguan <span style="color:#991b1b">*</span></label>
                 <select name="location" required style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;">
                     <option value="">-- Pilih Unit / Lokasi --</option>
@@ -52,7 +56,7 @@
                 </select>
             </div>
             <div style="margin-bottom:25px">
-                <label style="display:block;margin-bottom:8px;font-weight:600">Deskripsi Lengkap *</label>
+                <label style="display:block;margin-bottom:8px;font-weight:600">Deskripsi Gangguan <span style="color:#991b1b">*</span></label>
                 <textarea name="description" rows="6" required style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;" placeholder="Jelaskan masalah secara rinci..."></textarea>
             </div>
             <div style="display:flex;gap:10px">

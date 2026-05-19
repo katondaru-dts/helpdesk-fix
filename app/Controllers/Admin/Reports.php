@@ -16,7 +16,7 @@ class Reports extends BaseController
             $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
         if (!empty($dateTo))
             $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
-        $query = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location,
+        $query = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
                     u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at
                   FROM tickets t
                   LEFT JOIN users u ON t.reporter_id = u.id
@@ -46,7 +46,7 @@ class Reports extends BaseController
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
-        $ticketsQuery = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location,
+        $ticketsQuery = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
                     u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at
                   FROM tickets t
                   LEFT JOIN users u ON t.reporter_id = u.id
@@ -104,10 +104,10 @@ class Reports extends BaseController
         echo '<table border="1">
 <tr style="background:#1e3a5f;color:white;font-weight:bold">
   <td>ID</td><td>Judul Tiket</td><td>Prioritas</td><td>Status</td>
-  <td>Pemohon</td><td>Lokasi Gangguan</td><td>Deskripsi</td><td>Link Dokumentasi</td><td>Tanggal</td>
+  <td>Pelapor</td><td>Pemohon</td><td>Lokasi Gangguan</td><td>Deskripsi</td><td>Link Dokumentasi</td><td>Tanggal</td>
 </tr>';
         if (empty($tickets)) {
-            echo '<tr><td colspan="8">Tidak ada data tiket.</td></tr>';
+            echo '<tr><td colspan="10">Tidak ada data tiket.</td></tr>';
         }
         else {
             foreach ($tickets as $r) {
@@ -116,6 +116,7 @@ class Reports extends BaseController
                       <td>' . htmlspecialchars($r['priority'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['status'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['reporter_name'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['requester_name'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['location'] ?? '-') . '</td>
                       <td>' . htmlspecialchars($r['description'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['drive_link'] ?? '') . '</td>
@@ -162,6 +163,7 @@ class Reports extends BaseController
               <td>' . htmlspecialchars($t['priority'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['status'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['reporter_name'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['requester_name'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['location'] ?? '-') . '</td>
               <td>' . htmlspecialchars($t['description'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['drive_link'] ?? '') . '</td>
@@ -169,7 +171,7 @@ class Reports extends BaseController
             </tr>';
         }
         if (empty($tickets))
-            $rows = '<tr><td colspan="7" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
+            $rows = '<tr><td colspan="8" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
         $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>body{font-family:DejaVu Sans,Arial,sans-serif;font-size:10px;margin:15px}
 h2{text-align:center;font-size:14px;margin-bottom:5px}.sub{text-align:center;font-size:10px;color:#666;margin-bottom:15px}
@@ -185,7 +187,7 @@ td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(ev
     <tr><td><strong>Tiket In Progress</strong></td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>
     <tr><td><strong>Tiket Solved/Closed</strong></td><td>' . ($stats['solved'] ?? 0) . '</td></tr>
 </table>
-<table><tr><th>ID</th><th>Judul Tiket</th><th>Prioritas</th><th>Status</th><th>Pemohon</th><th>Lokasi Gangguan</th><th>Deskripsi</th><th>Link Dokumentasi</th><th>Tanggal</th></tr>
+<table><tr><th>ID</th><th>Judul Tiket</th><th>Prioritas</th><th>Status</th><th>Pelapor</th><th>Pemohon</th><th>Lokasi Gangguan</th><th>Deskripsi</th><th>Link</th><th>Tanggal</th></tr>
 ' . $rows . '</table></body></html>';
         $opts = new Options();
         $opts->set('isRemoteEnabled', true);
