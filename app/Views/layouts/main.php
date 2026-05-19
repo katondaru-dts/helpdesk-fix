@@ -375,18 +375,22 @@
             word-break: break-word;
             text-align: left;
         }
-        .ai-msg.bot .ai-bubble br + br {
+
+        .ai-msg.bot .ai-bubble br+br {
             display: block;
             content: '';
             margin-top: 6px;
         }
+
         .ai-msg.bot .ai-bubble li {
             margin-bottom: 4px;
         }
+
         .ai-msg.bot .ai-bubble strong {
             display: inline;
             font-weight: 600;
         }
+
         .ai-msg.bot .ai-bubble strong.ai-heading {
             display: block;
             margin-top: 8px;
@@ -584,17 +588,13 @@
                 style="width:28px;height:28px;border:none;background:rgba(255,255,255,.15);border-radius:7px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;margin-left:6px"><i
                     class="bi bi-x-lg"></i></button>
         </div>
-        <div class="ai-chips">
-            <span class="ai-chip" onclick="aiAsk(this)">📋 Cara buat tiket</span>
-            <span class="ai-chip" onclick="aiAsk(this)">🔑 Reset password</span>
-            <span class="ai-chip" onclick="aiAsk(this)">📶 Masalah WiFi</span>
-            <span class="ai-chip" onclick="aiAsk(this)">🖨️ Printer error</span>
-        </div>
+
         <div class="ai-msgs" id="aiMsgs">
             <div class="ai-msg bot">
                 <div class="ai-msg-av"><i class="bi bi-stars"></i></div>
                 <div>
-                    <div class="ai-bubble">Halo! Saya <span style="font-weight:600">Helpdesk AI Pusim</span> 👋<br>Tanya apa saja seputar layanan helpdesk, saya siap membantu!</div>
+                    <div class="ai-bubble">Halo! Saya <span style="font-weight:600">Helpdesk AI Pusim</span> 👋<br>Tanya
+                        apa saja seputar layanan helpdesk, saya siap membantu!</div>
                 </div>
             </div>
             <div class="ai-msg bot" id="aiTyping" style="display:none">
@@ -739,7 +739,7 @@
                     .replace(/^\s*\d+\. (.+)$/gm, '<li style="margin-left:16px;list-style:decimal">$1</li>');
                 // Bungkus tiap blok paragraf (dipisah double newline) dengan <p>
                 return text.split(/\n{2,}/)
-                    .map(function(p) { return '<p style="margin:0 0 8px 0">' + p.replace(/\n/g, '<br>') + '</p>'; })
+                    .map(function (p) { return '<p style="margin:0 0 8px 0">' + p.replace(/\n/g, '<br>') + '</p>'; })
                     .join('');
             }
 
