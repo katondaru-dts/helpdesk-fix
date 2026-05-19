@@ -107,7 +107,7 @@ class Tickets extends BaseController
         if ($isStaff) {
             $headers[] = 'Pelapor';
         }
-        $headers = array_merge($headers, ['Prioritas', 'Status', 'SLA', 'Lokasi']);
+        $headers = array_merge($headers, ['Prioritas', 'Status', 'SLA', 'Lokasi', 'Link Dokumentasi']);
         if ($isStaff) {
             $headers[] = 'Ditangani';
         }
@@ -142,6 +142,7 @@ class Tickets extends BaseController
             }
 
             echo '<td>' . ($row['location'] ?? '') . '</td>';
+            echo '<td>' . ($row['drive_link'] ?? '') . '</td>';
             if ($isStaff) {
                 echo '<td>' . ($row['assigned_name'] ?? 'Unassigned') . '</td>';
             }
