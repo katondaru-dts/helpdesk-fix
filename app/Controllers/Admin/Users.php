@@ -40,7 +40,16 @@ class Users extends BaseController
             'roles' => $roleModel->findAll(),
             'depts' => $deptModel->findAll(),
             'f_role' => $f_role,
-            'search' => $search
+            'search' => $search,
+            'availablePermissions' => [
+                'Lihat Laporan'       => 'Akses Laporan & Statistik',
+                'Ekspor Data'         => 'Ekspor Data ke PDF/Excel',
+                'Update Status Tiket' => 'Mengubah Status Tiket',
+                'Tugaskan Support'    => 'Menugaskan Tiket ke Staff Support',
+                'Tambah Solusi'       => 'Memberikan Solusi Tiket',
+                'Buat Tiket'          => 'Membuat Tiket Baru',
+                'Lihat Tiket Sendiri' => 'Melihat Daftar Tiket Pribadi',
+            ],
         ];
 
         return view('admin/users/index', $data);
@@ -59,6 +68,8 @@ class Users extends BaseController
         $dept_id = $this->request->getPost('dept_id');
         $gender = $this->request->getPost('gender');
         $phone = $this->request->getPost('phone');
+        $perms = $this->request->getPost('permissions');
+        $permissions = ($perms && is_array($perms)) ? json_encode(array_values($perms)) : null;
 
         if ($id) {
             $rules = [
@@ -78,7 +89,8 @@ class Users extends BaseController
                 'role_id' => $role_id,
                 'dept_id' => $dept_id,
                 'gender' => $gender,
-                'phone' => $phone
+                'phone' => $phone,
+                'permissions' => $permissions,
             ];
             if (!empty($password)) {
                 $data['password'] = password_hash($password, PASSWORD_DEFAULT);

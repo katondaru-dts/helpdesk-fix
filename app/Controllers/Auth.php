@@ -132,17 +132,23 @@ class Auth extends BaseController
             $permissions = json_decode($role['permissions'], true) ?: [];
         }
 
+        $userPermissions = null;
+        if (!empty($user['permissions'])) {
+            $userPermissions = json_decode($user['permissions'], true) ?: null;
+        }
+
         $data = [
-            'id' => $user['id'],
-            'user_id' => $user['id'],
-            'name' => $user['name'],
-            'email' => $user['email'],
-            'role_id' => $user['role_id'],
-            'dept_id' => $user['dept_id'],
-            'permissions' => $permissions,
-            'isLoggedIn' => true,
+            'id'               => $user['id'],
+            'user_id'          => $user['id'],
+            'name'             => $user['name'],
+            'email'            => $user['email'],
+            'role_id'          => $user['role_id'],
+            'dept_id'          => $user['dept_id'],
+            'permissions'      => $permissions,
+            'user_permissions' => $userPermissions,
+            'isLoggedIn'       => true,
             'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
-            'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
+            'notif_sound_type'    => $user['notif_sound_type'] ?? 'default',
         ];
 
         session()->set($data);

@@ -159,6 +159,21 @@
                 </div>
             </div>
 
+            <div id="perm-section" style="margin-bottom:20px">
+                <label style="display:block;margin-bottom:8px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e7eb;padding-bottom:5px">
+                    Izin Khusus User <span style="font-size:11px;color:#6b7280;font-weight:400">(opsional — override izin dari role)</span>
+                </label>
+                <div style="background:#f9fafb;padding:12px;border-radius:8px;border:1px solid #f3f4f6;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                    <?php foreach ($availablePermissions as $pName => $pDesc): ?>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                            <input type="checkbox" name="permissions[]" value="<?= esc($pName) ?>" class="cb-user-perm" style="transform:scale(1.1)">
+                            <?= esc($pDesc) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <div style="margin-top:6px;font-size:11px;color:#9ca3af">Jika tidak ada yang dicentang, user mengikuti izin dari role-nya.</div>
+            </div>
+
             <div style="display:flex;justify-content:flex-end;gap:10px">
                 <button type="button" style="background:white;color:#6b7280;border:1px solid #d1d5db;padding:10px 20px;border-radius:8px;font-weight:bold;cursor:pointer" onclick="closeUserModal()">Batal</button>
                 <button type="submit" style="background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:bold;cursor:pointer">Simpan</button>
@@ -178,7 +193,17 @@ function openUserModal(u = null) {
     document.getElementById('m-gender').value = u ? u.gender : 'L';
     document.getElementById('m-phone').value = u ? u.phone : '';
     document.getElementById('m-title').innerText = u ? 'Edit User' : 'Tambah User';
-    
+
+    // Reset & set permissions checkboxes
+    const cbs = document.querySelectorAll('.cb-user-perm');
+    cbs.forEach(cb => cb.checked = false);
+    if (u && u.permissions) {
+        try {
+            const perms = JSON.parse(u.permissions);
+            if (Array.isArray(perms)) cbs.forEach(cb => { if (perms.includes(cb.value)) cb.checked = true; });
+        } catch(e) {}
+    }
+
     // Reset password visibility
     const pwInput = document.getElementById('m-pw');
     pwInput.type = 'password';

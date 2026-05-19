@@ -48,13 +48,19 @@ abstract class BaseController extends Controller
                 $permissions = json_decode($role['permissions'], true) ?: [];
             }
 
+            $userPermissions = null;
+            if (!empty($user['permissions'])) {
+                $userPermissions = json_decode($user['permissions'], true) ?: null;
+            }
+
             session()->set([
-                'role_id' => $user['role_id'],
-                'dept_id' => $user['dept_id'],
-                'name' => $user['name'],
-                'permissions' => $permissions,
+                'role_id'          => $user['role_id'],
+                'dept_id'          => $user['dept_id'],
+                'name'             => $user['name'],
+                'permissions'      => $permissions,
+                'user_permissions' => $userPermissions,
                 'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
-                'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
+                'notif_sound_type'    => $user['notif_sound_type'] ?? 'default',
             ]);
 
             $notificationModel = new \App\Models\NotificationModel();
