@@ -43,8 +43,13 @@
                 <?php endif; ?>
             </div>
             <div style="margin-bottom:20px">
-                <label style="display:block;margin-bottom:8px;font-weight:600">Lokasi Gangguan</label>
-                <input type="text" name="location" style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;" placeholder="Contoh: Lantai 2 - Ruang Finance">
+                <label style="display:block;margin-bottom:8px;font-weight:600">Lokasi Gangguan <span style="color:#991b1b">*</span></label>
+                <select name="location" required style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;">
+                    <option value="">-- Pilih Unit / Lokasi --</option>
+                    <?php foreach ($units as $unit): ?>
+                        <option value="<?= esc($unit) ?>"><?= esc($unit) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div style="margin-bottom:25px">
                 <label style="display:block;margin-bottom:8px;font-weight:600">Deskripsi Lengkap *</label>

@@ -552,10 +552,29 @@ class Tickets extends BaseController
     public function create()
     {
         $catModel = new CategoryModel();
+
+        // Baca daftar unit dari CSV untuk dropdown lokasi
+        $csvPath = ROOTPATH . 'namaunit.csv';
+        $units = [];
+        if (file_exists($csvPath)) {
+            $handle = fopen($csvPath, 'r');
+            $header = fgetcsv($handle); // skip header
+            while (($row = fgetcsv($handle)) !== false) {
+                $name = trim($row[0] ?? '');
+                if ($name !== '') {
+                    $units[] = $name;
+                }
+            }
+            fclose($handle);
+        }
+        $units = array_unique($units);
+        sort($units);
+
         $data = [
             'pageTitle' => 'Buat Tiket Baru',
             'activePage' => 'ticket-create',
             'categories' => $catModel->orderBy('name', 'ASC')->findAll(),
+            'units' => $units,
         ];
         return view('tickets/create', $data);
     }
@@ -566,6 +585,7 @@ class Tickets extends BaseController
             'title' => 'required|max_length[200]',
             'cat_id' => 'required',
             'description' => 'required',
+            'location' => 'required',
         ];
 
         if (!$this->validate($rules)) {
