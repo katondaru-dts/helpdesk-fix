@@ -8,6 +8,16 @@
     .filter-date-row { flex-direction: column; align-items: stretch !important; }
     .filter-date-row input { width: 100% !important; }
 }
+.priority-badge, .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; }
+.pri-LOW    { background: #d1fae5; color: #065f46; }
+.pri-MEDIUM { background: #dbeafe; color: #1e40af; }
+.pri-HIGH   { background: #fef3c7; color: #92400e; }
+.pri-URGENT { background: #fee2e2; color: #991b1b; }
+.sta-OPEN       { background: #fee2e2; color: #991b1b; }
+.sta-IN_PROGRESS{ background: #fef3c7; color: #92400e; }
+.sta-PENDING    { background: #ede9fe; color: #5b21b6; }
+.sta-RESOLVED   { background: #d1fae5; color: #065f46; }
+.sta-CLOSED     { background: #f1f5f9; color: #475569; }
 </style>
 <!-- DEBUG:  -->
 <div class="page-header">
@@ -124,8 +134,8 @@ function exportTickets() {
                             <td><span class="text-sm"><?= esc($t['requester_name'] ?? '') ?></span></td>
                             <td><span class="text-sm"><?= esc($t['cat_name']) ?></span></td>
                             <?php if ($isStaff): ?><td><span class="text-sm"><?= esc($t['reporter_name']) ?></span></td><?php endif; ?>
-                            <td><span class="badge"><?= $t['priority'] ?></span></td>
-                            <td><span class="badge"><?= $t['status'] ?></span></td>
+                            <td><span class="priority-badge pri-<?= strtoupper($t['priority']) ?>"><?= $t['priority'] ?></span></td>
+                            <td><span class="status-badge sta-<?= strtoupper(str_replace(' ', '_', $t['status'])) ?>"><?= $t['status'] ?></span></td>
                             <td>
                                 <?php if (in_array($t['status'], ['RESOLVED', 'CLOSED'])): ?>
                                     <span class="text-sm text-muted">Selesai</span>
