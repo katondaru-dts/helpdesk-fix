@@ -103,8 +103,8 @@ class Reports extends BaseController
         echo '<h3>Data Tiket</h3>';
         echo '<table border="1">
 <tr style="background:#1e3a5f;color:white;font-weight:bold">
-  <td>ID Tiket</td><td>Judul</td><td>Prioritas</td><td>Status</td>
-  <td>Pengaju</td><td>Departemen</td><td>Kategori</td><td>Deskripsi</td><td>Link Dokumentasi</td><td>Tanggal Dibuat</td>
+  <td>ID</td><td>Judul Tiket</td><td>Prioritas</td><td>Status</td>
+  <td>Pemohon</td><td>Lokasi Gangguan</td><td>Deskripsi</td><td>Link Dokumentasi</td><td>Tanggal</td>
 </tr>';
         if (empty($tickets)) {
             echo '<tr><td colspan="8">Tidak ada data tiket.</td></tr>';
@@ -116,8 +116,7 @@ class Reports extends BaseController
                       <td>' . htmlspecialchars($r['priority'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['status'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['reporter_name'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['dept_name'] ?? '-') . '</td>
-                      <td>' . htmlspecialchars($r['cat_name'] ?? '') . '</td>
+                      <td>' . htmlspecialchars($r['location'] ?? '-') . '</td>
                       <td>' . htmlspecialchars($r['description'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['drive_link'] ?? '') . '</td>
                       <td>' . htmlspecialchars($r['created_at'] ?? '') . '</td></tr>';
@@ -163,7 +162,7 @@ class Reports extends BaseController
               <td>' . htmlspecialchars($t['priority'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['status'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['reporter_name'] ?? '') . '</td>
-              <td>' . htmlspecialchars($t['cat_name'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['location'] ?? '-') . '</td>
               <td>' . htmlspecialchars($t['description'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['drive_link'] ?? '') . '</td>
               <td>' . date('d/m/Y', strtotime($t['created_at'])) . '</td>
@@ -186,7 +185,7 @@ td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(ev
     <tr><td><strong>Tiket In Progress</strong></td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>
     <tr><td><strong>Tiket Solved/Closed</strong></td><td>' . ($stats['solved'] ?? 0) . '</td></tr>
 </table>
-<table><tr><th>ID</th><th>Judul</th><th>Prioritas</th><th>Status</th><th>Pengaju</th><th>Kategori</th><th>Deskripsi</th><th>Link Dokumentasi</th><th>Tanggal</th></tr>
+<table><tr><th>ID</th><th>Judul Tiket</th><th>Prioritas</th><th>Status</th><th>Pemohon</th><th>Lokasi Gangguan</th><th>Deskripsi</th><th>Link Dokumentasi</th><th>Tanggal</th></tr>
 ' . $rows . '</table></body></html>';
         $opts = new Options();
         $opts->set('isRemoteEnabled', true);
