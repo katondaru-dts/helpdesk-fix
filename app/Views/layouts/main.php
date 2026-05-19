@@ -582,7 +582,6 @@
             <div class="ai-header-av"><i class="bi bi-stars"></i></div>
             <div class="ai-header-info" style="flex:1">
                 <div class="name">Helpdesk AI Pusim</div>
-                <div class="status" id="aiStatusLabel">Powered by Gemini</div>
             </div>
             <button onclick="toggleAiChat()"
                 style="width:28px;height:28px;border:none;background:rgba(255,255,255,.15);border-radius:7px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;margin-left:6px"><i
