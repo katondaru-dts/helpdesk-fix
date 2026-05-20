@@ -59,13 +59,13 @@ class KbArticleModel extends Model
         ", [$keyword, $keyword, $limit])->getResultArray();
     }
 
-    // Ambil semua artikel AI-enabled beserta embedding untuk RAG
+    // Ambil semua artikel AI-enabled untuk RAG
     public function getForRag(): array
     {
         return $this->db->query(
             "SELECT id, title, slug, excerpt, content, embedding
              FROM kb_articles
-             WHERE status = 'published' AND use_for_ai = 1 AND embedding IS NOT NULL"
+             WHERE status = 'published' AND use_for_ai = 1"
         )->getResultArray();
     }
 

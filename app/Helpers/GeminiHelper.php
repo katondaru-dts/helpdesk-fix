@@ -187,7 +187,7 @@ class GeminiHelper
             return [];
 
         // ── 1. Keyword search dulu (cepat, tanpa API call) ──
-        $words = array_values(array_filter(explode(' ', mb_strtolower($query)), fn($w) => mb_strlen($w) >= 3));
+        $words = array_values(array_filter(explode(' ', mb_strtolower($query)), fn($w) => mb_strlen($w) >= 2));
         if (!empty($words)) {
             $scored = [];
             foreach ($articles as $article) {
