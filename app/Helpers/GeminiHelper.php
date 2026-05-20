@@ -130,11 +130,6 @@ class GeminiHelper
                 $response = $this->post($url, $payload);
                 $text = $response['candidates'][0]['content']['parts'][0]['text'] ?? null;
                 if ($text !== null) {
-                    // Kalau ini bukan model pilihan user (artinya sudah fallback), beri tanda
-                    if ($modelKey !== $this->selectedModelKey) {
-                        $label = self::$availableModels[$modelKey]['label'];
-                        $text = "_(Dijawab oleh {$label} — model utama sedang tidak tersedia)_\n\n" . $text;
-                    }
                     return $text;
                 }
             } catch (\RuntimeException $e) {
