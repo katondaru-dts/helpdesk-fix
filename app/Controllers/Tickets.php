@@ -49,7 +49,7 @@ class Tickets extends BaseController
             'date_to' => $this->request->getGet('f-to'),
             'unassigned' => $this->request->getGet('f-unassigned'),
             'sort' => $this->request->getGet('sort') ?: 'created_at',
-            'dir'  => $this->request->getGet('dir')  ?: 'DESC',
+            'dir' => $this->request->getGet('dir') ?: 'DESC',
         ];
 
         $query = $ticketModel->getFilteredTickets($filters, $isStaff, $userId);
@@ -571,6 +571,7 @@ class Tickets extends BaseController
     public function create()
     {
         $catModel = new CategoryModel();
+        $kbModel = new \App\Models\KbArticleModel();
 
         // Baca daftar unit dari CSV untuk dropdown lokasi
         $csvPath = ROOTPATH . 'namaunit.csv';
@@ -594,6 +595,7 @@ class Tickets extends BaseController
             'activePage' => 'ticket-create',
             'categories' => $catModel->orderBy('name', 'ASC')->findAll(),
             'units' => $units,
+            'popularArticles' => $kbModel->getPopularArticles(5),
         ];
         return view('tickets/create', $data);
     }

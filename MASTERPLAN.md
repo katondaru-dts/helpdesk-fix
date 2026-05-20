@@ -69,7 +69,7 @@ helpdesk-v2/
 │   │   ├── layouts/main.php    # Template utama (sidebar + header)
 │   │   ├── auth/               # Login & Register
 │   │   ├── dashboard/          # admin.php + user.php
-│   │   ├── tickets/            # index, create, detail
+│   │   ├── tickets/            # index, create (with tips, popular articles, AI CTA), detail
 │   │   ├── notifications/      # index.php
 │   │   ├── profile/            # index.php
 │   │   ├── admin/
@@ -205,6 +205,11 @@ Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
   - MEDIUM → Biru
   - HIGH → Oranye
   - URGENT → Merah
+
+- **Sidebar Buat Tiket**: Dilengkapi dengan 3 widget cerdas:
+  - **Tips Pelaporan** (Checklist instruksi pelaporan)
+  - **Artikel Populer** (Menampilkan 5 artikel Knowledge Base yang paling sering dilihat)
+  - **CTA AI Assistant** (Akses cepat ke Tanya AI dan Knowledge Base jika user tidak menemukan solusi)
 
 ---
 
@@ -369,8 +374,8 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 3. **SLA (Service Level Agreement) & Auto-Escalation**
    - Penentuan batas waktu maksimal pengerjaan/respons berdasarkan prioritas tiket.
    - Eskalasi otomatis ke kepala bagian jika SLA dilanggar.
-4. **Knowledge Base (Self-Service Pusat Bantuan)**
-   - Basis data FAQ yang direkomendasikan secara cerdas kepada User saat akan melapor, bertujuan mengurangi duplikasi pelaporan yang sama (contoh: cara reset password).
+4. ~~**Knowledge Base (Self-Service Pusat Bantuan)**~~ ✅ *(Sudah diimplementasikan penuh)*
+   - Basis data FAQ yang direkomendasikan secara cerdas kepada User saat akan melapor (Widget "Artikel Populer" di sidebar buat tiket), bertujuan mengurangi duplikasi pelaporan yang sama.
 5. **Asset & Inventory Management** *(Menunggu kesiapan infrastruktur internal)*
    - Mengaitkan laporan kerusakan tiket secara langsung dengan kode Inventaris Hardware yang bermasalah.
 6. **Routing & Workflow Automation**

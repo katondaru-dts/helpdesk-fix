@@ -33,6 +33,7 @@
 - [x] Daftar semua tiket (admin/support) atau tiket sendiri (user)
 - [x] Filter tiket berdasarkan status, prioritas, kategori, departemen, **teknisi yang menangani**
 - [x] Buat tiket baru (with title, description, category, priority, drive_link)
+- [x] **Tips Pelaporan** — Sidebar tips ringkas untuk memandu user mengisi tiket (judul, kategori, lokasi, deskripsi, nama pemohon)
 - [x] Detail tiket dengan riwayat perubahan
 - [x] Balas tiket (komentar/respons support)
 - [x] Update status tiket (OPEN → IN_PROGRESS → RESOLVED → CLOSED)

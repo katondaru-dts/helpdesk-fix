@@ -6,12 +6,21 @@ use CodeIgniter\Model;
 
 class KbArticleModel extends Model
 {
-    protected $table      = 'kb_articles';
+    protected $table = 'kb_articles';
     protected $primaryKey = 'id';
     protected $allowedFields = [
-        'category_id', 'title', 'slug', 'excerpt', 'content',
-        'tags', 'read_time', 'status', 'use_for_ai',
-        'view_count', 'embedding', 'created_by'
+        'category_id',
+        'title',
+        'slug',
+        'excerpt',
+        'content',
+        'tags',
+        'read_time',
+        'status',
+        'use_for_ai',
+        'view_count',
+        'embedding',
+        'created_by'
     ];
     protected $useTimestamps = true;
 
@@ -23,7 +32,8 @@ class KbArticleModel extends Model
             ->join('kb_categories c', 'c.id = a.category_id')
             ->where('a.status', 'published');
 
-        if ($categoryId) $builder->where('a.category_id', $categoryId);
+        if ($categoryId)
+            $builder->where('a.category_id', $categoryId);
 
         return $builder->orderBy('a.created_at', 'DESC')->limit($limit, $offset)->get()->getResultArray();
     }
@@ -31,7 +41,8 @@ class KbArticleModel extends Model
     public function countPublished(int $categoryId = 0): int
     {
         $builder = $this->db->table('kb_articles')->where('status', 'published');
-        if ($categoryId) $builder->where('category_id', $categoryId);
+        if ($categoryId)
+            $builder->where('category_id', $categoryId);
         return $builder->countAllResults();
     }
 
@@ -74,6 +85,19 @@ class KbArticleModel extends Model
         $this->db->query("UPDATE kb_articles SET view_count = view_count + 1 WHERE id = ?", [$id]);
     }
 
+    // Artikel terpopuler berdasarkan view_count
+    public function getPopularArticles(int $limit = 5): array
+    {
+        return $this->db->table('kb_articles a')
+            ->select('a.id, a.title, a.slug, a.view_count, c.name as category_name')
+            ->join('kb_categories c', 'c.id = a.category_id')
+            ->where('a.status', 'published')
+            ->orderBy('a.view_count', 'DESC')
+            ->limit($limit)
+            ->get()
+            ->getResultArray();
+    }
+
     // Admin: semua artikel dengan filter
     public function adminList(array $filters = [], int $limit = 15, int $offset = 0): array
     {
@@ -95,9 +119,12 @@ class KbArticleModel extends Model
     public function adminCount(array $filters = []): int
     {
         $builder = $this->db->table('kb_articles a');
-        if (!empty($filters['search'])) $builder->like('a.title', $filters['search']);
-        if (!empty($filters['category_id'])) $builder->where('a.category_id', $filters['category_id']);
-        if (!empty($filters['status'])) $builder->where('a.status', $filters['status']);
+        if (!empty($filters['search']))
+            $builder->like('a.title', $filters['search']);
+        if (!empty($filters['category_id']))
+            $builder->where('a.category_id', $filters['category_id']);
+        if (!empty($filters['status']))
+            $builder->where('a.status', $filters['status']);
         return $builder->countAllResults();
     }
 
