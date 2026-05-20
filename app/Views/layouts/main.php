@@ -151,12 +151,12 @@
     <style>
         .ai-fab-wrap {
             position: fixed;
-            bottom: 72px;
+            bottom: 32px;
             right: 28px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             z-index: 9999;
         }
 
@@ -550,14 +550,17 @@
             }
 
             .ai-fab-wrap {
-                bottom: 18px;
-                right: 14px;
+                bottom: 24px;
+                right: 18px;
+                gap: 8px;
             }
         }
     </style>
 
     <div class="ai-fab-wrap">
         <div class="ai-fab-label" id="aiFabLabel">
+            <button onclick="document.getElementById('aiFabLabel').style.display='none'" title="Tutup" 
+                style="order: -1; margin-right: -4px;"><i class="bi bi-x"></i></button>
             <svg width="130" height="54" viewBox="0 0 130 54" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <!-- garis lengkung kecil bawah teks (pena) -->
                 <path d="M18 40 Q65 48 112 40" stroke="#94A3B8" stroke-width="1.2" stroke-linecap="round" fill="none" />
@@ -569,8 +572,6 @@
                 <circle cx="116" cy="22" r="1.6" fill="#94A3B8" opacity=".5" />
                 <circle cx="122" cy="22" r="1.1" fill="#94A3B8" opacity=".35" />
             </svg>
-            <button onclick="document.getElementById('aiFabLabel').style.display='none'" title="Tutup"><i
-                    class="bi bi-x"></i></button>
         </div>
         <button class="ai-fab" id="aiFab" title="Tanya AI Assistant">
             <i class="bi bi-stars" id="aiFabIcon"></i>
@@ -628,6 +629,7 @@
             function setOpen(open) {
                 win.style.display = open ? 'flex' : 'none';
                 fabIcon.className = open ? 'bi bi-x-lg' : 'bi bi-stars';
+                if (open) document.getElementById('aiFabLabel').style.display = 'none';
             }
             window.openAiChat = function () { setOpen(true); };
             window.toggleAiChat = function () { setOpen(win.style.display !== 'flex'); };

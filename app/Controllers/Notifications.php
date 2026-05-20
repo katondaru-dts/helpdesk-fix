@@ -7,12 +7,18 @@ class Notifications extends BaseController
     public function index()
     {
         $userId = session()->get('id');
+        $roleId = session()->get('role_id');
         $filter = $this->request->getGet('filter'); // 'unread', 'read', or null (all)
 
         $notificationModel = new \App\Models\NotificationModel();
         $builder = $notificationModel->select('notifications.*, tickets.title as ticket_title')
             ->join('tickets', 'notifications.ref_id = tickets.id', 'left')
             ->where('notifications.user_id', $userId);
+
+        // User biasa (role 3) hanya lihat notifikasi dari tiket miliknya sendiri
+        if ($roleId == 3) {
+            $builder->where('tickets.reporter_id', $userId);
+        }
 
         if ($filter === 'unread') {
             $builder->where('notifications.is_read', 0);
@@ -99,6 +105,7 @@ class Notifications extends BaseController
     public function getUnreadCount()
     {
         $userId = session()->get('id');
+        $roleId = session()->get('role_id');
 
         // IMPORTANT: Release session lock immediately so other requests are not blocked
         session_write_close();
@@ -108,18 +115,29 @@ class Notifications extends BaseController
         }
 
         $db = \Config\Database::connect();
+
+        // User biasa (role 3) hanya lihat notifikasi dari tiket miliknya sendiri
+        $userFilter = '';
+        $params = [$userId];
+        if ($roleId == 3) {
+            $userFilter = ' AND t.reporter_id = ?';
+            $params[] = $userId;
+        }
+
         $row = $db->query(
-            "SELECT COUNT(*) as c FROM notifications WHERE user_id = ? AND is_read = 0",
-        [$userId]
+            "SELECT COUNT(*) as c FROM notifications n
+             LEFT JOIN tickets t ON n.ref_id = t.id
+             WHERE n.user_id = ? AND n.is_read = 0{$userFilter}",
+        $params
         )->getRow();
 
         $latest = $db->query("
             SELECT n.message, t.title as ticket_title
             FROM notifications n
             LEFT JOIN tickets t ON n.ref_id = t.id
-            WHERE n.user_id = ? AND n.is_read = 0
+            WHERE n.user_id = ? AND n.is_read = 0{$userFilter}
             ORDER BY n.created_at DESC LIMIT 1
-        ", [$userId])->getRow();
+        ", $params)->getRow();
 
         return $this->response->setJSON([
             'count' => (int)($row->c ?? 0),

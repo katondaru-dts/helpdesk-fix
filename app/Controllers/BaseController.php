@@ -64,9 +64,18 @@ abstract class BaseController extends Controller
             ]);
 
             $notificationModel = new \App\Models\NotificationModel();
-            $unreadCount = $notificationModel->where('user_id', $userId)
-                ->where('is_read', 0)
-                ->countAllResults();
+            $dbNotif = \Config\Database::connect();
+            $builderUnread = $dbNotif->table('notifications n')
+                ->join('tickets t', 'n.ref_id = t.id', 'left')
+                ->where('n.user_id', $userId)
+                ->where('n.is_read', 0);
+
+            // User biasa (role 3) hanya hitung notifikasi dari tiket miliknya sendiri
+            if ($user['role_id'] == 3) {
+                $builderUnread->where('t.reporter_id', $userId);
+            }
+
+            $unreadCount = $builderUnread->countAllResults();
 
             $this->unreadNotifications = $unreadCount;
             \Config\Services::renderer()->setData(['unreadNotifications' => $unreadCount], 'raw');

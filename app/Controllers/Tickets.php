@@ -595,7 +595,7 @@ class Tickets extends BaseController
             'activePage' => 'ticket-create',
             'categories' => $catModel->orderBy('name', 'ASC')->findAll(),
             'units' => $units,
-            'popularArticles' => $kbModel->getPopularArticles(5),
+            'popularArticles' => $kbModel->getPopularArticles(1),
         ];
         return view('tickets/create', $data);
     }
