@@ -82,7 +82,7 @@ class Filters extends BaseFilters
         ],
         'after' => [
             // 'honeypot',
-            // 'secureheaders',
+            'secureheaders',
         ],
     ];
 
@@ -99,7 +99,9 @@ class Filters extends BaseFilters
      *
      * @var array<string, list<string>>
      */
-    public array $methods = [];
+    public array $methods = [
+        'POST' => ['ratelimiter'],
+    ];
 
     /**
      * List of filter aliases that should run on any
@@ -110,5 +112,18 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'ratelimiter' => [
+            'before' => [
+                'tickets/store',
+                'tickets/reply/*',
+                'tickets/update-status/*',
+                'tickets/assign/*',
+                'admin/users/save',
+                'admin/categories/save',
+                'admin/departments/save',
+                'admin/*/delete',
+            ]
+        ],
+    ];
 }

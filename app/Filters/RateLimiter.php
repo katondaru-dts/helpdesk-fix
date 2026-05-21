@@ -12,20 +12,22 @@ class RateLimiter implements FilterInterface
         $throttler = \Config\Services::throttler();
 
         $ip = $request->getIPAddress();
-        $cacheKey = str_replace(':', '_', $ip); // Avoid reserved characters in IPv6
+        $cacheKey = 'ratelimit_' . str_replace(':', '_', $ip);
 
-        // Membatasi 5 upaya dalam 1 menit
-        if ($throttler->check($cacheKey, 5, MINUTE) === false) {
+        // Default: 10 requests per minute. Override via $arguments: [maxAttempts, period]
+        $maxAttempts = $arguments[0] ?? 10;
+        $period = $arguments[1] ?? MINUTE;
+
+        if ($throttler->check($cacheKey, $maxAttempts, $period) === false) {
             $response = service('response');
             $response->setStatusCode(429);
             return $response->setBody(view('errors/html/error_429', [
-                'message' => 'Terlalu banyak percobaan login. Silakan tunggu beberapa saat.'
+                'message' => 'Terlalu banyak permintaan. Silakan tunggu beberapa saat.'
             ]));
         }
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-    // Do nothing
     }
 }

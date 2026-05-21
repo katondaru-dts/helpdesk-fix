@@ -28,7 +28,7 @@ class Session extends BaseConfig
 
     public int $timeToUpdate = 300;
 
-    public bool $regenerateDestroy = false;
+    public bool $regenerateDestroy = true;
 
     // Database group (uses default from .env)
     public ?string $DBGroup = null;

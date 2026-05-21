@@ -31,10 +31,19 @@ if (!function_exists('send_telegram')) {
             'disable_web_page_preview' => true,
         ]);
 
-        // Eksekusi CURL di background (Asinkron / Non-blocking)
-        // Mencegah aplikasi melambat (lag) saat menunggu respon dari server Telegram
-        $cmd = "curl -s -X POST " . escapeshellarg($url) . " -d " . escapeshellarg($payload) . " -H 'Content-Type: application/json' > /dev/null 2>&1 &";
-        exec($cmd);
+        // Kirim via cURL PHP (non-blocking dengan timeout rendah)
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_FRESH_CONNECT => true,
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
 
         return true;
     }

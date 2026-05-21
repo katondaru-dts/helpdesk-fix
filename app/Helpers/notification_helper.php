@@ -17,8 +17,8 @@ if (!function_exists('add_notification')) {
         return (bool)$notificationModel->insert([
             'user_id' => $userId,
             'type' => $type,
-            'title' => $title,
-            'message' => $message,
+            'title' => esc($title),
+            'message' => esc($message),
             'ref_id' => $refId,
             'is_read' => 0
         ]);

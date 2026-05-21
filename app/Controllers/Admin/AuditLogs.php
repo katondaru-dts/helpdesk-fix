@@ -7,21 +7,20 @@ class AuditLogs extends BaseController
     public function index()
     {
         $db = \Config\Database::connect();
-        $query = "
-            SELECT a.*, u.name as user_name, u.email as user_email
-            FROM audit_logs a
-            JOIN users u ON a.user_id = u.id
-            ORDER BY a.created_at DESC
-        ";
-        
-        // Simple pagination approach for raw query
+
         $pager = \Config\Services::pager();
-        $page = $this->request->getVar('page') ? (int)$this->request->getVar('page') : 1;
+        $page = max(1, (int) $this->request->getVar('page'));
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
 
-        $total = $db->query("SELECT COUNT(*) as c FROM audit_logs")->getRow()->c;
-        $logs = $db->query($query . " LIMIT $perPage OFFSET $offset")->getResultArray();
+        $total = $db->table('audit_logs')->countAll();
+
+        $logs = $db->table('audit_logs a')
+            ->select('a.*, u.name as user_name, u.email as user_email')
+            ->join('users u', 'a.user_id = u.id')
+            ->orderBy('a.created_at', 'DESC')
+            ->get($perPage, $offset)
+            ->getResultArray();
 
         $data = [
             'pageTitle'  => 'Audit Logs - Helpdesk',

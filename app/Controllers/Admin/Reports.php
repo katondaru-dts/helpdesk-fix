@@ -6,24 +6,28 @@ use Dompdf\Options;
 
 class Reports extends BaseController
 {
+    private function applyDateFilter($builder)
+    {
+        $dateFrom = $this->request->getGet('f-from');
+        $dateTo = $this->request->getGet('f-to');
+        if (!empty($dateFrom))
+            $builder->where('t.created_at >=', $dateFrom . ' 00:00:00');
+        if (!empty($dateTo))
+            $builder->where('t.created_at <=', $dateTo . ' 23:59:59');
+        return $builder;
+    }
+
     private function getTickets()
     {
         $db = \Config\Database::connect();
-        $dateFrom = $this->request->getGet('f-from');
-        $dateTo = $this->request->getGet('f-to');
-        $where = "1=1";
-        if (!empty($dateFrom))
-            $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
-        if (!empty($dateTo))
-            $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
-        $query = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
-                    u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at
-                  FROM tickets t
-                  LEFT JOIN users u ON t.reporter_id = u.id
-                  LEFT JOIN departments d ON t.dept_id = d.id
-                  LEFT JOIN categories c ON t.cat_id  = c.id
-                  WHERE $where ORDER BY t.created_at DESC";
-        return $db->query($query)->getResultArray();
+        $builder = $db->table('tickets t')
+            ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
+                      u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at')
+            ->join('users u', 't.reporter_id = u.id', 'left')
+            ->join('departments d', 't.dept_id = d.id', 'left')
+            ->join('categories c', 't.cat_id = c.id', 'left')
+            ->orderBy('t.created_at', 'DESC');
+        return $this->applyDateFilter($builder)->get()->getResultArray();
     }
 
     public function index()
@@ -31,28 +35,29 @@ class Reports extends BaseController
         $db = \Config\Database::connect();
         $dateFrom = $this->request->getGet('f-from');
         $dateTo = $this->request->getGet('f-to');
-        $where = "1=1";
-        if (!empty($dateFrom))
-            $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
-        if (!empty($dateTo))
-            $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
-        $stats = $db->query("SELECT COUNT(*) as total,
-            SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
-            SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
-            FROM tickets t WHERE $where")->getRowArray();
+
+        $statsBuilder = $db->table('tickets t')
+            ->select("COUNT(*) as total,
+                      SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
+                      SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
+                      SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyDateFilter($statsBuilder);
+        $stats = $statsBuilder->get()->getRowArray();
+
         $pager = \Config\Services::pager();
-        $page = $this->request->getVar('page') ? (int) $this->request->getVar('page') : 1;
+        $page = max(1, (int) $this->request->getVar('page'));
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
-        $ticketsQuery = "SELECT t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
-                    u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at
-                  FROM tickets t
-                  LEFT JOIN users u ON t.reporter_id = u.id
-                  LEFT JOIN departments d ON t.dept_id = d.id
-                  LEFT JOIN categories c ON t.cat_id  = c.id
-                  WHERE $where ORDER BY t.created_at DESC LIMIT $perPage OFFSET $offset";
+        $ticketsBuilder = $db->table('tickets t')
+            ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
+                      u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at')
+            ->join('users u', 't.reporter_id = u.id', 'left')
+            ->join('departments d', 't.dept_id = d.id', 'left')
+            ->join('categories c', 't.cat_id = c.id', 'left')
+            ->orderBy('t.created_at', 'DESC');
+        $this->applyDateFilter($ticketsBuilder);
+        $tickets = $ticketsBuilder->get($perPage, $offset)->getResultArray();
 
         $data = [
             'pageTitle' => 'Laporan & Statistik',
@@ -60,8 +65,8 @@ class Reports extends BaseController
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'stats' => $stats,
-            'tickets' => $db->query($ticketsQuery)->getResultArray(),
-            'pager_links' => $stats['total'] > 0 ? $pager->makeLinks($page, $perPage, $stats['total']) : '',
+            'tickets' => $tickets,
+            'pager_links' => ($stats['total'] ?? 0) > 0 ? $pager->makeLinks($page, $perPage, $stats['total']) : '',
         ];
         return view('admin/reports/index', $data);
     }
@@ -69,22 +74,17 @@ class Reports extends BaseController
     public function excel()
     {
         if (!has_permission('Ekspor Data')) {
-            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak. Anda tidak memiliki izin untuk mengekspor data.');
+            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak.');
         }
 
         $db = \Config\Database::connect();
-        $dateFrom = $this->request->getGet('f-from');
-        $dateTo = $this->request->getGet('f-to');
-        $where = "1=1";
-        if (!empty($dateFrom))
-            $where .= " AND t.created_at >= " . $db->escape($dateFrom . ' 00:00:00');
-        if (!empty($dateTo))
-            $where .= " AND t.created_at <= " . $db->escape($dateTo . ' 23:59:59');
-        $stats = $db->query("SELECT COUNT(*) as total,
-            SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
-            SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
-            FROM tickets t WHERE $where")->getRowArray();
+        $statsBuilder = $db->table('tickets t')
+            ->select("COUNT(*) as total,
+                      SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
+                      SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
+                      SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyDateFilter($statsBuilder);
+        $stats = $statsBuilder->get()->getRowArray();
 
         $tickets = $this->getTickets();
         $filename = "Helpdesk_Laporan_" . date('Ymd_His') . ".xls";
@@ -108,24 +108,21 @@ class Reports extends BaseController
     public function pdf()
     {
         if (!has_permission('Ekspor Data')) {
-            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak. Anda tidak memiliki izin untuk mengekspor data.');
+            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak.');
         }
 
         $db = \Config\Database::connect();
-        $dateFromRaw = $this->request->getGet('f-from');
-        $dateToRaw = $this->request->getGet('f-to');
-        $where = "1=1";
-        if (!empty($dateFromRaw))
-            $where .= " AND t.created_at >= " . $db->escape($dateFromRaw . ' 00:00:00');
-        if (!empty($dateToRaw))
-            $where .= " AND t.created_at <= " . $db->escape($dateToRaw . ' 23:59:59');
-        $stats = $db->query("SELECT COUNT(*) as total,
-            SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
-            SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
-            FROM tickets t WHERE $where")->getRowArray();
+        $statsBuilder = $db->table('tickets t')
+            ->select("COUNT(*) as total,
+                      SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
+                      SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
+                      SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyDateFilter($statsBuilder);
+        $stats = $statsBuilder->get()->getRowArray();
 
         $tickets = $this->getTickets();
+        $dateFromRaw = $this->request->getGet('f-from');
+        $dateToRaw = $this->request->getGet('f-to');
         $dateFrom = $dateFromRaw ?: 'Semua';
         $dateTo = $dateToRaw ?: 'Semua';
         $rows = '';
@@ -144,7 +141,7 @@ class Reports extends BaseController
             </tr>';
         }
         if (empty($tickets))
-            $rows = '<tr><td colspan="8" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
+            $rows = '<tr><td colspan="10" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
         $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>body{font-family:DejaVu Sans,Arial,sans-serif;font-size:10px;margin:15px}
 h2{text-align:center;font-size:14px;margin-bottom:5px}.sub{text-align:center;font-size:10px;color:#666;margin-bottom:15px}
@@ -176,7 +173,7 @@ td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(ev
     public function printReport()
     {
         if (!has_permission('Ekspor Data')) {
-            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak. Anda tidak memiliki izin untuk mencetak data.');
+            return redirect()->to('/admin/reports')->with('error', 'Akses Ditolak.');
         }
 
         $data = [

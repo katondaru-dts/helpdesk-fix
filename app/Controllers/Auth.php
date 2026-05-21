@@ -152,6 +152,7 @@ class Auth extends BaseController
         ];
 
         session()->set($data);
+        session()->regenerate(); // Regenerate session ID to prevent fixation
         return true;
     }
 

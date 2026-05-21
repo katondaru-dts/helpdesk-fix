@@ -31,6 +31,12 @@ class App extends BaseConfig
         }
         $host = trim($host);
 
+        // Validasi host terhadap whitelist untuk mencegah host header injection
+        $allowed = $this->allowedHostnames;
+        if (!empty($allowed) && !in_array($host, $allowed, true)) {
+            $host = parse_url($this->baseURL, PHP_URL_HOST) ?: 'localhost';
+        }
+
         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
             (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https' : 'http';
 
@@ -48,7 +54,7 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-    public array $allowedHostnames = [];
+    public array $allowedHostnames = ['helpdesk.unmer.ac.id', 'localhost', 'helpdesk.local', 'helpdesk-v2.test'];
 
     /**
      * --------------------------------------------------------------------------

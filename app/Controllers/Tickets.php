@@ -17,6 +17,9 @@ class Tickets extends BaseController
 {
     public function _remap($method, ...$params)
     {
+        // Sanitize method to prevent path traversal / method injection
+        $method = preg_replace('/[^a-zA-Z0-9_\-]/', '', $method);
+
         if ($method === 'view' || $method === 'detail') {
             return $this->detail(...$params);
         }
@@ -149,6 +152,11 @@ class Tickets extends BaseController
 
         if (!$isStaff && $ticket['reporter_id'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
+        }
+
+        // Support (role_id=2) hanya bisa lihat tiket yang ditugaskan kepadanya atau belum diassign
+        if ($roleId == 2 && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
+            return redirect()->to('/tickets')->with('error', 'Akses ditolak. Tiket ini tidak ditugaskan kepada Anda.');
         }
 
         $history = $historyModel->select('ticket_history.*, users.name as changed_by_name')
@@ -624,11 +632,13 @@ class Tickets extends BaseController
 
         // ── Upload foto (opsional, max 2) ──
         $photoFields = ['photo', 'photo2'];
+        $allowedExts = ['jpg', 'jpeg', 'png'];
         foreach ($photoFields as $field) {
             $file = $this->request->getFile($field);
             if ($file && $file->isValid() && !$file->hasMoved()) {
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-                if (in_array($file->getMimeType(), $allowedTypes) && $file->getSize() <= 2048 * 1024) {
+                $ext = strtolower($file->getExtension());
+                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 2048 * 1024) {
                     $fileName = $field . '_' . $newId . '_' . $file->getRandomName();
                     if ($file->move(FCPATH . 'uploads/tickets', $fileName)) {
                         $ticketModel->update($newId, [$field => 'uploads/tickets/' . $fileName]);
@@ -723,6 +733,16 @@ class Tickets extends BaseController
 
         $db = \Config\Database::connect();
         $db->transStart();
+
+        // Hapus file foto fisik
+        foreach (['photo', 'photo2'] as $field) {
+            if (!empty($ticket[$field])) {
+                $filePath = FCPATH . $ticket[$field];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+        }
 
         // Delete related data first
         $historyModel->where('ticket_id', $id)->delete();
