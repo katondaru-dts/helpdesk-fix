@@ -129,5 +129,6 @@ _modules/*
 env
 new_hash.txt
 bot token tele.txt
+nginx.conf
 googleclient dan sec.txt
 googleclient dan sec.txt
