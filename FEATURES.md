@@ -8,8 +8,12 @@
 - [x] **Rate Limiter** — Membatasi 5 upaya login per menit per IP
 - [x] **AuthFilter** — Melindungi semua route yang membutuhkan login
 - [x] **AdminFilter** — Membatasi akses menu admin hanya untuk Superadmin
-- [x] CSRF Protection (bawaan CI4)
+- [x] **Global CSRF Hardening** — Proteksi CSRF diaktifkan secara global di seluruh aplikasi dengan validasi token pada setiap request POST.
+- [x] **Secure Route Handshake** — Menghapus rute GET untuk aksi destruktif (Delete) dan menggantinya dengan rute POST yang terautentikasi dan terproteksi CSRF.
+- [x] **Concurrency Safety** — Mekanisme *Database Selection Lock* pada pembuatan ID tiket otomatis (`HD0001`) untuk mencegah tabrakan data saat beban kerja tinggi.
+- [x] **Password Strength Policy** — Kebijakan panjang minimal password ditingkatkan menjadi 8 karakter.
 - [x] Halaman error 429 (Too Many Requests)
+
 
 ### 📊 Dashboard (Dashboard Status & Kinerja Layanan)
 - [x] **Vivid Design System** — Implementasi warna pastel solid pada kartu statistik untuk identifikasi visual cepat.

@@ -306,16 +306,21 @@ flowchart TD
 ## 🛡️ Keamanan yang Diterapkan
 
 1. **Password Hashing** — `password_hash()` dengan algoritma bcrypt (PASSWORD_DEFAULT)
-2. **CSRF Protection** — Token CSRF di setiap form POST
-3. **Rate Limiting** — Max 5 upaya login per menit per IP
-4. **Route Protection** — Filter `auth` dan `admin` di level routing CI4
-5. **Input Escaping** — Fungsi `esc()` di setiap output HTML
-6. **Audit Log** — Setiap aksi admin dicatat lengkap dengan IP address
-7. **SQL Injection Protection** — Query Builder CI4 otomatis memparameterisasi query
-8. **Session Management** — Dialihkan ke `DatabaseHandler` untuk mencegah konflik *file locking*. Umur *cookie* dinaikkan menjadi 1 Tahun (`31536000` detik) untuk menahan akun Teknisi/Operator terus *Standby* (mencegah *Auto-Logout*).
-9. **Permission-Based Export Control** — Fungsi `has_permission()` di `app/Helpers/auth_helper.php` memvalidasi izin granular setiap user. Ekspor laporan (Cetak/Excel/PDF) diblokir di level Controller dan disembunyikan di level View jika izin `Ekspor Data` tidak diaktifkan pada role.
-10. **Login Attempt Tracking & Lockout** — Percobaan login gagal dilacak di kolom `login_attempts` dan `lockout_time` pada tabel `users`. Setelah 3 kali gagal, akun dikunci otomatis selama **1 menit**. Data percobaan dihapus saat login berhasil.
-11. **Alphanumeric CAPTCHA** — Setelah 2 kali percobaan gagal, tampil CAPTCHA kode acak 6 karakter (huruf kapital + angka, tanpa karakter ambigu seperti 0/O/1/I) menggunakan `app/Helpers/captcha_helper.php`. Verifikasi bersifat *case-insensitive*.
+2. **CSRF Protection** — Token CSRF diaktifkan secara global di `Filters.php` dan wajib ada di setiap form POST.
+3. **Restful Routing (Secure Methods)** — Rute destruktif (seperti penghapusan tiket) telah diubah dari `GET` menjadi `POST` untuk mencegah eksekusi aksi via link navigasi.
+4. **Rate Limiting** — Max 5 upaya login per menit per IP
+5. **Route Protection** — Filter `auth` dan `admin` di level routing CI4
+6. **Input Escaping** — Fungsi `esc()` di setiap output HTML
+7. **Audit Log** — Setiap aksi admin dicatat lengkap dengan IP address
+8. **Race Condition Protection** — Pembuatan ID tiket (`generateTicketId`) menggunakan *database locking* untuk mencegah duplikasi ID saat akses bersamaan tinggi.
+9. **Password Hashing** — `password_hash()` dengan algoritma bcrypt (PASSWORD_DEFAULT). Validasi ditingkatkan menjadi minimal 8 karakter.
+10. **Audit Log** — Setiap aksi admin dicatat lengkap dengan IP address
+11. **SQL Injection Protection** — Query Builder CI4 otomatis memparameterisasi query
+12. **Session Management** — Dialihkan ke `DatabaseHandler` untuk mencegah konflik *file locking*. Umur *cookie* dinaikkan menjadi 1 Tahun (`31536000` detik).
+13. **Permission-Based Export Control** — Fungsi `has_permission()` memvalidasi izin granular setiap user.
+14. **Login Attempt Tracking & Lockout** — Setelah 3 kali gagal, akun dikunci otomatis selama **1 menit**.
+15. **Alphanumeric CAPTCHA** — Setelah 2 kali percobaan gagal, tampil CAPTCHA kode acak 6 karakter.
+16. **Architecture Improvement** — Logika presentasi ekspor dipisahkan dari Controller ke View (`export_excel.php`).
 
 ---
 

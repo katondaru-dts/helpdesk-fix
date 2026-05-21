@@ -40,6 +40,19 @@
             <?php if ($ticket['location']): ?>
                 <div style="margin-top:15px;font-size:13px;color:#6b7280"><i class="bi bi-geo-alt"></i> Lokasi: <?= esc($ticket['location']) ?></div>
             <?php endif; ?>
+            <?php if ($ticket['photo'] || $ticket['photo2']): ?>
+                <div style="margin-top:15px">
+                    <div style="font-size:13px;font-weight:600;color:#6b7280;margin-bottom:8px"><i class="bi bi-image"></i> Foto Dokumentasi</div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap">
+                        <?php if ($ticket['photo']): ?>
+                            <img src="<?= base_url($ticket['photo']) ?>" alt="Foto 1" class="ticketPhoto" data-photo="<?= base_url($ticket['photo']) ?>" style="max-width:48%;height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;flex:1;min-width:200px">
+                        <?php endif; ?>
+                        <?php if ($ticket['photo2']): ?>
+                            <img src="<?= base_url($ticket['photo2']) ?>" alt="Foto 2" class="ticketPhoto" data-photo="<?= base_url($ticket['photo2']) ?>" style="max-width:48%;height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;flex:1;min-width:200px">
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- History/Messages -->
@@ -200,6 +213,34 @@
     </div>
 </div>
 
+<!-- ── Modal Preview Foto (Picasa Style) ── -->
+<div id="photoModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+    <div style="background:white;border-radius:16px;max-width:640px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,.5);animation:modalIn .25s ease-out;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+                <i class="bi bi-image" style="color:#3b82f6;font-size:18px"></i>
+                <span style="font-weight:700;font-size:15px">Foto Dokumentasi</span>
+            </div>
+            <button type="button" id="modalClose" style="background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;padding:4px;line-height:1">&times;</button>
+        </div>
+        <div style="padding:20px;text-align:center;background:#f3f4f6;position:relative;overflow:hidden;cursor:grab" id="zoomContainer">
+                <img id="modalPhotoPreview" style="max-width:100%;max-height:480px;border-radius:8px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:transform .2s ease;transform-origin:center center">
+                <div style="position:absolute;bottom:12px;right:12px;display:flex;gap:6px;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+                    <button type="button" id="zoomIn" style="background:none;border:none;cursor:pointer;font-size:18px;color:#374151;padding:2px 6px;line-height:1;border-radius:4px" title="Perbesar">+</button>
+                    <span id="zoomLevel" style="font-size:12px;font-weight:600;color:#6b7280;min-width:32px;text-align:center;line-height:26px">100%</span>
+                    <button type="button" id="zoomOut" style="background:none;border:none;cursor:pointer;font-size:18px;color:#374151;padding:2px 6px;line-height:1;border-radius:4px" title="Perkecil">&minus;</button>
+                    <button type="button" id="zoomReset" style="background:none;border:none;cursor:pointer;font-size:14px;color:#3b82f6;padding:2px 6px;line-height:1;border-radius:4px" title="Reset zoom">&circlearrowleft;</button>
+                </div>
+            </div>
+        <div style="padding:14px 20px;border-top:1px solid #e5e7eb;display:flex;gap:10px;justify-content:flex-end">
+            <button type="button" id="modalCloseBtn" style="padding:9px 18px;background:white;color:#6b7280;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px"><i class="bi bi-x-lg"></i> Tutup</button>
+        </div>
+    </div>
+</div>
+<style>
+@keyframes modalIn { from { opacity:0; transform:translateY(-20px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function updateTimers() {
@@ -235,6 +276,132 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateTimers();
     setInterval(updateTimers, 1000);
+
+    // ── Preview Foto Picasa Style ──
+    const ticketPhotos = document.querySelectorAll('.ticketPhoto');
+    const photoModal = document.getElementById('photoModal');
+    const modalPreview = document.getElementById('modalPhotoPreview');
+    const modalClose = document.getElementById('modalClose');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+    ticketPhotos.forEach(function(img) {
+        img.addEventListener('click', function() {
+            modalPreview.src = this.dataset.photo;
+            photoModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    function closePhotoModal() {
+        photoModal.style.display = 'none';
+        document.body.style.overflow = '';
+        scale = 1; panX = 0; panY = 0;
+        if (typeof applyZoom === 'function') applyZoom();
+    }
+
+    if (modalClose) modalClose.addEventListener('click', closePhotoModal);
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closePhotoModal);
+    if (photoModal) {
+        photoModal.addEventListener('click', function(e) {
+            if (e.target === photoModal) closePhotoModal();
+        });
+    }
+
+    // ── Zoom & Drag ──
+    const zoomImg = document.getElementById('modalPhotoPreview');
+    const zoomContainer = document.getElementById('zoomContainer');
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomOutBtn = document.getElementById('zoomOut');
+    const zoomResetBtn = document.getElementById('zoomReset');
+    const zoomLevel = document.getElementById('zoomLevel');
+    let scale = 1;
+    let panX = 0, panY = 0;
+    let isDragging = false, startX = 0, startY = 0;
+
+    function applyZoom() {
+        zoomImg.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
+        if (zoomLevel) zoomLevel.textContent = Math.round(scale * 100) + '%';
+    }
+
+    if (zoomInBtn) zoomInBtn.addEventListener('click', function() {
+        scale = Math.min(scale + 0.25, 3);
+        applyZoom();
+    });
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', function() {
+        scale = Math.max(scale - 0.25, 0.25);
+        applyZoom();
+    });
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', function() {
+        scale = 1; panX = 0; panY = 0;
+        applyZoom();
+    });
+
+    if (zoomContainer) {
+        zoomContainer.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            scale = Math.min(Math.max(scale + delta, 0.25), 3);
+            applyZoom();
+        }, { passive: false });
+
+        zoomContainer.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            zoomContainer.style.cursor = 'grabbing';
+        });
+    }
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        applyZoom();
+    });
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        if (zoomContainer) zoomContainer.style.cursor = 'grab';
+    });
+
+    // Touch support: pinch zoom & one-finger drag
+    let lastTouchDist = 0;
+    let lastTouchX = 0, lastTouchY = 0;
+    if (zoomContainer) {
+        zoomContainer.addEventListener('touchstart', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+            } else if (e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - panX;
+                startY = e.touches[0].clientY - panY;
+            }
+        }, { passive: true });
+        zoomContainer.addEventListener('touchmove', function(e) {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (lastTouchDist > 0) {
+                    const delta = (dist - lastTouchDist) / 100;
+                    scale = Math.min(Math.max(scale + delta, 0.25), 3);
+                    applyZoom();
+                }
+                lastTouchDist = dist;
+            } else if (e.touches.length === 1 && isDragging) {
+                panX = e.touches[0].clientX - startX;
+                panY = e.touches[0].clientY - startY;
+                applyZoom();
+            }
+        }, { passive: false });
+        zoomContainer.addEventListener('touchend', function() {
+            isDragging = false;
+            lastTouchDist = 0;
+        }, { passive: true });
+    }
 });
 </script>
 <?= $this->endSection() ?>

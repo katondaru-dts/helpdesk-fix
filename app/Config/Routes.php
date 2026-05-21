@@ -48,7 +48,6 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
             $routes->post('rate/(:segment)', 'Tickets::rate/$1');
             $routes->get('export', 'Tickets::export');
             $routes->post('delete/(:segment)', 'Tickets::delete/$1');
-            $routes->get('delete/(:segment)', 'Tickets::delete/$1');
         }
     );
 });

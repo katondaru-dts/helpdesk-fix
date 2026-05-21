@@ -42,7 +42,7 @@ class Reports extends BaseController
             SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved
             FROM tickets t WHERE $where")->getRowArray();
         $pager = \Config\Services::pager();
-        $page = $this->request->getVar('page') ? (int)$this->request->getVar('page') : 1;
+        $page = $this->request->getVar('page') ? (int) $this->request->getVar('page') : 1;
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
@@ -88,43 +88,16 @@ class Reports extends BaseController
 
         $tickets = $this->getTickets();
         $filename = "Helpdesk_Laporan_" . date('Ymd_His') . ".xls";
-        header("Content-Type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=\"$filename\"");
-        header("Pragma: no-cache");
 
-        echo '<h3>Ringkasan Laporan</h3>';
-        echo '<table border="1">';
-        echo '<tr><td style="font-weight:bold;">Total Tiket</td><td>' . ($stats['total'] ?? 0) . '</td></tr>';
-        echo '<tr><td style="font-weight:bold;">Tiket Open</td><td>' . ($stats['open_tickets'] ?? 0) . '</td></tr>';
-        echo '<tr><td style="font-weight:bold;">Tiket In Progress</td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>';
-        echo '<tr><td style="font-weight:bold;">Tiket Solved/Closed</td><td>' . ($stats['solved'] ?? 0) . '</td></tr>';
-        echo '</table><br/>';
-
-        echo '<h3>Data Tiket</h3>';
-        echo '<table border="1">
-<tr style="background:#1e3a5f;color:white;font-weight:bold">
-  <td>ID</td><td>Judul Tiket</td><td>Prioritas</td><td>Status</td>
-  <td>Pelapor</td><td>Pemohon</td><td>Lokasi Gangguan</td><td>Deskripsi</td><td>Link Dokumentasi</td><td>Tanggal</td>
-</tr>';
-        if (empty($tickets)) {
-            echo '<tr><td colspan="10">Tidak ada data tiket.</td></tr>';
-        }
-        else {
-            foreach ($tickets as $r) {
-                echo '<tr><td>' . htmlspecialchars($r['id'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['title'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['priority'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['status'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['reporter_name'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['requester_name'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['location'] ?? '-') . '</td>
-                      <td>' . htmlspecialchars($r['description'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['drive_link'] ?? '') . '</td>
-                      <td>' . htmlspecialchars($r['created_at'] ?? '') . '</td></tr>';
-            }
-        }
-        echo '</table>';
-        exit;
+        return response()
+            ->setHeader('Content-Type', 'application/vnd.ms-excel')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setHeader('Pragma', 'no-cache')
+            ->setHeader('Expires', '0')
+            ->setBody(view('admin/reports/export_excel', [
+                'stats' => $stats,
+                'tickets' => $tickets
+            ]));
     }
 
     public function export()

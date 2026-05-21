@@ -12,7 +12,7 @@ class TicketModel extends Model
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'requester_name', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'created_at', 'updated_at', 'closed_at'];
+    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'requester_name', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'photo', 'photo2', 'created_at', 'updated_at', 'closed_at'];
 
     // Dates
     protected $useTimestamps = true;
@@ -88,15 +88,15 @@ class TicketModel extends Model
         }
 
         $allowedSort = [
-            'id'            => 'tickets.id',
-            'title'         => 'tickets.title',
-            'priority'      => 'FIELD(tickets.priority,"URGENT","HIGH","MEDIUM","LOW")',
-            'status'        => 'tickets.status',
-            'cat_name'      => 'categories.name',
+            'id' => 'tickets.id',
+            'title' => 'tickets.title',
+            'priority' => 'FIELD(tickets.priority,"URGENT","HIGH","MEDIUM","LOW")',
+            'status' => 'tickets.status',
+            'cat_name' => 'categories.name',
             'reporter_name' => 'reporter.name',
             'assigned_name' => 'assigned.name',
-            'created_at'    => 'tickets.created_at',
-            'sla_deadline'  => 'tickets.sla_deadline',
+            'created_at' => 'tickets.created_at',
+            'sla_deadline' => 'tickets.sla_deadline',
         ];
 
         $sortCol = $filters['sort'] ?? 'created_at';
@@ -128,9 +128,12 @@ class TicketModel extends Model
 
     public function generateTicketId()
     {
-        $lastTicket = $this->orderBy('id', 'DESC')->first();
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->table);
+        $lastTicket = $builder->select('id')->orderBy('id', 'DESC')->limit(1)->getWhere([], null, null, false)->getRowArray();
+
         if ($lastTicket) {
-            $num = (int)substr($lastTicket['id'], 2) + 1;
+            $num = (int) substr($lastTicket['id'], 2) + 1;
             return 'HD' . str_pad($num, 4, '0', STR_PAD_LEFT);
         }
         return 'HD0001';

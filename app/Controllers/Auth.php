@@ -138,17 +138,17 @@ class Auth extends BaseController
         }
 
         $data = [
-            'id'               => $user['id'],
-            'user_id'          => $user['id'],
-            'name'             => $user['name'],
-            'email'            => $user['email'],
-            'role_id'          => $user['role_id'],
-            'dept_id'          => $user['dept_id'],
-            'permissions'      => $permissions,
+            'id' => $user['id'],
+            'user_id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'role_id' => $user['role_id'],
+            'dept_id' => $user['dept_id'],
+            'permissions' => $permissions,
             'user_permissions' => $userPermissions,
-            'isLoggedIn'       => true,
+            'isLoggedIn' => true,
             'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
-            'notif_sound_type'    => $user['notif_sound_type'] ?? 'default',
+            'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
         ];
 
         session()->set($data);
@@ -169,7 +169,7 @@ class Auth extends BaseController
         $rules = [
             'name' => 'required|min_length[3]',
             'email' => 'required|valid_email|is_unique[users.email]',
-            'password' => 'required|min_length[1]',
+            'password' => 'required|min_length[8]',
             'dept_id' => 'required',
             'gender' => 'required'
         ];

@@ -11,6 +11,7 @@ use App\Models\TicketHistoryModel;
 use App\Models\TicketMessageModel;
 use App\Models\UserModel;
 use App\Models\NotificationModel;
+use App\Models\AuditLogModel;
 
 class Tickets extends BaseController
 {
@@ -96,13 +97,6 @@ class Tickets extends BaseController
 
         $filename = "Helpdesk_Tiket_" . date('Ymd_His') . ".xls";
 
-        header("Content-Type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=\"$filename\"");
-        header("Pragma: no-cache");
-        header("Expires: 0");
-
-        echo '<table border="1">';
-
         $headers = ['ID', 'Judul', 'Nama Pemohon', 'Kategori'];
         if ($isStaff) {
             $headers[] = 'Pelapor';
@@ -113,45 +107,18 @@ class Tickets extends BaseController
         }
         $headers[] = 'Tanggal';
 
-        echo '<tr>';
-        foreach ($headers as $h) {
-            echo '<th style="background-color: #f2f2f2;">' . $h . '</th>';
-        }
-        echo '</tr>';
+        $data = [
+            'tickets' => $tickets,
+            'isStaff' => $isStaff,
+            'headers' => $headers
+        ];
 
-        foreach ($tickets as $row) {
-            echo '<tr>';
-            echo '<td>' . ($row['id']) . '</td>';
-            echo '<td>' . ($row['title']) . '</td>';
-            echo '<td>' . ($row['requester_name'] ?? '') . '</td>';
-            echo '<td>' . ($row['cat_name'] ?? '') . '</td>';
-            if ($isStaff) {
-                echo '<td>' . ($row['reporter_name'] ?? '') . '</td>';
-            }
-            echo '<td>' . ($row['priority']) . '</td>';
-            echo '<td>' . ($row['status']) . '</td>';
-
-            // SLA column
-            if (in_array($row['status'], ['RESOLVED', 'CLOSED'])) {
-                echo '<td>Selesai</td>';
-            } elseif ($row['status'] === 'PENDING') {
-                echo '<td>Paused</td>';
-            } elseif ($row['sla_deadline']) {
-                echo '<td>' . $row['sla_deadline'] . '</td>';
-            } else {
-                echo '<td>&mdash;</td>';
-            }
-
-            echo '<td>' . ($row['location'] ?? '') . '</td>';
-            echo '<td>' . ($row['drive_link'] ?? '') . '</td>';
-            if ($isStaff) {
-                echo '<td>' . ($row['assigned_name'] ?? 'Unassigned') . '</td>';
-            }
-            echo '<td>' . date('d/m/y', strtotime($row['created_at'])) . '</td>';
-            echo '</tr>';
-        }
-        echo '</table>';
-        exit;
+        return response()
+            ->setHeader('Content-Type', 'application/vnd.ms-excel')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setHeader('Pragma', 'no-cache')
+            ->setHeader('Expires', '0')
+            ->setBody(view('tickets/export_excel', $data));
     }
 
     public function view($id)
@@ -484,6 +451,12 @@ class Tickets extends BaseController
             }
 
             $db->transComplete();
+
+            if ($db->transStatus() !== false) {
+                $auditLog = new AuditLogModel();
+                $auditLog->logAction('UPDATE_STATUS', 'tickets', $id, ['status' => $newStatus, 'priority' => $newPriority]);
+            }
+
             return redirect()->back()->with('success', 'Tiket diperbarui.');
         }
         return redirect()->back();
@@ -559,6 +532,11 @@ class Tickets extends BaseController
         send_telegram($telegramMsg);
 
         $db->transComplete();
+
+        if ($db->transStatus() !== false) {
+            $auditLog = new AuditLogModel();
+            $auditLog->logAction('ASSIGN_TICKET', 'tickets', $id, ['assigned_to' => $assigneeId]);
+        }
 
         if ($db->transStatus() === false) {
             return redirect()->back()->with('error', 'Gagal memperbarui penugasan.');
@@ -643,6 +621,21 @@ class Tickets extends BaseController
             'status' => 'OPEN',
             'sla_deadline' => $slaDeadline
         ]);
+
+        // ── Upload foto (opsional, max 2) ──
+        $photoFields = ['photo', 'photo2'];
+        foreach ($photoFields as $field) {
+            $file = $this->request->getFile($field);
+            if ($file && $file->isValid() && !$file->hasMoved()) {
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                if (in_array($file->getMimeType(), $allowedTypes) && $file->getSize() <= 2048 * 1024) {
+                    $fileName = $field . '_' . $newId . '_' . $file->getRandomName();
+                    if ($file->move(FCPATH . 'uploads/tickets', $fileName)) {
+                        $ticketModel->update($newId, [$field => 'uploads/tickets/' . $fileName]);
+                    }
+                }
+            }
+        }
 
         $historyModel->insert([
             'ticket_id' => $newId,
@@ -740,6 +733,11 @@ class Tickets extends BaseController
         $ticketModel->delete($id);
 
         $db->transComplete();
+
+        if ($db->transStatus() !== false) {
+            $auditLog = new AuditLogModel();
+            $auditLog->logAction('DELETE_TICKET', 'tickets', $id, $ticket);
+        }
 
         if ($db->transStatus() === false) {
             return redirect()->back()->with('error', 'Gagal menghapus tiket.');
