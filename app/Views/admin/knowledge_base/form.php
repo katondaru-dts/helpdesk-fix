@@ -10,6 +10,7 @@
 </div>
 
 <form action="<?= $article ? base_url('admin/knowledge-base/'.$article['id'].'/update') : base_url('admin/knowledge-base/store') ?>" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
 
 <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
 
