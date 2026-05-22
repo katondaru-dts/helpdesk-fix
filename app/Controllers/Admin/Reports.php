@@ -17,18 +17,41 @@ class Reports extends BaseController
         return $builder;
     }
 
+    private function resolvePhotoUrl(?string $value): string
+    {
+        if (empty($value)) return '';
+        if (!str_contains($value, '/')) {
+            $minio = new \App\Libraries\MinioStorage();
+            return $minio->getPresignedUrl($value) ?? '';
+        }
+        return base_url($value);
+    }
+
     private function getTickets()
     {
         $db = \Config\Database::connect();
         $builder = $db->table('tickets t')
             ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
-                      u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name, t.created_at')
+                      u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name,
+                      t.photo, t.photo2, t.created_at')
             ->join('users u', 't.reporter_id = u.id', 'left')
             ->join('users tech', 't.assigned_to = tech.id', 'left')
             ->join('departments d', 't.dept_id = d.id', 'left')
             ->join('categories c', 't.cat_id = c.id', 'left')
             ->orderBy('t.created_at', 'DESC');
-        return $this->applyDateFilter($builder)->get()->getResultArray();
+        $tickets = $this->applyDateFilter($builder)->get()->getResultArray();
+
+        // Resolve photo URLs + fallback ke drive_link
+        foreach ($tickets as &$t) {
+            $photoUrls = [];
+            if (!empty($t['photo'])) $photoUrls[] = $this->resolvePhotoUrl($t['photo']);
+            if (!empty($t['photo2'])) $photoUrls[] = $this->resolvePhotoUrl($t['photo2']);
+            // Set display_link: pakai drive_link jika ada, fallback ke URL foto
+            $t['display_link'] = !empty($t['drive_link']) ? $t['drive_link'] : implode("\n", $photoUrls);
+        }
+        unset($t);
+
+        return $tickets;
     }
 
     public function index()
@@ -52,7 +75,8 @@ class Reports extends BaseController
 
         $ticketsBuilder = $db->table('tickets t')
             ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
-                      u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name, t.created_at')
+                      u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name,
+                      t.photo, t.photo2, t.created_at')
             ->join('users u', 't.reporter_id = u.id', 'left')
             ->join('users tech', 't.assigned_to = tech.id', 'left')
             ->join('departments d', 't.dept_id = d.id', 'left')
@@ -60,6 +84,15 @@ class Reports extends BaseController
             ->orderBy('t.created_at', 'DESC');
         $this->applyDateFilter($ticketsBuilder);
         $tickets = $ticketsBuilder->get($perPage, $offset)->getResultArray();
+
+        // Resolve photo URLs + fallback ke drive_link
+        foreach ($tickets as &$t) {
+            $photoUrls = [];
+            if (!empty($t['photo'])) $photoUrls[] = $this->resolvePhotoUrl($t['photo']);
+            if (!empty($t['photo2'])) $photoUrls[] = $this->resolvePhotoUrl($t['photo2']);
+            $t['display_link'] = !empty($t['drive_link']) ? $t['drive_link'] : implode("\n", $photoUrls);
+        }
+        unset($t);
 
         $data = [
             'pageTitle' => 'Laporan & Statistik',
@@ -139,7 +172,7 @@ class Reports extends BaseController
               <td>' . htmlspecialchars($t['teknisi_name'] ?? '-') . '</td>
               <td>' . htmlspecialchars($t['location'] ?? '-') . '</td>
               <td>' . htmlspecialchars($t['description'] ?? '') . '</td>
-              <td>' . htmlspecialchars($t['drive_link'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['display_link'] ?? '') . '</td>
               <td>' . date('d/m/Y', strtotime($t['created_at'])) . '</td>
             </tr>';
         }

@@ -181,10 +181,11 @@
                     <td>
                         <form action="<?= base_url('admin/reports/update-link/' . $t['id']) ?>" method="POST" class="link-input-wrap no-print">
                             <?= csrf_field() ?>
-                            <input type="text" name="drive_link" class="link-input" placeholder="Tambahkan link..." value="<?= esc($t['drive_link']) ?>">
+                            <input type="text" name="drive_link" class="link-input" placeholder="Tambahkan link..." value="<?= esc($t['drive_link'] ?: ($t['display_link'] ?? '')) ?>">
                             <button type="submit" class="link-save-btn" title="Simpan"><i class="bi bi-check-lg"></i></button>
-                            <?php if (!empty($t['drive_link'])): ?>
-                            <a href="<?= esc($t['drive_link']) ?>" target="_blank" class="link-open-btn" title="Buka Link"><i class="bi bi-box-arrow-up-right"></i></a>
+                            <?php $linkUrl = !empty($t['drive_link']) ? $t['drive_link'] : (!empty($t['display_link']) ? explode("\n", $t['display_link'])[0] : ''); ?>
+                            <?php if (!empty($linkUrl)): ?>
+                            <a href="<?= esc($linkUrl) ?>" target="_blank" class="link-open-btn" title="Buka Link"><i class="bi bi-box-arrow-up-right"></i></a>
                             <?php endif; ?>
                         </form>
                     </td>

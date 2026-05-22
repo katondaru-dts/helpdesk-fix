@@ -36,7 +36,7 @@
                 <td><?= esc($r['teknisi_name'] ?? '-') ?></td>
                 <td><?= esc($r['location'] ?? '-') ?></td>
                 <td><?= esc($r['description']) ?></td>
-                <td><?= esc($r['drive_link']) ?></td>
+                <td><?= esc($r['display_link'] ?? $r['drive_link'] ?? '-') ?></td>
                 <td><?= $r['created_at'] ?></td>
             </tr>
         <?php endforeach; ?>

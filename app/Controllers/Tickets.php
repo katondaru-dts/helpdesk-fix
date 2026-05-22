@@ -152,16 +152,22 @@ class Tickets extends BaseController
 
         // Resolve photo URLs: MinIO key → presigned URL, local path → base_url()
         $minio = new MinioStorage();
+        $resolvedPhotoUrls = [];
         foreach (['photo', 'photo2'] as $field) {
             if (!empty($ticket[$field])) {
                 if (is_minio_key($ticket[$field])) {
-                    $ticket[$field] = $minio->getPresignedUrl($ticket[$field]) ?? '';
+                    $url = $minio->getPresignedUrl($ticket[$field]) ?? '';
+                    $ticket[$field] = $url;
+                    if ($url) $resolvedPhotoUrls[] = $url;
                 } else {
-                    // Legacy local file
-                    $ticket[$field] = base_url($ticket[$field]);
+                    $url = base_url($ticket[$field]);
+                    $ticket[$field] = $url;
+                    $resolvedPhotoUrls[] = $url;
                 }
             }
         }
+        // Fallback: if drive_link is empty but photos exist, show photo URLs as documentation link
+        $ticket['display_link'] = !empty($ticket['drive_link']) ? $ticket['drive_link'] : implode("\n", $resolvedPhotoUrls);
 
         $session = session();
         $userId = $session->get('id');
@@ -750,6 +756,23 @@ class Tickets extends BaseController
         send_telegram($telegramMsg);
 
         return redirect()->to('/tickets/detail/' . $newId)->with('success', 'Tiket berhasil dibuat!');
+    }
+
+    public function updateLink($id)
+    {
+        $ticketModel = new TicketModel();
+        $session = session();
+        $roleId = $session->get('role_id');
+        $userPerms = $session->get('permissions') ?: [];
+
+        // Operator (role 4), Admin (role 1), Support (role 2) can edit
+        if (!in_array($roleId, [1, 2, 4]) && !in_array('Full Access', $userPerms)) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengubah link dokumentasi.');
+        }
+
+        $link = $this->request->getPost('drive_link');
+        $ticketModel->update($id, ['drive_link' => $link]);
+        return redirect()->back()->with('success', 'Link Dokumentasi berhasil diperbarui.');
     }
 
     public function delete($id)

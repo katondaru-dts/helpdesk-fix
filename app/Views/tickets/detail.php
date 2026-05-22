@@ -142,7 +142,7 @@
                 <?php endif; ?>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DITANGANI</div><div style="font-size:14px"><?= esc($ticket['assigned_name'] ?: 'Belum diassign') ?></div></div>
                 <div><div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DIBUAT</div><div style="font-size:14px"><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></div></div>
-                
+
                 <?php if ($ticket['sla_deadline'] && !in_array($ticket['status'], ['RESOLVED', 'CLOSED'])): ?>
                     <div style="margin-top:5px; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
                         <div style="font-size:10px;color:#9ca3af;margin-bottom:5px;font-weight:bold;text-align:center">SISA WAKTU (SLA)</div>
