@@ -18,7 +18,11 @@ class RoleCheckFilter implements FilterInterface
         $sessionRoleUpdatedAt = $session->get('role_updated_at');
 
         $db = \Config\Database::connect();
-        $role = $db->table('roles')->select('role_updated_at')->where('id', $roleId)->get()->getRowArray();
+        $role = $db->table('roles')
+            ->select('role_updated_at, permissions, is_staff, is_technician')
+            ->where('id', $roleId)
+            ->get()
+            ->getRowArray();
 
         if (!$role) {
             return;
@@ -26,15 +30,20 @@ class RoleCheckFilter implements FilterInterface
 
         $dbRoleUpdatedAt = $role['role_updated_at'];
 
-        // Jika role pernah diupdate dan session belum sinkron, refresh session
+        // Jika role pernah diupdate dan session belum sinkron, refresh data session
+        // Tanpa memanggil session()->regenerate() untuk menghindari session loop
         if ($dbRoleUpdatedAt && $dbRoleUpdatedAt !== $sessionRoleUpdatedAt) {
-            $userModel = new \App\Models\UserModel();
-            $user = $userModel->find($session->get('user_id') ?? $session->get('id'));
-            if ($user) {
-                $auth = new \App\Controllers\Auth();
-                $auth->setUserSession($user);
-                $session->set('role_updated_at', $dbRoleUpdatedAt);
+            $permissions = [];
+            if (!empty($role['permissions'])) {
+                $permissions = json_decode($role['permissions'], true) ?: [];
             }
+
+            $session->set([
+                'permissions' => $permissions,
+                'is_staff' => !empty($role['is_staff']),
+                'is_technician' => !empty($role['is_technician']),
+                'role_updated_at' => $dbRoleUpdatedAt,
+            ]);
         }
     }
 
