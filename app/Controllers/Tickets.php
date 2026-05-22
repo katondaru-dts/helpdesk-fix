@@ -12,6 +12,15 @@ use App\Models\TicketMessageModel;
 use App\Models\UserModel;
 use App\Models\NotificationModel;
 use App\Models\AuditLogModel;
+use App\Libraries\MinioStorage;
+
+/**
+ * Detect whether a stored photo value is a MinIO key (just filename) or a local path.
+ */
+function is_minio_key(string $value): bool
+{
+    return $value !== '' && !str_contains($value, '/');
+}
 
 class Tickets extends BaseController
 {
@@ -139,6 +148,19 @@ class Tickets extends BaseController
         $ticket = $ticketModel->getTicketDetail($id);
         if (!$ticket) {
             return redirect()->to('/tickets')->with('error', 'Tiket tidak ditemukan.');
+        }
+
+        // Resolve photo URLs: MinIO key → presigned URL, local path → base_url()
+        $minio = new MinioStorage();
+        foreach (['photo', 'photo2'] as $field) {
+            if (!empty($ticket[$field])) {
+                if (is_minio_key($ticket[$field])) {
+                    $ticket[$field] = $minio->getPresignedUrl($ticket[$field]) ?? '';
+                } else {
+                    // Legacy local file
+                    $ticket[$field] = base_url($ticket[$field]);
+                }
+            }
         }
 
         $session = session();
@@ -630,18 +652,34 @@ class Tickets extends BaseController
             'sla_deadline' => $slaDeadline
         ]);
 
-        // ── Upload foto (opsional, max 2) ──
+        // ── Upload foto (opsional, max 2) — MinIO ──
         $photoFields = ['photo', 'photo2'];
         $allowedExts = ['jpg', 'jpeg', 'png'];
+        $minio = new MinioStorage();
+
         foreach ($photoFields as $field) {
             $file = $this->request->getFile($field);
             if ($file && $file->isValid() && !$file->hasMoved()) {
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
                 $ext = strtolower($file->getExtension());
-                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 2048 * 1024) {
+                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 5 * 1024 * 1024) {
                     $fileName = $field . '_' . $newId . '_' . $file->getRandomName();
+                    // Temporarily move to local, then upload to MinIO
+                    $tempPath = FCPATH . 'uploads/tickets/' . $fileName;
                     if ($file->move(FCPATH . 'uploads/tickets', $fileName)) {
-                        $ticketModel->update($newId, [$field => 'uploads/tickets/' . $fileName]);
+                        try {
+                            $minio->upload($tempPath, $fileName);
+                            // Store only the basename (MinIO key — no path prefix)
+                            $ticketModel->update($newId, [$field => $fileName]);
+                            // Clean up temporary local file after successful upload
+                            if (file_exists($tempPath)) {
+                                unlink($tempPath);
+                            }
+                        } catch (\Exception $e) {
+                            log_message('error', '[Tickets] MinIO upload failed: ' . $e->getMessage());
+                            // Fallback: keep local file
+                            $ticketModel->update($newId, [$field => 'uploads/tickets/' . $fileName]);
+                        }
                     }
                 }
             }
@@ -734,12 +772,20 @@ class Tickets extends BaseController
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // Hapus file foto fisik
+        // Hapus file foto fisik & MinIO
+        $minio = new MinioStorage();
         foreach (['photo', 'photo2'] as $field) {
             if (!empty($ticket[$field])) {
-                $filePath = FCPATH . $ticket[$field];
-                if (file_exists($filePath)) {
-                    unlink($filePath);
+                $value = $ticket[$field];
+                if (is_minio_key($value)) {
+                    // Stored as MinIO key (just filename)
+                    $minio->delete($value);
+                } else {
+                    // Legacy local file
+                    $filePath = FCPATH . $value;
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
                 }
             }
         }

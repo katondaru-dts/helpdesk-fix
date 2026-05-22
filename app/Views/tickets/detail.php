@@ -45,10 +45,10 @@
                     <div style="font-size:13px;font-weight:600;color:#6b7280;margin-bottom:8px"><i class="bi bi-image"></i> Foto Dokumentasi</div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap">
                         <?php if ($ticket['photo']): ?>
-                            <img src="<?= base_url($ticket['photo']) ?>" alt="Foto 1" class="ticketPhoto" data-photo="<?= base_url($ticket['photo']) ?>" style="max-width:48%;height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;flex:1;min-width:200px">
+                            <img src="<?= $ticket['photo'] ?>" alt="Foto 1" class="ticketPhoto" data-photo="<?= $ticket['photo'] ?>" style="max-width:48%;height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;flex:1;min-width:200px">
                         <?php endif; ?>
                         <?php if ($ticket['photo2']): ?>
-                            <img src="<?= base_url($ticket['photo2']) ?>" alt="Foto 2" class="ticketPhoto" data-photo="<?= base_url($ticket['photo2']) ?>" style="max-width:48%;height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;flex:1;min-width:200px">
+                            <img src="<?= $ticket['photo2'] ?>" alt="Foto 2" class="ticketPhoto" data-photo="<?= $ticket['photo2'] ?>" style="max-width:48%;height:200px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;flex:1;min-width:200px">
                         <?php endif; ?>
                     </div>
                 </div>
