@@ -25,10 +25,9 @@ class StaffFilter implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null)
     {
-        $roleId = session()->get('role_id');
-        helper('auth'); // Ensure auth helper is loaded for has_permission()
-        // Allow Admin (1), Staff/Operator (4), and anyone with 'Lihat Laporan' permission
-        if ($roleId != 1 && $roleId != 4 && !has_permission('Lihat Laporan')) {
+        helper('auth');
+        // Allow staff or anyone with 'Lihat Laporan' permission
+        if (!is_staff() && !has_permission('Lihat Laporan')) {
             return redirect()->to('/dashboard')->with('error', 'Akses Ditolak. Halaman ini khusus untuk Administrator dan Operator.');
         }
     }

@@ -48,6 +48,8 @@ class Roles extends BaseController
         $code = $this->request->getPost('code');
         $perms = $this->request->getPost('permissions');
         $permissions = $perms ? json_encode(array_values($perms)) : json_encode([]);
+        $isStaff = $this->request->getPost('is_staff') ? 1 : 0;
+        $isTechnician = $this->request->getPost('is_technician') ? 1 : 0;
 
         if ($id && $id == 1) {
             return redirect()->to('/admin/roles')->with('error', 'Role Superadmin tidak dapat diubah izinnya.');
@@ -57,14 +59,22 @@ class Roles extends BaseController
             $data = [
                 'code' => $code,
                 'name' => $name,
-                'permissions' => $permissions
+                'permissions' => $permissions,
+                'is_staff' => $isStaff,
+                'is_technician' => $isTechnician,
             ];
             $roleModel->update($id, $data);
             $auditLog->logAction('UPDATE', 'roles', $id, $data);
             return redirect()->to('/admin/roles')->with('success', 'Role diperbarui.');
         }
         else {
-            $data = ['code' => $code, 'name' => $name, 'permissions' => $permissions];
+            $data = [
+                'code' => $code,
+                'name' => $name,
+                'permissions' => $permissions,
+                'is_staff' => $isStaff,
+                'is_technician' => $isTechnician,
+            ];
             $roleModel->insert($data);
             $auditLog->logAction('CREATE', 'roles', $roleModel->getInsertID(), $data);
             return redirect()->to('/admin/roles')->with('success', 'Role ditambahkan.');

@@ -24,7 +24,7 @@
                     style="width:100%;padding:12px;border-radius:8px;border:1px solid #d1d5db;"
                     placeholder="Contoh: Printer ruang finance tidak bisa print">
             </div>
-            <?php $isStaff = in_array(session()->get('role_id'), [1, 2, 4]); ?>
+            <?php $isStaff = is_staff(); ?>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
                 <div style="<?= $isStaff ? '' : 'grid-column:span 2' ?>">
                     <label style="display:block;margin-bottom:8px;font-weight:600">Kategori <span

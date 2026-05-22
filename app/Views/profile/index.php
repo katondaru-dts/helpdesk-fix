@@ -43,7 +43,7 @@
                 </div>
                 <div>
                     <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Email</label>
-                    <input type="email" name="email" value="<?= esc($user['email']) ?>" required style="width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:<?= session()->get('role_id') == 1 ? 'white' : '#f3f4f6' ?>;box-sizing:border-box" <?= session()->get('role_id') != 1 ? 'readonly' : '' ?>>
+                    <input type="email" name="email" value="<?= esc($user['email']) ?>" required style="width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:<?= is_admin() ? 'white' : '#f3f4f6' ?>;box-sizing:border-box" <?= !is_admin() ? 'readonly' : '' ?>>
                 </div>
                 <div>
                     <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">No. Telepon</label>
@@ -58,8 +58,8 @@
                 </div>
                 <div>
                     <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Departemen</label>
-                    <select name="dept_id" style="width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:<?= session()->get('role_id') == 1 ? 'white' : '#f3f4f6' ?>;box-sizing:border-box" <?= session()->get('role_id') != 1 ? 'disabled' : '' ?>>
-                        <?php if (session()->get('role_id') == 1): ?>
+                    <select name="dept_id" style="width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:<?= is_admin() ? 'white' : '#f3f4f6' ?>;box-sizing:border-box" <?= !is_admin() ? 'disabled' : '' ?>>
+                        <?php if (is_admin()): ?>
                             <option value="">-- Pilih Departemen --</option>
                             <?php foreach ($departments as $d): ?>
                                 <option value="<?= $d['id'] ?>" <?= $user['dept_id'] == $d['id'] ? 'selected' : '' ?>><?= esc($d['name']) ?></option>

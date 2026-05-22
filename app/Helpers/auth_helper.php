@@ -27,3 +27,48 @@ if (!function_exists('has_permission')) {
         return in_array($permission, $permissions);
     }
 }
+
+if (!function_exists('is_staff')) {
+    /**
+     * Cek apakah user saat ini adalah staff (punya akses ke panel staff).
+     * Backward compatibility: role_id 1, 4 dianggap staff.
+     */
+    function is_staff(): bool
+    {
+        $session = session();
+        $val = $session->get('is_staff');
+        if ($val === true || $val === 1 || $val === '1') {
+            return true;
+        }
+        // Backward compatibility untuk session lama
+        $roleId = $session->get('role_id');
+        return in_array($roleId, [1, 4]);
+    }
+}
+
+if (!function_exists('is_technician')) {
+    /**
+     * Cek apakah user saat ini adalah teknisi (bisa ditugaskan ke tiket).
+     * Backward compatibility: role_id 2 dianggap teknisi.
+     */
+    function is_technician(): bool
+    {
+        $session = session();
+        $val = $session->get('is_technician');
+        if ($val === true || $val === 1 || $val === '1') {
+            return true;
+        }
+        // Backward compatibility untuk session lama
+        return $session->get('role_id') == 2;
+    }
+}
+
+if (!function_exists('is_admin')) {
+    /**
+     * Cek apakah user saat ini adalah administrator (role_id=1).
+     */
+    function is_admin(): bool
+    {
+        return session()->get('role_id') == 1;
+    }
+}

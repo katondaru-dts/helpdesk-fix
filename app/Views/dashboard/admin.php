@@ -218,7 +218,7 @@
             <i class="bi bi-arrow-repeat refresh-btn" title="Refresh Dasbor"></i>
         </div>
         <div class="d-flex gap-2">
-            <?php if (has_permission('Buat Tiket') || session()->get('role_id') == 4): ?>
+            <?php if (has_permission('Buat Tiket') || is_staff()): ?>
                 <a href="<?= base_url('tickets/create') ?>" class="btn btn-success" style="font-weight:500; border-radius:8px; padding:8px 16px;"><i class="bi bi-plus-circle"></i> Buat Tiket</a>
             <?php endif; ?>
             <a href="<?= base_url('admin/reports') ?>" class="btn btn-outline-secondary" style="font-weight:500; border-radius:8px; padding:8px 16px;"><i class="bi bi-bar-chart"></i> Laporan</a>

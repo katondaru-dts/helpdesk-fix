@@ -34,7 +34,7 @@
                 <div style="text-align:right">
                     <span class="badge" style="display:inline-block;margin-bottom:5px"><?= $ticket['status'] ?></span><br>
                     <span class="badge" style="background:#f3f4f6;color:#374151"><?= $ticket['priority'] ?></span>
-                    <?php if (session()->get('role_id') == 1): ?>
+                    <?php if (is_admin()): ?>
                         <form action="<?= base_url('tickets/delete/' . $ticket['id']) ?>" method="POST" style="margin-top:10px" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dibatalkan.');">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-sm btn-outline" style="color:#ef4444;border-color:#ef4444;width:100%"><i class="bi bi-trash"></i> Hapus Tiket</button>
@@ -173,7 +173,7 @@
                                 <?php 
                                 $statuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'];
                                 foreach($statuses as $st): 
-                                    if (session()->get('role_id') == 2 && $st === 'CLOSED') continue;
+                                    if (is_technician() && $st === 'CLOSED') continue;
                                 ?>
                                     <option value="<?= $st ?>" <?= $ticket['status'] == $st ? 'selected' : '' ?>><?= $st ?></option>
                                 <?php endforeach; ?>

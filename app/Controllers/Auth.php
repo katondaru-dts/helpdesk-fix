@@ -128,8 +128,14 @@ class Auth extends BaseController
         $roleModel = new \App\Models\RoleModel();
         $role = $roleModel->find($user['role_id']);
         $permissions = [];
-        if ($role && $role['permissions']) {
-            $permissions = json_decode($role['permissions'], true) ?: [];
+        $isStaff = false;
+        $isTechnician = false;
+        if ($role) {
+            if ($role['permissions']) {
+                $permissions = json_decode($role['permissions'], true) ?: [];
+            }
+            $isStaff = !empty($role['is_staff']);
+            $isTechnician = !empty($role['is_technician']);
         }
 
         $userPermissions = null;
@@ -146,6 +152,8 @@ class Auth extends BaseController
             'dept_id' => $user['dept_id'],
             'permissions' => $permissions,
             'user_permissions' => $userPermissions,
+            'is_staff' => $isStaff,
+            'is_technician' => $isTechnician,
             'isLoggedIn' => true,
             'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
             'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
@@ -322,8 +330,15 @@ class Auth extends BaseController
 
             // STEP 4: Set session langsung dari data yang sudah ada (tanpa query tambahan)
             $permissions = [];
+            $isStaff = false;
+            $isTechnician = false;
             if (!empty($user['role_permissions'])) {
-                $permissions = json_decode($user['role_permissions'], true) ?: [];
+                $roleData = $db->table('roles')->where('id', $user['role_id'])->get()->getRowArray();
+                if ($roleData) {
+                    $permissions = json_decode($roleData['permissions'], true) ?: [];
+                    $isStaff = !empty($roleData['is_staff']);
+                    $isTechnician = !empty($roleData['is_technician']);
+                }
             }
 
             session()->set([
@@ -334,6 +349,8 @@ class Auth extends BaseController
                 'role_id' => $user['role_id'],
                 'dept_id' => $user['dept_id'],
                 'permissions' => $permissions,
+                'is_staff' => $isStaff,
+                'is_technician' => $isTechnician,
                 'isLoggedIn' => true,
                 'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
                 'notif_sound_type' => $user['notif_sound_type'] ?? 'default',

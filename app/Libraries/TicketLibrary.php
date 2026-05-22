@@ -33,7 +33,11 @@ class TicketLibrary
                 add_notification($senderId, 'NEW_TICKET', 'Tiket Berhasil Dibuat', 'Tiket Anda "' . $ticket['title'] . '" telah berhasil dibuat.', $ticketId);
 
                 // Notify staff
-                $staff = $userModel->whereIn('role_id', [1, 2, 4])->where('is_active', 1)->findAll();
+                $staff = $userModel->select('users.*')
+                    ->join('roles', 'users.role_id = roles.id')
+                    ->where('roles.is_staff', 1)
+                    ->where('users.is_active', 1)
+                    ->findAll();
                 foreach ($staff as $s) {
                     if ($s['id'] != $senderId) {
                         add_notification($s['id'], 'NEW_TICKET', 'Tiket Baru Masuk', 'Pengirim: ' . $senderName . $locationStr . ' | Judul: "' . $ticket['title'] . '"', $ticketId);
@@ -55,7 +59,11 @@ class TicketLibrary
                     $userIdsToNotify[] = $ticket['assigned_to'];
                 }
 
-                $admins = $userModel->whereIn('role_id', [1, 4])->where('is_active', 1)->findAll();
+                $admins = $userModel->select('users.*')
+                    ->join('roles', 'users.role_id = roles.id')
+                    ->where('roles.is_staff', 1)
+                    ->where('users.is_active', 1)
+                    ->findAll();
                 foreach ($admins as $admin) {
                     if ($admin['id'] != $senderId)
                         $userIdsToNotify[] = $admin['id'];

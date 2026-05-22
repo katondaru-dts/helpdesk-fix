@@ -48,7 +48,7 @@ class Tickets extends BaseController
         $userModel = new UserModel();
 
         $session = session();
-        $isStaff = ($session->get('role_id') == 1 || $session->get('role_id') == 2 || $session->get('role_id') == 4);
+        $isStaff = is_staff();
         $userId = $session->get('id');
 
         $filters = [
@@ -68,7 +68,12 @@ class Tickets extends BaseController
         $query = $ticketModel->getFilteredTickets($filters, $isStaff, $userId);
 
         // Load list of technicians (support staff) for filter dropdown
-        $technicians = $userModel->whereIn('role_id', [2])->where('is_active', 1)->orderBy('name', 'ASC')->findAll();
+        $technicians = $userModel->select('users.*')
+            ->join('roles', 'users.role_id = roles.id')
+            ->where('roles.is_technician', 1)
+            ->where('users.is_active', 1)
+            ->orderBy('users.name', 'ASC')
+            ->findAll();
 
         $data = [
             'pageTitle' => $isStaff ? 'Semua Tiket' : 'Tiket Saya',
@@ -90,7 +95,7 @@ class Tickets extends BaseController
     {
         $ticketModel = new TicketModel();
         $session = session();
-        $isStaff = ($session->get('role_id') == 1 || $session->get('role_id') == 2 || $session->get('role_id') == 4);
+        $isStaff = is_staff();
         $userId = $session->get('id');
 
         $filters = [
@@ -172,18 +177,18 @@ class Tickets extends BaseController
         $session = session();
         $userId = $session->get('id');
         $roleId = $session->get('role_id');
-        $isStaff = ($roleId == 1 || $roleId == 2 || $roleId == 4);
+        $isStaff = is_staff();
 
         $userPerms = $session->get('permissions') ?: [];
-        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || $roleId == 1 || $roleId == 4;
-        $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || $roleId == 1 || $roleId == 2 || $roleId == 4;
+        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin() || is_staff();
+        $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_staff();
 
         if (!$isStaff && $ticket['reporter_id'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
         }
 
-        // Support (role_id=2) hanya bisa lihat tiket yang ditugaskan kepadanya atau belum diassign
-        if ($roleId == 2 && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
+        // Teknisi hanya bisa lihat tiket yang ditugaskan kepadanya atau belum diassign
+        if (is_technician() && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak. Tiket ini tidak ditugaskan kepada Anda.');
         }
 
@@ -214,7 +219,11 @@ class Tickets extends BaseController
             return strtotime($a['at']) - strtotime($b['at']);
         });
 
-        $supports = $userModel->where('role_id', 2)->where('is_active', 1)->findAll();
+        $supports = $userModel->select('users.*')
+    ->join('roles', 'users.role_id = roles.id')
+    ->where('roles.is_technician', 1)
+    ->where('users.is_active', 1)
+    ->findAll();
 
         $data = [
             'pageTitle' => "Detail Tiket: " . $ticket['id'],
@@ -270,8 +279,12 @@ class Tickets extends BaseController
 
                 $userModel = new \App\Models\UserModel();
 
-                // Selalu beritahu semua Administrator (Role 1) agar mereka bisa memantau semua aktivitas tiket
-                $admins = $userModel->where('role_id', 1)->where('is_active', 1)->findAll();
+                // Selalu beritahu semua Administrator agar mereka bisa memantau semua aktivitas tiket
+                $admins = $userModel->select('users.*')
+                    ->join('roles', 'users.role_id = roles.id')
+                    ->where('roles.is_staff', 1)
+                    ->where('users.is_active', 1)
+                    ->findAll();
                 foreach ($admins as $admin) {
                     if ($admin['id'] != $senderId) {
                         $userIdsToNotify[] = $admin['id'];
@@ -280,7 +293,11 @@ class Tickets extends BaseController
 
                 // Jika tiket belum diassign, beritahu SEMUA staf (Admin, Support, Operator)
                 if (empty($ticket['assigned_to'])) {
-                    $staffToNotify = $userModel->whereIn('role_id', [1, 2, 4])->where('is_active', 1)->findAll();
+                    $staffToNotify = $userModel->select('users.*')
+                        ->join('roles', 'users.role_id = roles.id')
+                        ->where('roles.is_staff', 1)
+                        ->where('users.is_active', 1)
+                        ->findAll();
                     foreach ($staffToNotify as $staff) {
                         if ($staff['id'] != $senderId) {
                             $userIdsToNotify[] = $staff['id'];
@@ -717,10 +734,11 @@ class Tickets extends BaseController
             $newId
         );
 
-        // 2. Notify all admins (role_id=1), IT Support (role_id=2) and operators (role_id=4)
-        $staffToNotify = $userModel
-            ->whereIn('role_id', [1, 2, 4])
-            ->where('is_active', 1)
+        // 2. Notify all staff
+        $staffToNotify = $userModel->select('users.*')
+            ->join('roles', 'users.role_id = roles.id')
+            ->where('roles.is_staff', 1)
+            ->where('users.is_active', 1)
             ->findAll();
 
         $locationStr = $this->request->getPost('location') ? ' | Lokasi: ' . $this->request->getPost('location') : '';
@@ -765,8 +783,8 @@ class Tickets extends BaseController
         $roleId = $session->get('role_id');
         $userPerms = $session->get('permissions') ?: [];
 
-        // Operator (role 4), Admin (role 1), Support (role 2) can edit
-        if (!in_array($roleId, [1, 2, 4]) && !in_array('Full Access', $userPerms)) {
+        // Staff can edit documentation link
+        if (!is_staff() && !in_array('Full Access', $userPerms)) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengubah link dokumentasi.');
         }
 
@@ -778,7 +796,7 @@ class Tickets extends BaseController
     public function delete($id)
     {
         $session = session();
-        if ($session->get('role_id') != 1) {
+        if (!is_admin()) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk menghapus tiket.');
         }
 

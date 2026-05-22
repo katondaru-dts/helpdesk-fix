@@ -44,8 +44,14 @@ abstract class BaseController extends Controller
             $roleModel = new \App\Models\RoleModel();
             $role = $roleModel->find($user['role_id']);
             $permissions = [];
-            if ($role && $role['permissions']) {
-                $permissions = json_decode($role['permissions'], true) ?: [];
+            $isStaff = false;
+            $isTechnician = false;
+            if ($role) {
+                if ($role['permissions']) {
+                    $permissions = json_decode($role['permissions'], true) ?: [];
+                }
+                $isStaff = !empty($role['is_staff']);
+                $isTechnician = !empty($role['is_technician']);
             }
 
             $userPermissions = null;
@@ -59,6 +65,8 @@ abstract class BaseController extends Controller
                 'name'             => $user['name'],
                 'permissions'      => $permissions,
                 'user_permissions' => $userPermissions,
+                'is_staff'         => $isStaff,
+                'is_technician'    => $isTechnician,
                 'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
                 'notif_sound_type'    => $user['notif_sound_type'] ?? 'default',
             ]);
@@ -70,8 +78,8 @@ abstract class BaseController extends Controller
                 ->where('n.user_id', $userId)
                 ->where('n.is_read', 0);
 
-            // User biasa (role 3) hanya hitung notifikasi dari tiket miliknya sendiri
-            if ($user['role_id'] == 3) {
+            // Non-staff hanya hitung notifikasi dari tiket miliknya sendiri
+            if (!$isStaff) {
                 $builderUnread->where('t.reporter_id', $userId);
             }
 

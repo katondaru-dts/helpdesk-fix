@@ -50,7 +50,8 @@ class Dashboard extends BaseController
             $data['recentMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, users.role_id as sender_role, tickets.title as ticket_title')
                 ->join('tickets', 'ticket_messages.ticket_id = tickets.id')
                 ->join('users', 'ticket_messages.sender_id = users.id')
-                ->where('users.role_id', 3) // Hanya pesan dari role User
+                ->join('roles', 'users.role_id = roles.id')
+                ->where('roles.is_staff', 0) // Hanya pesan dari non-staff (user biasa)
                 ->where('ticket_messages.is_internal', 0)
                 ->orderBy('ticket_messages.sent_at', 'DESC')
                 ->limit(5)
@@ -60,7 +61,8 @@ class Dashboard extends BaseController
             $data['recentOperatorMessages'] = $messageModel->select('ticket_messages.*, users.name as sender_name, users.role_id as sender_role, tickets.title as ticket_title')
                 ->join('tickets', 'ticket_messages.ticket_id = tickets.id')
                 ->join('users', 'ticket_messages.sender_id = users.id')
-                ->whereIn('users.role_id', [1, 2, 4]) // Admin, Support, Staff
+                ->join('roles', 'users.role_id = roles.id')
+                ->where('roles.is_staff', 1) // Pesan dari staff
                 ->where('ticket_messages.is_internal', 0)
                 ->orderBy('ticket_messages.sent_at', 'DESC')
                 ->limit(5)
@@ -134,7 +136,12 @@ class Dashboard extends BaseController
             }
 
             // Kinerja Tim Teknisi (Tiket Selesai per Teknisi)
-            $techs = $userModel->where('role_id', 2)->where('is_active', 1)->orderBy('name', 'ASC')->findAll();
+            $techs = $userModel->select('users.*')
+                ->join('roles', 'users.role_id = roles.id')
+                ->where('roles.is_technician', 1)
+                ->where('users.is_active', 1)
+                ->orderBy('users.name', 'ASC')
+                ->findAll();
 
             $lineData = ['labels' => [], 'datasets' => []];
             $colors = ['#F43F5E', '#8B5CF6', '#F59E0B', '#3B82F6', '#10B981', '#06B6D4', '#EC4899', '#14B8A6', '#6366F1', '#F97316', '#84CC16', '#A855F7', '#EF4444', '#0EA5E9', '#22C55E'];

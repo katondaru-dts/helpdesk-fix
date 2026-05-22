@@ -90,6 +90,15 @@
                 </div>
             </div>
 
+            <div style="margin-bottom:15px;display:flex;gap:20px;background:#f0fdf4;padding:12px 15px;border-radius:8px;border:1px solid #bbf7d0">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+                    <input type="checkbox" name="is_staff" id="m-is-staff" value="1"> Staff (Akses Laporan & Staff Panel)
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+                    <input type="checkbox" name="is_technician" id="m-is-technician" value="1"> Teknisi (Bisa Ditugaskan ke Tiket)
+                </label>
+            </div>
+
             <div id="perm-section">
                 <label style="display:block;margin-bottom:10px;font-size:13px;font-weight:600;border-bottom:1px solid #e5e7eb;padding-bottom:5px">Hak Akses / Izin (Pilih yang sesuai)</label>
                 <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:25px;background:#f9fafb;padding:15px;border-radius:8px;border:1px solid #f3f4f6">
@@ -123,7 +132,11 @@ function openRoleModal(r = null) {
     document.getElementById('m-code').value = r ? r.code : '';
     document.getElementById('m-name').value = r ? r.name : '';
     document.getElementById('m-title').innerText = r ? 'Edit Role' : 'Tambah Role';
-    
+
+    // Set flags
+    document.getElementById('m-is-staff').checked = r ? (r.is_staff == 1 || r.is_staff === '1') : false;
+    document.getElementById('m-is-technician').checked = r ? (r.is_technician == 1 || r.is_technician === '1') : false;
+
     // Reset checkboxes
     const checkboxes = document.querySelectorAll('.cb-perm');
     checkboxes.forEach(cb => cb.checked = false);

@@ -30,10 +30,11 @@ class Cron extends BaseController
 
         helper('notification');
 
-        // 2. Identify personnel to notify (Admins=1, Operators=4)
-        $staffToNotify = $userModel
-            ->whereIn('role_id', [1, 4])
-            ->where('is_active', 1)
+        // 2. Identify personnel to notify (all staff)
+        $staffToNotify = $userModel->select('users.*')
+            ->join('roles', 'users.role_id = roles.id')
+            ->where('roles.is_staff', 1)
+            ->where('users.is_active', 1)
             ->findAll();
 
         $count = 0;
