@@ -14,15 +14,6 @@ class Dashboard extends BaseController
     public function index()
     {
         $session = session();
-        // DEBUG SEMENTARA - hapus setelah selesai
-        if ($session->get('role_id') == 5) {
-            dd([
-                'role_id' => $session->get('role_id'),
-                'is_staff' => $session->get('is_staff'),
-                'permissions' => $session->get('permissions'),
-                'user_permissions' => $session->get('user_permissions'),
-            ]);
-        }
         $userRole = $session->get('role_id');
         $userId = $session->get('user_id') ?? $session->get('id');
 
