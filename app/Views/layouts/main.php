@@ -26,7 +26,8 @@
                 <div class="nav-section">Menu Utama</div>
                 <?php
                 $role = session()->get('role_id');
-                $isStaff = ($role == 1 || $role == 2 || $role == 4);
+                $isStaff = session()->get('is_staff') || in_array($role, [1, 2, 4]);
+                $isStaff = $isStaff || has_permission('Lihat Laporan');
                 ?>
                 <a href="<?= base_url('dashboard') ?>" class="<?= $activePage == 'dashboard' ? 'active' : '' ?>"><i
                         class="bi bi-speedometer2"></i> Dashboard</a>
