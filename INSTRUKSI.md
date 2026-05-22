@@ -59,6 +59,12 @@ Karena masalah *bind mount caching* di Windows:
 - Setiap balasan tiket harus memicu notifikasi ke pihak terkait.
 - Notifikasi yang terkait dengan tiket wajib dihapus otomatis jika tiket tersebut dihapus (Cascading delete di level aplikasi).
 
+### 3. Upload Foto Dokumentasi
+- Lokasi penyimpanan fisik: `public/uploads/tickets/`.
+- Foto harus divalidasi di sisi frontend (JS) dan backend (PHP) dengan batas maksimal **5MB** per file.
+- Folder penyimpanan wajib memiliki `.htaccess` untuk keamanan guna mencegah eksekusi script.
+- Gunakan `getRandomName()` untuk mencegah tabrakan nama file dan masalah privasi.
+
 ---
 
 ## 🤖 Instruksi untuk AI Agent (Gemini CLI)
@@ -73,5 +79,5 @@ Jika Anda (AI Agent) bekerja pada proyek ini, ikuti aturan tambahan berikut:
 
 ---
 
-*Terakhir diperbarui: 20 April 2026 | Versi Dokumen: 1.0.0*
+*Terakhir diperbarui: 22 Mei 2026 | Versi Dokumen: 1.1.0*
 /model

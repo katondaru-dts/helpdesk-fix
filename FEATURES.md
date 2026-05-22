@@ -42,6 +42,12 @@
 - [x] Balas tiket (komentar/respons support)
 - [x] Update status tiket (OPEN → IN_PROGRESS → RESOLVED → CLOSED)
 - [x] **Export tiket ke CSV/Excel** — Menyertakan deskripsi dan Link Dokumentasi.
+- [x] **Upload Foto Dokumentasi** — Mendukung hingga 2 slot foto saat pembuatan tiket:
+    - Integrasi kamera native pada perangkat mobile.
+    - Preview gambar langsung sebelum kirim.
+    - **Picasa-Style Modal Viewer** — Fitur zoom, pan (drag), dan reset pada modal preview foto.
+    - Validasi format (JPG, PNG) dan ukuran maksimal 5MB per file.
+    - Konfirmasi akhir pengiriman jika terdapat lampiran foto.
 - [x] **Perbaikan Tampilan Riwayat & Balasan** — Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual, serta dilengkapi dengan **Scrollbar Vertikal Custom** (max-height 800px) untuk mencegah halaman memanjang saat obrolan tiket lebih dari ~10-15 balasan.
 - [x] **Penghapusan Tiket Menyeluruh** — Notifikasi yang terkait dengan tiket akan ikut terhapus secara otomatis ketika tiket tersebut dihapus untuk mencegah data notifikasi tertinggal (*orphan data*).
 

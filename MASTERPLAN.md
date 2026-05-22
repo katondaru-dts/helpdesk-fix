@@ -115,7 +115,7 @@ helpdesk-v2/
 | `roles` | Data role (code, name, permissions JSON) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
-| `tickets` | Data tiket (id, title, description, drive_link, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
+| `tickets` | Data tiket (id, title, description, drive_link, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
 | `ticket_replies` | Balasan/komentar pada tiket |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
@@ -181,7 +181,7 @@ helpdesk-v2/
 
 ## ✅ Fitur yang Telah Diimplementasikan
 
-Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket, notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
+Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket (termasuk upload dokumentasi), notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
 
 Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
 
@@ -210,6 +210,7 @@ Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
   - **Tips Pelaporan** (Checklist instruksi pelaporan)
   - **Artikel Populer** (Menampilkan 5 artikel Knowledge Base yang paling sering dilihat)
   - **CTA AI Assistant** (Akses cepat ke Tanya AI dan Knowledge Base jika user tidak menemukan solusi)
+- **Upload Foto Dokumentasi**: Form buat tiket mendukung 2 slot foto dengan dukungan kamera mobile, preview modal interaktif (zoom/drag), dan validasi ukuran hingga 5MB.
 
 ---
 
@@ -321,6 +322,7 @@ flowchart TD
 14. **Login Attempt Tracking & Lockout** — Setelah 3 kali gagal, akun dikunci otomatis selama **1 menit**.
 15. **Alphanumeric CAPTCHA** — Setelah 2 kali percobaan gagal, tampil CAPTCHA kode acak 6 karakter.
 16. **Architecture Improvement** — Logika presentasi ekspor dipisahkan dari Controller ke View (`export_excel.php`).
+17. **File Execution Protection** — Folder uploads tiket dilengkapi `.htaccess` untuk memblokir eksekusi script PHP dan membatasi hanya file gambar yang diizinkan.
 
 ---
 
@@ -363,6 +365,7 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 | `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`: notifikasi email HTML ke user |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
+| `public/uploads/tickets/` | Root/public | Folder penyimpanan fisik foto dokumentasi tiket |
 
 ---
 
@@ -393,4 +396,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 
-*Terakhir diperbarui: 07 Mei 2026 | Versi: 2.13.1 (Memperbaiki fatal error DotEnv pada Docker dengan menambahkan tanda kutip pada variabel environment yang mengandung spasi)*
+*Terakhir diperbarui: 22 Mei 2026 | Versi: 2.14.0 (Menambahkan fitur Upload Foto Dokumentasi Tiket dengan preview Picasa-style)*
