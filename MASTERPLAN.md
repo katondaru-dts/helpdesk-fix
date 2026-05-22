@@ -112,7 +112,7 @@ helpdesk-v2/
 | Tabel | Fungsi |
 |-------|--------|
 | `users` | Data pengguna (name, email, password, role_id, dept_id, gender, phone, is_active, **login_attempts**, **lockout_time**) |
-| `roles` | Data role (code, name, permissions JSON) |
+| `roles` | Data role (code, name, permissions JSON, **is_staff**, **is_technician**, **role_updated_at**) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
 | `tickets` | Data tiket (id, title, description, drive_link, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
@@ -396,4 +396,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 
-*Terakhir diperbarui: 22 Mei 2026 | Versi: 2.14.0 (Menambahkan fitur Upload Foto Dokumentasi Tiket dengan preview Picasa-style)*
+*Terakhir diperbarui: 23 Mei 2026 | Versi: 2.14.1 (Memperbaiki error Whoops di dashboard dengan penambahan kolom role_updated_at dan refactor RoleCheckFilter)*
