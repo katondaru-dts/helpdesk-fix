@@ -1,68 +1,67 @@
-# helpdesk-fix
+# Helpdesk IT - Universitas Merdeka Malang
 
-## What is CodeIgniter?
+Sistem Helpdesk berbasis CodeIgniter 4 untuk menangani pelaporan gangguan IT, manajemen tiket, dan laporan statistik.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Fitur Utama
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+- **Manajemen Tiket** — Buat, lihat, update status, assign teknisi, balas tiket
+- **Upload Foto** — Upload foto dokumentasi via MinIO Object Storage
+- **Laporan & Statistik** — Filter tanggal, statistik ringkasan, export Excel/PDF/Cetak
+- **Notifikasi** — Notifikasi in-app, Telegram, dan Email
+- **AI Assistant** — Chatbot berbasis Gemini API untuk bantuan IT
+- **Knowledge Base** — Artikel solusi IT yang bisa dicari
+- **SSO Google** — Login dengan akun Google @unmer.ac.id
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+## Laporan (Kolom Dokumentasi)
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+Di halaman Laporan & Statistik (`admin/reports`), setiap tiket memiliki kolom **Link Dokumentasi** yang bisa diisi manual oleh operator/teknisi/admin. Mekanismenya:
 
-## Installation & updates
+1. **Auto-fill dari foto**: Jika tiket memiliki foto (via MinIO), URL presigned akan otomatis terisi di kolom input link — tinggal klik **Simpan** untuk menyimpannya ke database.
+2. **Input manual**: Operator/teknisi/admin bisa memasukkan tautan Google Drive atau link lainnya langsung di kolom input.
+3. **Fallback display**: Jika `drive_link` kosong saat ditampilkan di export (Excel/PDF), sistem akan menampilkan URL foto sebagai fallback.
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+Link yang tersimpan akan muncul di semua format laporan:
+- Tabel web (dengan tombol buka link)
+- Export Excel
+- Export PDF
+- Cetak (print)
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+## Persyaratan Server
 
-## Setup
+- PHP 8.1+
+- MySQL/MariaDB
+- MinIO Object Storage
+- Ekstensi: intl, mbstring, json, mysqlnd, libcurl
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+## Instalasi
 
-## Important Change with index.php
+1. Clone repository
+2. `composer install`
+3. Copy `env` ke `.env` dan sesuaikan konfigurasi (database, MinIO, Google OAuth, Telegram, Email)
+4. `php spark migrate`
+5. `php spark db:seed` (jika ada seeder)
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## Konfigurasi `.env`
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+```env
+CI_ENVIRONMENT = development
+app.baseURL = 'http://localhost:8080/'
 
-**Please** read the user guide for a better explanation of how CI4 works!
+# Database
+database.default.hostname = localhost
+database.default.database = helpdesk_v2
+database.default.username = root
+database.default.password =
 
-## Repository Management
+# MinIO
+MINIO_ENDPOINT = 'localhost:9000'
+MINIO_USE_SSL = false
+MINIO_ACCESS_KEY = 'your-access-key'
+MINIO_SECRET_KEY = 'your-secret-key'
+MINIO_BUCKET_DEV = 'devhelpdesk'
+MINIO_FOLDER_DEV = 'Documentation'
+```
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+## Lisensi
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
-
-## Server Requirements
-
-PHP version 8.1 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+Hak Cipta © Universitas Merdeka Malang
