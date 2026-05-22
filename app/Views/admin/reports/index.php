@@ -141,6 +141,7 @@
                     <th style="text-align: center; width: 100px;">Status</th>
                     <th style="width: 120px;">Pelapor</th>
                     <th style="width: 120px;">Pemohon</th>
+                    <th style="width: 120px;">Teknisi</th>
                     <th style="width: 130px;">Lokasi Gangguan</th>
                     <th style="width: 210px;">Deskripsi</th>
                     <th style="width: 180px;">Link Dokumentasi</th>
@@ -150,7 +151,7 @@
             <tbody>
                 <?php if (empty($tickets)): ?>
                 <tr>
-                    <td colspan="10" style="text-align: center; padding: 48px 24px; color: #94a3b8;">
+                    <td colspan="11" style="text-align: center; padding: 48px 24px; color: #94a3b8;">
                         <i class="bi bi-inbox" style="font-size: 36px; display: block; margin-bottom: 8px;"></i>
                         Tidak ada data tiket untuk periode ini.
                     </td>
@@ -170,6 +171,7 @@
                     </td>
                     <td><div style="font-size: 13px; color: #475569; font-weight: 500;"><?= esc($t['reporter_name']) ?></div></td>
                     <td><div style="font-size: 13px; color: #475569; font-weight: 500;"><?= esc($t['requester_name'] ?? '') ?></div></td>
+                    <td><div style="font-size: 13px; color: #475569; font-weight: 500;"><?= esc($t['teknisi_name'] ?? '-') ?></div></td>
                     <td><div style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;"><?php if(!empty($t['location'])): ?><i class="bi bi-geo-alt-fill" style="color: #f59e0b; font-size: 11px;"></i> <?= esc($t['location']) ?><?php else: ?>—<?php endif; ?></div></td>
                     <td>
                         <div style="max-width: 200px; font-size: 12px; color: #64748b; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;" title="<?= esc($t['description']) ?>">

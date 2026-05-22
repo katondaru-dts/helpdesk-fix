@@ -126,7 +126,7 @@ function exportExcel(data, from, to) {
         'Prioritas': t.priority,
         'Status': getTicketCurrentStatus(t.id),
         'Pelapor': (getUserById(t.reporter_id) || {}).name || '-',
-        'Ditangani Oleh': t.assigned_to ? (getUserById(t.assigned_to) || {}).name || '-' : '-',
+        'Teknisi': t.assigned_to ? (getUserById(t.assigned_to) || {}).name || '-' : '-',
         'Departemen': (getDeptById(t.dept_id) || {}).name || '-',
         'Lokasi': t.location || '-',
         'Tanggal Buat': fmtDateTime(t.created_at),

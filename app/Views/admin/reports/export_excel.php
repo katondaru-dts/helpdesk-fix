@@ -16,13 +16,14 @@
         <td>Status</td>
         <td>Pelapor</td>
         <td>Pemohon</td>
+        <td>Teknisi</td>
         <td>Lokasi Gangguan</td>
         <td>Deskripsi</td>
         <td>Link Dokumentasi</td>
         <td>Tanggal</td>
     </tr>
     <?php if (empty($tickets)): ?>
-        <tr><td colspan="10">Tidak ada data tiket.</td></tr>
+        <tr><td colspan="11">Tidak ada data tiket.</td></tr>
     <?php else: ?>
         <?php foreach ($tickets as $r): ?>
             <tr>
@@ -32,6 +33,7 @@
                 <td><?= $r['status'] ?></td>
                 <td><?= esc($r['reporter_name']) ?></td>
                 <td><?= esc($r['requester_name']) ?></td>
+                <td><?= esc($r['teknisi_name'] ?? '-') ?></td>
                 <td><?= esc($r['location'] ?? '-') ?></td>
                 <td><?= esc($r['description']) ?></td>
                 <td><?= esc($r['drive_link']) ?></td>

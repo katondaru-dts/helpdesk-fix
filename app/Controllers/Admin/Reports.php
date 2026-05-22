@@ -22,8 +22,9 @@ class Reports extends BaseController
         $db = \Config\Database::connect();
         $builder = $db->table('tickets t')
             ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
-                      u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at')
+                      u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name, t.created_at')
             ->join('users u', 't.reporter_id = u.id', 'left')
+            ->join('users tech', 't.assigned_to = tech.id', 'left')
             ->join('departments d', 't.dept_id = d.id', 'left')
             ->join('categories c', 't.cat_id = c.id', 'left')
             ->orderBy('t.created_at', 'DESC');
@@ -51,8 +52,9 @@ class Reports extends BaseController
 
         $ticketsBuilder = $db->table('tickets t')
             ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
-                      u.name as reporter_name, d.name as dept_name, c.name as cat_name, t.created_at')
+                      u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name, t.created_at')
             ->join('users u', 't.reporter_id = u.id', 'left')
+            ->join('users tech', 't.assigned_to = tech.id', 'left')
             ->join('departments d', 't.dept_id = d.id', 'left')
             ->join('categories c', 't.cat_id = c.id', 'left')
             ->orderBy('t.created_at', 'DESC');
@@ -134,6 +136,7 @@ class Reports extends BaseController
               <td>' . htmlspecialchars($t['status'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['reporter_name'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['requester_name'] ?? '') . '</td>
+              <td>' . htmlspecialchars($t['teknisi_name'] ?? '-') . '</td>
               <td>' . htmlspecialchars($t['location'] ?? '-') . '</td>
               <td>' . htmlspecialchars($t['description'] ?? '') . '</td>
               <td>' . htmlspecialchars($t['drive_link'] ?? '') . '</td>
@@ -141,7 +144,7 @@ class Reports extends BaseController
             </tr>';
         }
         if (empty($tickets))
-            $rows = '<tr><td colspan="10" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
+            $rows = '<tr><td colspan="11" style="text-align:center;color:#999">Tidak ada data.</td></tr>';
         $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>body{font-family:DejaVu Sans,Arial,sans-serif;font-size:10px;margin:15px}
 h2{text-align:center;font-size:14px;margin-bottom:5px}.sub{text-align:center;font-size:10px;color:#666;margin-bottom:15px}
@@ -157,7 +160,7 @@ td{padding:6px 5px;border-bottom:1px solid #e0e0e0;font-size:9px}tr:nth-child(ev
     <tr><td><strong>Tiket In Progress</strong></td><td>' . ($stats['in_progress'] ?? 0) . '</td></tr>
     <tr><td><strong>Tiket Solved/Closed</strong></td><td>' . ($stats['solved'] ?? 0) . '</td></tr>
 </table>
-<table><tr><th>ID</th><th>Judul Tiket</th><th>Prioritas</th><th>Status</th><th>Pelapor</th><th>Pemohon</th><th>Lokasi Gangguan</th><th>Deskripsi</th><th>Link</th><th>Tanggal</th></tr>
+<table><tr><th>ID</th><th>Judul Tiket</th><th>Prioritas</th><th>Status</th><th>Pelapor</th><th>Pemohon</th><th>Teknisi</th><th>Lokasi Gangguan</th><th>Deskripsi</th><th>Link</th><th>Tanggal</th></tr>
 ' . $rows . '</table></body></html>';
         $opts = new Options();
         $opts->set('isRemoteEnabled', true);
