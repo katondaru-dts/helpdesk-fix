@@ -34,6 +34,12 @@
                 <div style="text-align:right">
                     <span class="badge" style="display:inline-block;margin-bottom:5px"><?= $ticket['status'] ?></span><br>
                     <span class="badge" style="background:#f3f4f6;color:#374151"><?= $ticket['priority'] ?></span>
+                    <?php if (session()->get('role_id') == 1): ?>
+                        <form action="<?= base_url('tickets/delete/' . $ticket['id']) ?>" method="POST" style="margin-top:10px" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dibatalkan.');">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-outline" style="color:#ef4444;border-color:#ef4444;width:100%"><i class="bi bi-trash"></i> Hapus Tiket</button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
             <div style="border-top:1px solid #eee;padding-top:20px;line-height:1.6;color:#374151;white-space:pre-wrap"><?= esc($ticket['description']) ?></div>

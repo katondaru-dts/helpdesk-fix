@@ -153,6 +153,7 @@ function exportTickets() {
                                 <a href="<?= base_url('tickets/detail/' . $t['id']) ?>" class="btn btn-sm btn-outline"><i class="bi bi-eye"></i></a>
                                 <?php if (session()->get('role_id') == 1): ?>
                                     <form action="<?= base_url('tickets/delete/' . $t['id']) ?>" method="POST" style="margin:0;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dibatalkan.');">
+                                            <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-sm btn-outline" style="color:#ef4444; border-color:#ef4444;"><i class="bi bi-trash"></i></button>
                                     </form>
                                 <?php endif; ?>

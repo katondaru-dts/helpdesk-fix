@@ -178,6 +178,7 @@
                     </td>
                     <td>
                         <form action="<?= base_url('admin/reports/update-link/' . $t['id']) ?>" method="POST" class="link-input-wrap no-print">
+                            <?= csrf_field() ?>
                             <input type="text" name="drive_link" class="link-input" placeholder="Tambahkan link..." value="<?= esc($t['drive_link']) ?>">
                             <button type="submit" class="link-save-btn" title="Simpan"><i class="bi bi-check-lg"></i></button>
                             <?php if (!empty($t['drive_link'])): ?>

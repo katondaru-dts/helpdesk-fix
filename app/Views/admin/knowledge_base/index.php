@@ -106,6 +106,7 @@
                         <button type="button" class="btn btn-sm btn-outline" title="Generate Embedding" onclick="reembed(<?= $a['id'] ?>, this)" style="color:#7C3AED;border-color:#7C3AED"><i class="bi bi-stars"></i></button>
                         <?php endif; ?>
                         <form action="<?= base_url('admin/knowledge-base/'.$a['id'].'/delete') ?>" method="POST" style="margin:0" onsubmit="return confirm('Hapus artikel ini?')">
+                            <?= csrf_field() ?>
                             <button type="submit" class="btn btn-sm btn-outline" style="color:#DC2626;border-color:#DC2626"><i class="bi bi-trash"></i></button>
                         </form>
                     </div>
