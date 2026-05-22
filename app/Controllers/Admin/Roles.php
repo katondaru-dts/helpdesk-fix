@@ -62,6 +62,7 @@ class Roles extends BaseController
                 'permissions' => $permissions,
                 'is_staff' => $isStaff,
                 'is_technician' => $isTechnician,
+                'role_updated_at' => date('Y-m-d H:i:s'),
             ];
             $roleModel->update($id, $data);
             $auditLog->logAction('UPDATE', 'roles', $id, $data);

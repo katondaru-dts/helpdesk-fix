@@ -38,6 +38,7 @@ class Filters extends BaseFilters
         'admin' => \App\Filters\AdminFilter::class,
         'staff' => \App\Filters\StaffFilter::class,
         'ratelimiter' => \App\Filters\RateLimiter::class,
+        'rolecheck' => \App\Filters\RoleCheckFilter::class,
     ];
 
     /**

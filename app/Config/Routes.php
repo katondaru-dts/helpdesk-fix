@@ -20,7 +20,7 @@ $routes->get('auth/google', 'Auth::googleLogin');
 $routes->get('auth/googleCallback', 'Auth::googleCallback');
 
 // Dashboard & Profile
-$routes->group('', ['filter' => 'auth'], function ($routes) {
+$routes->group('', ['filter' => ['auth', 'rolecheck']], function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update', 'Profile::update');
@@ -54,7 +54,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 });
 
 // Admin routes
-$routes->group('admin', ['filter' => 'admin'], function ($routes) {
+$routes->group('admin', ['filter' => ['admin', 'rolecheck']], function ($routes) {
     $routes->get('users', 'Admin\Users::index');
     $routes->post('users/save', 'Admin\Users::save');
     $routes->post('users/delete', 'Admin\Users::delete');
@@ -78,7 +78,7 @@ $routes->group('admin', ['filter' => 'admin'], function ($routes) {
 });
 
 // Admin & Staff (Operator) routes
-$routes->group('admin', ['filter' => 'staff'], function ($routes) {
+$routes->group('admin', ['filter' => ['staff', 'rolecheck']], function ($routes) {
     $routes->get('reports', 'Admin\Reports::index');
     $routes->get('reports/export', 'Admin\Reports::export');
     $routes->get('reports/excel', 'Admin\Reports::export');
@@ -105,7 +105,7 @@ $routes->group('admin', ['filter' => 'staff'], function ($routes) {
 });
 
 // Knowledge Base (user)
-$routes->group('knowledge-base', ['filter' => 'auth'], function ($routes) {
+$routes->group('knowledge-base', ['filter' => ['auth', 'rolecheck']], function ($routes) {
     $routes->get('/', 'KnowledgeBase::index');
     $routes->get('search', 'KnowledgeBase::search');
     $routes->get('(:segment)', 'KnowledgeBase::show/$1');

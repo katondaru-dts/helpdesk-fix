@@ -6,7 +6,7 @@ class RoleModel extends Model
 {
     protected $table = 'roles';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['code', 'name', 'permissions', 'is_staff', 'is_technician'];
+    protected $allowedFields = ['code', 'name', 'permissions', 'is_staff', 'is_technician', 'role_updated_at'];
     protected $useTimestamps = false;
 
     /**
