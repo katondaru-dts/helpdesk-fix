@@ -116,6 +116,7 @@ class MinioStorage
 
     /**
      * Generate a presigned URL for reading a file.
+     * Includes fallback logic for plural/singular folder mismatch (documentation <=> documentations).
      *
      * @param string $filename The filename or full key stored in MinIO.
      * @return string|null Presigned URL or null on failure.
@@ -127,6 +128,23 @@ class MinioStorage
         }
 
         $key = $this->resolveKey($filename);
+
+        // Fallback logic if file not found in primary folder
+        if (!$this->existsWithKey($key)) {
+            $fallbackFolder = null;
+            if ($this->config->folder === 'documentations') {
+                $fallbackFolder = 'documentation';
+            } elseif ($this->config->folder === 'documentation') {
+                $fallbackFolder = 'documentations';
+            }
+
+            if ($fallbackFolder) {
+                $fallbackKey = $fallbackFolder . '/' . basename($filename);
+                if ($this->existsWithKey($fallbackKey)) {
+                    $key = $fallbackKey;
+                }
+            }
+        }
 
         try {
             $cmd = $this->client->getCommand('GetObject', [
@@ -156,6 +174,18 @@ class MinioStorage
 
         $key = $this->resolveKey($filename);
 
+        // Fallback for delete: if not found in primary, try fallback folder
+        if (!$this->existsWithKey($key)) {
+            $fallbackFolder = ($this->config->folder === 'documentations') ? 'documentation' : 
+                             (($this->config->folder === 'documentation') ? 'documentations' : null);
+            if ($fallbackFolder) {
+                $fallbackKey = $fallbackFolder . '/' . basename($filename);
+                if ($this->existsWithKey($fallbackKey)) {
+                    $key = $fallbackKey;
+                }
+            }
+        }
+
         try {
             $this->client->deleteObject([
                 'Bucket' => $this->config->bucket,
@@ -177,8 +207,25 @@ class MinioStorage
             return false;
         }
 
-        $key = $this->resolveKey($filename);
+        if ($this->existsWithKey($this->resolveKey($filename))) {
+            return true;
+        }
 
+        // Fallback check
+        $fallbackFolder = ($this->config->folder === 'documentations') ? 'documentation' : 
+                         (($this->config->folder === 'documentation') ? 'documentations' : null);
+        if ($fallbackFolder) {
+            return $this->existsWithKey($fallbackFolder . '/' . basename($filename));
+        }
+
+        return false;
+    }
+
+    /**
+     * Check existence by full key.
+     */
+    private function existsWithKey(string $key): bool
+    {
         try {
             return $this->client->doesObjectExist($this->config->bucket, $key);
         } catch (AwsException $e) {
