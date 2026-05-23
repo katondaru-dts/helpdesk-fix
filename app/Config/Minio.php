@@ -53,7 +53,7 @@ class Minio extends BaseConfig
         $env = ENVIRONMENT; // 'development' or 'production'
 
         $this->endpoint = env('MINIO_ENDPOINT', '127.0.0.1:9000');
-        $this->useSSL   = filter_var(env('MINIO_USE_SSL', false), FILTER_VALIDATE_BOOLEAN);
+        $this->useSSL = filter_var(env('MINIO_USE_SSL', false), FILTER_VALIDATE_BOOLEAN);
         $this->accessKey = env('MINIO_ACCESS_KEY', '');
         $this->secretKey = env('MINIO_SECRET_KEY', '');
 
@@ -62,7 +62,7 @@ class Minio extends BaseConfig
             $this->folder = env('MINIO_FOLDER_DEV', 'Documentation');
         } else {
             $this->bucket = env('MINIO_BUCKET_PROD', 'helpdesk');
-            $this->folder = env('MINIO_FOLDER_PROD', 'documentation');
+            $this->folder = env('MINIO_FOLDER_PROD', 'documentations');
         }
     }
 }
