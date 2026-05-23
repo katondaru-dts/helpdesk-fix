@@ -25,7 +25,7 @@ class MinioStorage
 
         $this->client = new S3Client([
             'version' => 'latest',
-            'region'  => $this->config->region,
+            'region' => $this->config->region,
             'endpoint' => $scheme . '://' . $this->config->endpoint,
             'use_path_style_endpoint' => true,
             'credentials' => $credentials,
@@ -37,20 +37,20 @@ class MinioStorage
     }
 
     /**
-     * Get the full object key (folder + filename) stored in MinIO.
-     * When storing, trim the folder prefix if the filename already contains it (for legacy migration).
+     * Resolve final object key using folder prefix.
      */
-    private function resolveKey(string $filename): string
+    private function resolveKey(string $filename, ?string $folder = null): string
     {
-        $folder = trim($this->config->folder, '/');
+        $prefix = $folder ?? $this->config->folder;
+        $prefix = trim($prefix, '/');
         $filename = ltrim($filename, '/');
 
         // If filename already starts with the folder prefix, use as-is
-        if (str_starts_with($filename, $folder . '/')) {
+        if (str_starts_with($filename, $prefix . '/')) {
             return $filename;
         }
 
-        return $folder . '/' . $filename;
+        return $prefix . '/' . basename($filename);
     }
 
     /**
@@ -89,11 +89,12 @@ class MinioStorage
      *
      * @param string $sourcePath Absolute path to the source file on disk.
      * @param string $filename   The filename (without folder prefix) to store as.
+     * @param string|null $folder Optional custom folder.
      * @return string The full object key stored in the bucket.
      */
-    public function upload(string $sourcePath, string $filename): string
+    public function upload(string $sourcePath, string $filename, ?string $folder = null): string
     {
-        $key = $this->resolveKey($filename);
+        $key = $this->resolveKey($filename, $folder);
 
         try {
             // Ensure bucket exists
@@ -103,7 +104,7 @@ class MinioStorage
 
             $this->client->putObject([
                 'Bucket' => $this->config->bucket,
-                'Key'    => $key,
+                'Key' => $key,
                 'SourceFile' => $sourcePath,
             ]);
 
@@ -119,18 +120,19 @@ class MinioStorage
      * Includes fallback logic for plural/singular folder mismatch (documentation <=> documentations).
      *
      * @param string $filename The filename or full key stored in MinIO.
+     * @param string|null $folder Optional custom folder.
      * @return string|null Presigned URL or null on failure.
      */
-    public function getPresignedUrl(string $filename): ?string
+    public function getPresignedUrl(string $filename, ?string $folder = null): ?string
     {
         if (empty($filename)) {
             return null;
         }
 
-        $key = $this->resolveKey($filename);
+        $key = $this->resolveKey($filename, $folder);
 
-        // Fallback logic if file not found in primary folder
-        if (!$this->existsWithKey($key)) {
+        // Fallback logic (only if using default folder)
+        if (!$folder && !$this->existsWithKey($key)) {
             $fallbackFolder = null;
             if ($this->config->folder === 'documentations') {
                 $fallbackFolder = 'documentation';
@@ -149,7 +151,7 @@ class MinioStorage
         try {
             $cmd = $this->client->getCommand('GetObject', [
                 'Bucket' => $this->config->bucket,
-                'Key'    => $key,
+                'Key' => $key,
             ]);
 
             $request = $this->client->createPresignedRequest($cmd, '+' . $this->config->presignedExpiry . ' seconds');
@@ -165,19 +167,20 @@ class MinioStorage
      * Delete a file from MinIO.
      *
      * @param string $filename The filename or full key stored in MinIO.
+     * @param string|null $folder Optional custom folder.
      */
-    public function delete(string $filename): bool
+    public function delete(string $filename, ?string $folder = null): bool
     {
         if (empty($filename)) {
             return false;
         }
 
-        $key = $this->resolveKey($filename);
+        $key = $this->resolveKey($filename, $folder);
 
-        // Fallback for delete: if not found in primary, try fallback folder
-        if (!$this->existsWithKey($key)) {
-            $fallbackFolder = ($this->config->folder === 'documentations') ? 'documentation' : 
-                             (($this->config->folder === 'documentation') ? 'documentations' : null);
+        // Fallback for delete: if not found in primary and no custom folder, try fallback
+        if (!$folder && !$this->existsWithKey($key)) {
+            $fallbackFolder = ($this->config->folder === 'documentations') ? 'documentation' :
+                (($this->config->folder === 'documentation') ? 'documentations' : null);
             if ($fallbackFolder) {
                 $fallbackKey = $fallbackFolder . '/' . basename($filename);
                 if ($this->existsWithKey($fallbackKey)) {
@@ -189,7 +192,7 @@ class MinioStorage
         try {
             $this->client->deleteObject([
                 'Bucket' => $this->config->bucket,
-                'Key'    => $key,
+                'Key' => $key,
             ]);
             return true;
         } catch (AwsException $e) {
@@ -201,19 +204,22 @@ class MinioStorage
     /**
      * Check if a file exists in MinIO.
      */
-    public function exists(string $filename): bool
+    public function exists(string $filename, ?string $folder = null): bool
     {
         if (empty($filename)) {
             return false;
         }
 
-        if ($this->existsWithKey($this->resolveKey($filename))) {
+        if ($this->existsWithKey($this->resolveKey($filename, $folder))) {
             return true;
         }
 
+        if ($folder)
+            return false;
+
         // Fallback check
-        $fallbackFolder = ($this->config->folder === 'documentations') ? 'documentation' : 
-                         (($this->config->folder === 'documentation') ? 'documentations' : null);
+        $fallbackFolder = ($this->config->folder === 'documentations') ? 'documentation' :
+            (($this->config->folder === 'documentation') ? 'documentations' : null);
         if ($fallbackFolder) {
             return $this->existsWithKey($fallbackFolder . '/' . basename($filename));
         }
@@ -284,7 +290,7 @@ class MinioStorage
         try {
             $this->client->getObject([
                 'Bucket' => $this->config->bucket,
-                'Key'    => $key,
+                'Key' => $key,
                 'SaveAs' => $destinationPath,
             ]);
             return true;

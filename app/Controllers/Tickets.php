@@ -14,13 +14,6 @@ use App\Models\NotificationModel;
 use App\Models\AuditLogModel;
 use App\Libraries\MinioStorage;
 
-/**
- * Detect whether a stored photo value is a MinIO key (just filename) or a local path.
- */
-function is_minio_key(string $value): bool
-{
-    return $value !== '' && !str_contains($value, '/');
-}
 
 class Tickets extends BaseController
 {
@@ -163,7 +156,8 @@ class Tickets extends BaseController
                 if (is_minio_key($ticket[$field])) {
                     $url = $minio->getPresignedUrl($ticket[$field]) ?? '';
                     $ticket[$field] = $url;
-                    if ($url) $resolvedPhotoUrls[] = $url;
+                    if ($url)
+                        $resolvedPhotoUrls[] = $url;
                 } else {
                     $url = base_url($ticket[$field]);
                     $ticket[$field] = $url;
@@ -220,10 +214,10 @@ class Tickets extends BaseController
         });
 
         $supports = $userModel->select('users.*')
-    ->join('roles', 'users.role_id = roles.id')
-    ->where('roles.is_technician', 1)
-    ->where('users.is_active', 1)
-    ->findAll();
+            ->join('roles', 'users.role_id = roles.id')
+            ->where('roles.is_technician', 1)
+            ->where('users.is_active', 1)
+            ->findAll();
 
         $data = [
             'pageTitle' => "Detail Tiket: " . $ticket['id'],

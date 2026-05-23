@@ -115,7 +115,9 @@
                         </span>
                     </a>
                     <div class="user-dropdown">
-                        <div class="user-info-trigger">
+                        <div class="user-info-trigger" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <img src="<?= get_profile_pic_url(session()->get('profile_pic')) ?>"
+                                style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid #e2e8f0;">
                             <span
                                 style="font-size:13px; font-weight:600; color:var(--gray-700);"><?= session()->get('name') ?></span>
                             <i class="bi bi-chevron-down" style="font-size:12px; color:var(--gray-400);"></i>
@@ -560,7 +562,7 @@
 
     <div class="ai-fab-wrap">
         <div class="ai-fab-label" id="aiFabLabel">
-            <button onclick="document.getElementById('aiFabLabel').style.display='none'" title="Tutup" 
+            <button onclick="document.getElementById('aiFabLabel').style.display='none'" title="Tutup"
                 style="order: -1; margin-right: -4px;"><i class="bi bi-x"></i></button>
             <svg width="130" height="54" viewBox="0 0 130 54" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <!-- garis lengkung kecil bawah teks (pena) -->

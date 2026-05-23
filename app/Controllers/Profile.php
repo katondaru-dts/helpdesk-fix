@@ -100,4 +100,56 @@ class Profile extends BaseController
 
         return redirect()->to('/profile')->with('success', 'Password berhasil diubah.');
     }
+
+    public function updateProfilePic()
+    {
+        $userId = session()->get('id');
+        $file = $this->request->getFile('profile_pic');
+
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!in_array($file->getMimeType(), $allowedTypes)) {
+                return redirect()->back()->with('error', 'Format file tidak didukung. Gunakan JPG atau PNG.');
+            }
+
+            if ($file->getSize() > 2 * 1024 * 1024) {
+                return redirect()->back()->with('error', 'Ukuran file terlalu besar. Maksimal 2MB.');
+            }
+
+            $minio = new \App\Libraries\MinioStorage();
+            $userModel = new UserModel();
+            $user = $userModel->find($userId);
+
+            $fileName = 'avatar_' . $userId . '_' . time() . '.' . $file->getExtension();
+            $tempPath = FCPATH . 'uploads/avatars/' . $fileName;
+
+            // Ensure directory exists
+            if (!is_dir(FCPATH . 'uploads/avatars')) {
+                mkdir(FCPATH . 'uploads/avatars', 0777, true);
+            }
+
+            if ($file->move(FCPATH . 'uploads/avatars', $fileName)) {
+                try {
+                    // Delete old pic from MinIO if exists
+                    if (!empty($user['profile_pic']) && is_minio_key($user['profile_pic'])) {
+                        $minio->delete($user['profile_pic'], 'avatar');
+                    }
+
+                    $minio->upload($tempPath, $fileName, 'avatar');
+                    $userModel->update($userId, ['profile_pic' => $fileName]);
+                    session()->set('profile_pic', $fileName);
+
+                    if (file_exists($tempPath)) {
+                        unlink($tempPath);
+                    }
+
+                    return redirect()->to('/profile')->with('success', 'Foto profil berhasil diperbarui.');
+                } catch (\Exception $e) {
+                    return redirect()->back()->with('error', 'Gagal upload ke storage: ' . $e->getMessage());
+                }
+            }
+        }
+
+        return redirect()->back()->with('error', 'Gagal mengunggah foto.');
+    }
 }

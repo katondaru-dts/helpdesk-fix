@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 
 abstract class BaseController extends Controller
 {
-    protected $helpers = ['auth', 'url', 'telegram'];
+    protected $helpers = ['auth', 'url', 'telegram', 'app'];
 
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
@@ -60,15 +60,16 @@ abstract class BaseController extends Controller
             }
 
             session()->set([
-                'role_id'          => $user['role_id'],
-                'dept_id'          => $user['dept_id'],
-                'name'             => $user['name'],
-                'permissions'      => $permissions,
+                'role_id' => $user['role_id'],
+                'dept_id' => $user['dept_id'],
+                'name' => $user['name'],
+                'permissions' => $permissions,
                 'user_permissions' => $userPermissions,
-                'is_staff'         => $isStaff,
-                'is_technician'    => $isTechnician,
+                'is_staff' => $isStaff,
+                'is_technician' => $isTechnician,
                 'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
-                'notif_sound_type'    => $user['notif_sound_type'] ?? 'default',
+                'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
+                'profile_pic' => $user['profile_pic'] ?? null,
             ]);
 
             $notificationModel = new \App\Models\NotificationModel();

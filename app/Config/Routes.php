@@ -25,6 +25,7 @@ $routes->group('', ['filter' => ['auth', 'rolecheck']], function ($routes) {
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update', 'Profile::update');
     $routes->post('profile/change-password', 'Profile::changePassword');
+    $routes->post('profile/update-photo', 'Profile::updateProfilePic');
 
     // Notifications
     $routes->get('notifications', 'Notifications::index');
