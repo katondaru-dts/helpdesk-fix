@@ -25,9 +25,10 @@ jobs:
           cd /home/katondaru/helpdesk-fix
           docker compose pull
           docker compose up -d --remove-orphans
-      - name: Run Database Migrations
+      - name: Run Database Migrations & Clear Cache
         run: |
           docker exec helpdesk-app php spark migrate --all
+          docker exec helpdesk-app php spark cache:clear
       - name: Fix Permissions
         run: |
           docker exec helpdesk-app chmod -R 777 /var/www/html/writable  

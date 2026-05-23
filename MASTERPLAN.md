@@ -111,7 +111,7 @@ helpdesk-v2/
 
 | Tabel | Fungsi |
 |-------|--------|
-| `users` | Data pengguna (name, email, password, role_id, dept_id, gender, phone, is_active, **login_attempts**, **lockout_time**) |
+| `users` | Data pengguna (name, email, password, role_id, dept_id, **profile_pic**, gender, phone, is_active, **login_attempts**, **lockout_time**) |
 | `roles` | Data role (code, name, permissions JSON, **is_staff**, **is_technician**, **role_updated_at**) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
@@ -156,7 +156,8 @@ helpdesk-v2/
 | GET | `/notifications/unread-count` | API untuk cek jumlah notifikasi (Polling) |
 | GET | `/profile` | Profil pengguna |
 | POST | `/profile/update` | Update data profil |
-| POST | `/profile/password` | Ganti password |
+| POST | `/profile/change-password` | Ganti password |
+| POST | `/profile/update-photo` | Update foto profil (WhatsApp Style via MinIO) |
 
 ### Admin (Perlu Login + Role Admin — Filter: `admin`)
 | Method | URL | Fungsi |
@@ -363,6 +364,7 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 | `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
 | `telegram_helper.php` | `app/Helpers/` | Fungsi `send_telegram()`: wrapper API asinkron non-blocking mengirim JSON ke API Bot Telegram |
 | `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`: notifikasi email HTML ke user |
+| `app_helper.php` | `app/Helpers/` | Fungsi global: `is_minio_key()` untuk deteksi storage, `get_profile_pic_url()` untuk resolusi URL foto profil |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 | `public/uploads/tickets/` | Root/public | Folder penyimpanan fisik foto dokumentasi tiket |
@@ -395,5 +397,6 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Navigasi Global**: Perbaikan presisi *hover/hitbox* dropdown profil pada *topbar* dengan implementasi *gap-bridge pseudo-element* CSS untuk mencegah menu tertutup secara tidak sengaja.
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
+- **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO (folder `avatar/`). UI menggunakan preview lingkaran dengan ikon kamera hover, serta integrasi foto di navbar atas untuk pengalaman user yang lebih personal.
 
-*Terakhir diperbarui: 23 Mei 2026 | Versi: 2.14.1 (Memperbaiki error Whoops di dashboard dengan penambahan kolom role_updated_at dan refactor RoleCheckFilter)*
+*Terakhir diperbarui: 24 Mei 2026 | Versi: 2.15.0 (Implementasi Fitur Foto Profil User & Otomatisasi Migrasi via GitHub Actions)*
