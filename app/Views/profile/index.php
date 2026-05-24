@@ -1,5 +1,9 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
+<!-- Cropper.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
 
 <div class="page-header">
     <div>
@@ -235,32 +239,172 @@
     </div>
 </div>
 
+<!-- ── Modal Cropper (WhatsApp Style) ── -->
+<div id="cropperModal"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+    <div
+        style="background:white;border-radius:16px;max-width:500px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);animation:modalIn .25s ease-out;overflow:hidden">
+        <div
+            style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+                <i class="bi bi-crop" style="color:#3b82f6;font-size:18px"></i>
+                <span style="font-weight:700;font-size:15px">Sesuaikan Foto Profil</span>
+            </div>
+            <button type="button" id="closeCropper"
+                style="background:none;border:none;font-size:24px;color:#9ca3af;cursor:pointer">&times;</button>
+        </div>
+
+        <div style="padding:20px;background:#f3f4f6;position:relative;height:350px">
+            <img id="imageToCrop" style="max-width:100%;display:block">
+        </div>
+
+        <div
+            style="padding:16px 20px;background:white;display:flex;justify-content:center;gap:15px;border-top:1px solid #e5e7eb">
+            <button type="button" onclick="cropper.zoom(0.1)"
+                style="border:none;background:#f3f4f6;width:40px;height:40px;border-radius:50%;cursor:pointer"><i
+                    class="bi bi-plus-lg"></i></button>
+            <button type="button" onclick="cropper.zoom(-0.1)"
+                style="border:none;background:#f3f4f6;width:40px;height:40px;border-radius:50%;cursor:pointer"><i
+                    class="bi bi-dash-lg"></i></button>
+            <button type="button" onclick="cropper.rotate(-90)"
+                style="border:none;background:#f3f4f6;width:40px;height:40px;border-radius:50%;cursor:pointer"><i
+                    class="bi bi-arrow-counterclockwise"></i></button>
+        </div>
+
+        <div style="padding:16px 20px;display:flex;gap:12px;justify-content:flex-end">
+            <button type="button" id="cancelCrop"
+                style="padding:10px 20px;background:white;color:#6b7280;border:1px solid #d1d5db;border-radius:8px;font-weight:600;cursor:pointer">Batal</button>
+            <button type="button" id="saveCrop"
+                style="padding:10px 25px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer">
+                <i class="bi bi-check-lg"></i> Terapkan
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
+
+    /* WhatsApp Circle Style */
+</style>
+
 <script>
-    // Profile Picture Upload Logic (WhatsApp Style)
+
+    // Profile Picture Upload Logic (WhatsApp Style with Cropper)
     const profilePicContainer = document.getElementById('profile-pic-container');
     const profilePicInput = document.getElementById('profile-pic-input');
     const profilePicForm = document.getElementById('profile-pic-form');
+    const cropperModal = document.getElementById('cropperModal');
+    const imageToCrop = document.getElementById('imageToCrop');
+    const saveCrop = document.getElementById('saveCrop');
+    const cancelCrop = document.getElementById('cancelCrop');
+    const closeCropper = document.getElementById('closeCropper');
+    let cropper;
 
-    if (profilePicContainer && profilePicInput && profilePicForm) {
-        profilePicContainer.addEventListener('click', () => {
-            profilePicInput.click();
-        });
+    if (profilePicContainer && profilePicInput) {
+        profilePicContainer.addEventListener('click', () => profilePicInput.click());
 
-        profilePicInput.addEventListener('change', () => {
-            if (profilePicInput.files && profilePicInput.files[0]) {
-                const file = profilePicInput.files[0];
-                const maxSize = 10 * 1024 * 1024; // 10MB
+        profilePicInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
 
-                if (file.size > maxSize) {
-                    alert('Ukuran file terlalu besar! Maksimal ukuran foto profil adalah 10MB.');
-                    profilePicInput.value = ''; // Reset input
+                // Validasi size (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Ukuran file terlalu besar! Maksimal 10MB.');
+                    profilePicInput.value = '';
                     return;
                 }
 
-                // Show loading state
-                profilePicContainer.style.opacity = '0.5';
-                profilePicForm.submit();
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imageToCrop.src = event.target.result;
+                    cropperModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        guides: false,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+                        toggleDragModeOnDblclick: false,
+                    });
+                };
+                reader.readAsDataURL(file);
             }
+        });
+
+        const hideModal = () => {
+            cropperModal.style.display = 'none';
+            document.body.style.overflow = '';
+            profilePicInput.value = '';
+            if (cropper) cropper.destroy();
+        };
+
+        cancelCrop.addEventListener('click', hideModal);
+        closeCropper.addEventListener('click', hideModal);
+
+        saveCrop.addEventListener('click', () => {
+            const canvas = cropper.getCroppedCanvas({
+                width: 500,
+                height: 500
+            });
+
+            canvas.toBlob((blob) => {
+                const formData = new FormData();
+                formData.append('profile_pic', blob, 'profile_pic.jpg');
+                // Tambahkan CSRF token
+                const csrfInput = profilePicForm.querySelector('input[name="<?= csrf_token() ?>"]');
+                if (csrfInput) {
+                    formData.append('<?= csrf_token() ?>', csrfInput.value);
+                }
+
+                // Show loading
+                profilePicContainer.style.opacity = '0.5';
+                hideModal();
+
+                // Kirim via fetch supaya tidak reload seluruh halaman
+                fetch('<?= base_url('profile/update-photo') ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.reload(); // Refresh untuk melihat hasil
+                        } else {
+                            alert('Gagal mengunggah foto. Silakan coba lagi.');
+                            profilePicContainer.style.opacity = '1';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Terjadi kesalahan saat mengunggah.');
+                        profilePicContainer.style.opacity = '1';
+                    });
+            }, 'image/jpeg', 0.9);
         });
     }
 
