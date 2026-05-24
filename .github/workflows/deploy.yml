@@ -25,11 +25,12 @@ jobs:
           cd /home/katondaru/helpdesk-fix
           docker compose pull
           docker compose up -d --remove-orphans
+      - name: Prepare Writable Directories
+        run: |
+          docker exec helpdesk-app mkdir -p /var/www/html/writable/cache /var/www/html/writable/logs /var/www/html/writable/session /var/www/html/writable/debugbar
+          docker exec helpdesk-app chown -R www-data:www-data /var/www/html/writable
+          docker exec helpdesk-app chmod -R 775 /var/www/html/writable
       - name: Run Database Migrations & Clear Cache
         run: |
-          docker exec -T helpdesk-app php spark migrate --all
-          docker exec -T helpdesk-app php spark cache:clear
-      - name: Fix Permissions
-        run: |
-          docker exec -T helpdesk-app chown -R www-data:www-data writable
-          docker exec -T helpdesk-app chmod -R 777 writable
+          docker exec helpdesk-app php spark migrate --all
+          docker exec helpdesk-app php spark cache:clear
