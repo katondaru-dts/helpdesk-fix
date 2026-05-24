@@ -13,23 +13,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Fix Host Permissions Before Pull
+        run: |
+          chmod -R 777 /home/katondaru/helpdesk-fix/writable || true
+
       - name: Pull latest code
         run: |
           cd /home/katondaru/helpdesk-fix
           git fetch https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/katondaru-dts/helpdesk-fix.git main
           git reset --hard FETCH_HEAD
-          git clean -fd
+          git clean -fd --exclude=writable
 
       - name: Deploy dengan Docker Compose
         run: |
           cd /home/katondaru/helpdesk-fix
           docker compose pull
           docker compose up -d --remove-orphans
+
       - name: Prepare Writable Directories
         run: |
           docker exec helpdesk-app mkdir -p /var/www/html/writable/cache /var/www/html/writable/logs /var/www/html/writable/session /var/www/html/writable/debugbar
-          docker exec helpdesk-app chown -R www-data:www-data /var/www/html/writable
-          docker exec helpdesk-app chmod -R 775 /var/www/html/writable
+          chmod -R 777 /home/katondaru/helpdesk-fix/writable
+
       - name: Run Database Migrations & Clear Cache
         run: |
           docker exec helpdesk-app php spark migrate --all
