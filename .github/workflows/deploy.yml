@@ -27,9 +27,9 @@ jobs:
           docker compose up -d --remove-orphans
       - name: Run Database Migrations & Clear Cache
         run: |
-          docker exec helpdesk-app php spark migrate --all
-          docker exec helpdesk-app php spark cache:clear
+          docker exec -T helpdesk-app php spark migrate --all
+          docker exec -T helpdesk-app php spark cache:clear
       - name: Fix Permissions
         run: |
-          docker exec helpdesk-app chown -R www-data:www-data writable
-          docker exec helpdesk-app chmod -R 777 writable
+          docker exec -T helpdesk-app chown -R www-data:www-data writable
+          docker exec -T helpdesk-app chmod -R 777 writable
