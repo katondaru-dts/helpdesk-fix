@@ -15,7 +15,8 @@ jobs:
 
       - name: Fix Host Permissions Before Pull
         run: |
-          chmod -R 777 /home/katondaru/helpdesk-fix/writable || true
+          sudo chmod -R 777 /home/katondaru/helpdesk-fix/writable || true
+          sudo chown -R katondaru:katondaru /home/katondaru/helpdesk-fix/writable || true
 
       - name: Pull latest code
         run: |
