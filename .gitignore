@@ -39,8 +39,6 @@ $RECYCLE.BIN/
 #-------------------------
 # Environment Files
 #-------------------------
-# These should never be under version control,
-# as it poses a security risk.
 .env
 .vagrant
 Vagrantfile
@@ -48,22 +46,9 @@ Vagrantfile
 #-------------------------
 # Temporary Files
 #-------------------------
-writable/cache/*
-!writable/cache/index.html
-
-writable/logs/*
-!writable/logs/index.html
-
-writable/session/*
-!writable/session/index.html
-
-writable/uploads/*
-!writable/uploads/index.html
-
+writable/*
+writable/.htaccess
 public/uploads/*
-
-writable/debugbar/*
-!writable/debugbar/index.html
 
 php_errors.log
 
@@ -79,8 +64,6 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 # Test Files
 #-------------------------
 tests/coverage*
-
-# Don't save phpunit under version control.
 phpunit
 
 #-------------------------
@@ -92,18 +75,10 @@ artikel/
 #-------------------------
 # IDE / Development Files
 #-------------------------
-
-# Modules Testing
 _modules/*
-
-# phpenv local config
 .php-version
-
-# Jetbrains editors (PHPStorm, etc)
 .idea/
 *.iml
-
-# NetBeans
 /nbproject/
 /build/
 /nbbuild/
@@ -127,10 +102,8 @@ _modules/*
 
 /results/
 /phpunit*.xml
-.env
 env
 new_hash.txt
 bot token tele.txt
 nginx.conf
-googleclient dan sec.txt
 googleclient dan sec.txt
