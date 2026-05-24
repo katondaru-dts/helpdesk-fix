@@ -13,11 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Fix Host Permissions Before Pull
-        run: |
-          sudo chmod -R 777 /home/katondaru/helpdesk-fix/writable || true
-          sudo chown -R katondaru:katondaru /home/katondaru/helpdesk-fix/writable || true
-
       - name: Pull latest code
         run: |
           cd /home/katondaru/helpdesk-fix
@@ -34,7 +29,6 @@ jobs:
       - name: Prepare Writable Directories
         run: |
           docker exec helpdesk-app mkdir -p /var/www/html/writable/cache /var/www/html/writable/logs /var/www/html/writable/session /var/www/html/writable/debugbar
-          chmod -R 777 /home/katondaru/helpdesk-fix/writable
 
       - name: Run Database Migrations & Clear Cache
         run: |
