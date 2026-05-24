@@ -112,8 +112,8 @@ class Profile extends BaseController
                 return redirect()->back()->with('error', 'Format file tidak didukung. Gunakan JPG atau PNG.');
             }
 
-            if ($file->getSize() > 2 * 1024 * 1024) {
-                return redirect()->back()->with('error', 'Ukuran file terlalu besar. Maksimal 2MB.');
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                return redirect()->back()->with('error', 'Ukuran file terlalu besar. Maksimal 10MB.');
             }
 
             $minio = new \App\Libraries\MinioStorage();

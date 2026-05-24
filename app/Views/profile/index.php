@@ -107,7 +107,8 @@
                             <option value="">-- Pilih Departemen --</option>
                             <?php foreach ($departments as $d): ?>
                                 <option value="<?= $d['id'] ?>" <?= $user['dept_id'] == $d['id'] ? 'selected' : '' ?>>
-                                    <?= esc($d['name']) ?></option>
+                                    <?= esc($d['name']) ?>
+                                </option>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <option value="<?= $user['dept_id'] ?>" selected><?= esc($user['dept_name'] ?? '-') ?></option>
@@ -247,6 +248,15 @@
 
         profilePicInput.addEventListener('change', () => {
             if (profilePicInput.files && profilePicInput.files[0]) {
+                const file = profilePicInput.files[0];
+                const maxSize = 10 * 1024 * 1024; // 10MB
+
+                if (file.size > maxSize) {
+                    alert('Ukuran file terlalu besar! Maksimal ukuran foto profil adalah 10MB.');
+                    profilePicInput.value = ''; // Reset input
+                    return;
+                }
+
                 // Show loading state
                 profilePicContainer.style.opacity = '0.5';
                 profilePicForm.submit();
