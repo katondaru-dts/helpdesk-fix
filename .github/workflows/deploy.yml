@@ -31,4 +31,5 @@ jobs:
           docker exec helpdesk-app php spark cache:clear
       - name: Fix Permissions
         run: |
-          docker exec helpdesk-app chmod -R 777 /var/www/html/writable  
+          docker exec helpdesk-app chown -R www-data:www-data writable
+          docker exec helpdesk-app chmod -R 777 writable
