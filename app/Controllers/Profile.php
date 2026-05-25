@@ -78,6 +78,11 @@ class Profile extends BaseController
 
     public function changePassword()
     {
+        // Proteksi: user SSO tidak diizinkan ganti password
+        if (session()->get('auth_provider') === 'google') {
+            return redirect()->to('/profile')->with('error', 'Akun SSO tidak dapat mengganti password melalui aplikasi ini. Silakan kelola password melalui akun Google Anda.');
+        }
+
         $userId = session()->get('id');
         $oldPassword = $this->request->getPost('old_password');
         $newPassword = $this->request->getPost('new_password');

@@ -181,63 +181,130 @@
         </div>
 
         <!-- Change Password -->
+        <?php $isSsoUser = (session()->get('auth_provider') === 'google'); ?>
         <div class="card"
-            style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:30px;height:fit-content">
+            style="background:white;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,0.05);padding:30px;height:fit-content;<?= $isSsoUser ? 'opacity:0.65;' : '' ?>">
             <div
-                style="font-size:16px;font-weight:700;color:#111827;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid #f3f4f6">
-                <i class="bi bi-shield-lock" style="color:#3b82f6"></i> Ganti Password
+                style="font-size:16px;font-weight:700;color:<?= $isSsoUser ? '#9ca3af' : '#111827' ?>;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid #f3f4f6">
+                <i class="bi bi-shield-lock" style="color:<?= $isSsoUser ? '#9ca3af' : '#3b82f6' ?>"></i> Ganti Password
+                <?php if ($isSsoUser): ?>
+                    <span
+                        style="margin-left:8px;background:#f3f4f6;color:#6b7280;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500">Tidak
+                        Tersedia</span>
+                <?php endif; ?>
             </div>
-            <form action="<?= base_url('profile/change-password') ?>" method="POST">
-                <?= csrf_field() ?>
-                <div style="display:grid;gap:18px">
+
+            <?php if ($isSsoUser): ?>
+                <!-- Banner info SSO -->
+                <div
+                    style="display:flex;align-items:flex-start;gap:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px;margin-bottom:8px">
+                    <div style="flex-shrink:0;margin-top:2px">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4" />
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="#34A853" />
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                                fill="#FBBC05" />
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                fill="#EA4335" />
+                        </svg>
+                    </div>
                     <div>
-                        <label
-                            style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Password
+                        <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:4px">Akun Google SSO Aktif
+                        </div>
+                        <div style="font-size:12px;color:#3b82f6;line-height:1.5">Password Anda dikelola oleh Google. Untuk
+                            mengubah password, silakan kunjungi <a href="https://myaccount.google.com/security"
+                                target="_blank" style="color:#1d4ed8;font-weight:600">Akun Google Anda</a>.</div>
+                    </div>
+                </div>
+
+                <!-- Form disabled (visual) -->
+                <div style="display:grid;gap:18px;pointer-events:none;user-select:none">
+                    <div>
+                        <label style="display:block;font-size:13px;font-weight:600;color:#9ca3af;margin-bottom:6px">Password
                             Lama</label>
-                        <div style="position:relative">
-                            <input type="password" name="old_password" required placeholder="Masukkan password lama"
-                                style="width:100%;padding:10px 40px 10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box">
-                            <button type="button" class="toggle-password"
-                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
+                        <input type="password" disabled placeholder="••••••••"
+                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;background:#f9fafb;color:#9ca3af;cursor:not-allowed">
                     </div>
                     <div>
-                        <label
-                            style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Password
+                        <label style="display:block;font-size:13px;font-weight:600;color:#9ca3af;margin-bottom:6px">Password
                             Baru</label>
-                        <div style="position:relative">
-                            <input type="password" name="new_password" required placeholder="Min. 8 karakter"
-                                style="width:100%;padding:10px 40px 10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box">
-                            <button type="button" class="toggle-password"
-                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
+                        <input type="password" disabled placeholder="••••••••"
+                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;background:#f9fafb;color:#9ca3af;cursor:not-allowed">
                     </div>
                     <div>
                         <label
-                            style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Konfirmasi
+                            style="display:block;font-size:13px;font-weight:600;color:#9ca3af;margin-bottom:6px">Konfirmasi
                             Password</label>
-                        <div style="position:relative">
-                            <input type="password" name="confirm_password" required placeholder="Ulangi password baru"
-                                style="width:100%;padding:10px 40px 10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box">
-                            <button type="button" class="toggle-password"
-                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
+                        <input type="password" disabled placeholder="••••••••"
+                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;background:#f9fafb;color:#9ca3af;cursor:not-allowed">
                     </div>
-                    <button type="submit"
-                        style="background:#10b981;color:white;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%">
+                    <button type="button" disabled
+                        style="background:#e5e7eb;color:#9ca3af;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:not-allowed;width:100%">
                         <i class="bi bi-lock"></i> Ganti Password
                     </button>
                 </div>
-            </form>
+
+            <?php else: ?>
+                <!-- Form aktif untuk login manual -->
+                <form action="<?= base_url('profile/change-password') ?>" method="POST">
+                    <?= csrf_field() ?>
+                    <div style="display:grid;gap:18px">
+                        <div>
+                            <label
+                                style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Password
+                                Lama</label>
+                            <div style="position:relative">
+                                <input type="password" name="old_password" required placeholder="Masukkan password lama"
+                                    style="width:100%;padding:10px 40px 10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box">
+                                <button type="button" class="toggle-password"
+                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Password
+                                Baru</label>
+                            <div style="position:relative">
+                                <input type="password" name="new_password" required placeholder="Min. 8 karakter"
+                                    style="width:100%;padding:10px 40px 10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box">
+                                <button type="button" class="toggle-password"
+                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Konfirmasi
+                                Password</label>
+                            <div style="position:relative">
+                                <input type="password" name="confirm_password" required placeholder="Ulangi password baru"
+                                    style="width:100%;padding:10px 40px 10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box">
+                                <button type="button" class="toggle-password"
+                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit"
+                            style="background:#10b981;color:white;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%">
+                            <i class="bi bi-lock"></i> Ganti Password
+                        </button>
+                    </div>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>
+
 
 <!-- ── Modal Cropper (WhatsApp Style) ── -->
 <div id="cropperModal"

@@ -111,7 +111,7 @@ helpdesk-v2/
 
 | Tabel | Fungsi |
 |-------|--------|
-| `users` | Data pengguna (name, email, password, role_id, dept_id, **profile_pic**, gender, phone, is_active, **login_attempts**, **lockout_time**) |
+| `users` | Data pengguna (name, email, password, role_id, dept_id, **profile_pic**, gender, phone, is_active, **auth_provider**, **login_attempts**, **lockout_time**) |
 | `roles` | Data role (code, name, permissions JSON, **is_staff**, **is_technician**, **role_updated_at**) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
@@ -324,6 +324,7 @@ flowchart TD
 15. **Alphanumeric CAPTCHA** — Setelah 2 kali percobaan gagal, tampil CAPTCHA kode acak 6 karakter.
 16. **Architecture Improvement** — Logika presentasi ekspor dipisahkan dari Controller ke View (`export_excel.php`).
 17. **File Execution Protection** — Folder uploads tiket dilengkapi `.htaccess` untuk memblokir eksekusi script PHP dan membatasi hanya file gambar yang diizinkan.
+18. **SSO Password Protection** — Kolom `auth_provider` di tabel `users` (default: `manual`, SSO: `google`) digunakan untuk menonaktifkan menu Ganti Password pada akun SSO, baik di sisi tampilan (UI disabled + banner info) maupun sisi server (controller menolak POST request).
 
 ---
 
@@ -399,4 +400,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 - **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO (folder `avatar/`). UI menggunakan preview lingkaran dengan ikon kamera hover, serta integrasi foto di navbar atas untuk pengalaman user yang lebih personal.
 
-*Terakhir diperbarui: 24 Mei 2026 | Versi: 2.15.0 (Implementasi Fitur Foto Profil User & Otomatisasi Migrasi via GitHub Actions)*
+*Terakhir diperbarui: 25 Mei 2026 | Versi: 2.15.1 (Disable menu Ganti Password untuk user login via Google SSO)*

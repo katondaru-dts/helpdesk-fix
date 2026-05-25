@@ -157,6 +157,7 @@ class Auth extends BaseController
             'isLoggedIn' => true,
             'notif_sound_enabled' => $user['notif_sound_enabled'] ?? 1,
             'notif_sound_type' => $user['notif_sound_type'] ?? 'default',
+            'auth_provider' => $user['auth_provider'] ?? 'manual',
         ];
 
         session()->set($data);
@@ -299,6 +300,7 @@ class Auth extends BaseController
                     'dept_id' => $endUserDeptId,
                     'is_active' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
+                    'auth_provider' => 'google',
                 ]);
                 $newId = $db->insertID();
 
@@ -321,6 +323,7 @@ class Auth extends BaseController
                     'notif_sound_enabled' => 1,
                     'notif_sound_type' => 'default',
                     'role_permissions' => null,
+                    'auth_provider' => 'google',
                 ];
             }
 
@@ -329,6 +332,10 @@ class Auth extends BaseController
             }
 
             // STEP 4: Set session — gunakan setUserSession agar konsisten dengan login biasa
+            // Pastikan auth_provider = google untuk user SSO yang sudah ada
+            if (!isset($user['auth_provider']) || $user['auth_provider'] !== 'google') {
+                $user['auth_provider'] = 'google';
+            }
             $this->setUserSession($user);
 
             return redirect()->to('/dashboard');
