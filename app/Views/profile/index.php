@@ -52,6 +52,16 @@
                     <?= csrf_field() ?>
                     <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" style="display:none">
                 </form>
+
+                <?php if (!empty($user['profile_pic'])): ?>
+                    <form action="<?= base_url('profile/delete-photo') ?>" method="POST" style="margin-top:8px;text-align:center">
+                        <?= csrf_field() ?>
+                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus foto profil?')" 
+                            style="background:none;border:none;color:#ef4444;font-size:12px;font-weight:600;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;width:100%">
+                            <i class="bi bi-trash"></i> Hapus Foto
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
 
             <div>

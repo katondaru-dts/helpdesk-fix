@@ -160,6 +160,31 @@ class Profile extends BaseController
             }
         }
 
-        return redirect()->back()->with('error', 'Gagal mengunggah foto.');
+    }
+    public function deleteProfilePic()
+    {
+        $userId = session()->get('id');
+        $userModel = new UserModel();
+        $user = $userModel->find($userId);
+
+        if (!empty($user['profile_pic'])) {
+            $minio = new \App\Libraries\MinioStorage();
+            try {
+                // Delete from MinIO
+                if (is_minio_key($user['profile_pic'])) {
+                    $minio->delete($user['profile_pic'], 'avatar');
+                }
+
+                // Update DB & Session
+                $userModel->update($userId, ['profile_pic' => null]);
+                session()->set('profile_pic', null);
+
+                return redirect()->to('/profile')->with('success', 'Foto profil berhasil dihapus.');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Gagal menghapus foto dari storage: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->back()->with('error', 'Anda tidak memiliki foto profil untuk dihapus.');
     }
 }
