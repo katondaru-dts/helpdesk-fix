@@ -398,6 +398,6 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Navigasi Global**: Perbaikan presisi *hover/hitbox* dropdown profil pada *topbar* dengan implementasi *gap-bridge pseudo-element* CSS untuk mencegah menu tertutup secara tidak sengaja.
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
-- **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO (folder `avatar/`). UI menggunakan preview lingkaran dengan ikon kamera hover, serta integrasi foto di navbar atas untuk pengalaman user yang lebih personal.
+- **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem pemotongan gambar (CropperJS) sebelum diunggah.
 
-*Terakhir diperbarui: 25 Mei 2026 | Versi: 2.15.1 (Disable menu Ganti Password untuk user login via Google SSO)*
+*Terakhir diperbarui: 25 Mei 2026 | Versi: 2.16.0 (Pembaruan struktur storage avatar per-user di MinIO)*

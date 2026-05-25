@@ -125,24 +125,29 @@ class Profile extends BaseController
             $userModel = new UserModel();
             $user = $userModel->find($userId);
 
-            $fileName = 'avatar_' . $userId . '_' . time() . '.' . $file->getExtension();
-            $tempPath = FCPATH . 'uploads/avatars/' . $fileName;
+            // New format: readable subfolder (e.g. budi_santoso_42/profile.jpg)
+            $extension = $file->getExtension();
+            $safeName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $user['name']));
+            $minioKey = $safeName . '_' . $userId . '/profile.' . $extension;
+            $tempName = 'avatar_tmp_' . $userId . '_' . time() . '.' . $extension;
+            $tempPath = FCPATH . 'uploads/avatars/' . $tempName;
 
-            // Ensure directory exists
+            // Ensure temp directory exists
             if (!is_dir(FCPATH . 'uploads/avatars')) {
                 mkdir(FCPATH . 'uploads/avatars', 0777, true);
             }
 
-            if ($file->move(FCPATH . 'uploads/avatars', $fileName)) {
+            if ($file->move(FCPATH . 'uploads/avatars', $tempName)) {
                 try {
                     // Delete old pic from MinIO if exists
                     if (!empty($user['profile_pic']) && is_minio_key($user['profile_pic'])) {
                         $minio->delete($user['profile_pic'], 'avatar');
                     }
 
-                    $minio->upload($tempPath, $fileName, 'avatar');
-                    $userModel->update($userId, ['profile_pic' => $fileName]);
-                    session()->set('profile_pic', $fileName);
+                    // Upload to MinIO under per-user subfolder
+                    $minio->upload($tempPath, $minioKey, 'avatar');
+                    $userModel->update($userId, ['profile_pic' => $minioKey]);
+                    session()->set('profile_pic', $minioKey);
 
                     if (file_exists($tempPath)) {
                         unlink($tempPath);

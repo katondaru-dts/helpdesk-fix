@@ -2,11 +2,23 @@
 
 if (!function_exists('is_minio_key')) {
     /**
-     * Detect whether a stored photo value is a MinIO key (just filename) or a local path.
+     * Detect whether a stored photo value is a MinIO key.
+     *
+     * Supports two formats:
+     *  - Old (flat): 'avatar_42_1716800000.jpg'  → no slash
+     *  - New (per-user folder): 'user_42/profile.jpg' → starts with 'user_'
      */
     function is_minio_key(string $value): bool
     {
-        return $value !== '' && !str_contains($value, '/');
+        if ($value === '')
+            return false;
+
+        // Format lama: flat filename (tidak ada slash)
+        if (!str_contains($value, '/'))
+            return true;
+
+        // Format baru: per-user subfolder (mengandung '/profile.')
+        return str_contains($value, '/profile.');
     }
 }
 

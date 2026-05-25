@@ -440,10 +440,13 @@
             canvas.toBlob((blob) => {
                 const formData = new FormData();
                 formData.append('profile_pic', blob, 'profile_pic.jpg');
-                // Tambahkan CSRF token
-                const csrfInput = profilePicForm.querySelector('input[name="<?= csrf_token() ?>"]');
-                if (csrfInput) {
-                    formData.append('<?= csrf_token() ?>', csrfInput.value);
+
+                // Baca CSRF token SEBELUM hideModal() me-reset form
+                const csrfTokenName = '<?= csrf_token() ?>';
+                const csrfInput = profilePicForm.querySelector('input[name="' + csrfTokenName + '"]');
+                const csrfValue = csrfInput ? csrfInput.value : '';
+                if (csrfValue) {
+                    formData.append(csrfTokenName, csrfValue);
                 }
 
                 // Show loading
@@ -455,7 +458,8 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfValue
                     }
                 })
                     .then(response => {

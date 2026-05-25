@@ -38,6 +38,9 @@ class MinioStorage
 
     /**
      * Resolve final object key using folder prefix.
+     *
+     * Supports nested subfolders: e.g., filename = 'user_1/profile.jpg'
+     * will resolve to 'avatar/user_1/profile.jpg'.
      */
     private function resolveKey(string $filename, ?string $folder = null): string
     {
@@ -50,7 +53,9 @@ class MinioStorage
             return $filename;
         }
 
-        return $prefix . '/' . basename($filename);
+        // Preserve subfolder structure (e.g. 'user_42/profile.jpg')
+        // instead of stripping it with basename()
+        return $prefix . '/' . $filename;
     }
 
     /**
