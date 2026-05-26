@@ -399,5 +399,6 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
    - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
 - **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem pemotongan gambar (CropperJS) sebelum diunggah.
+- **Knowledge Base Storage (Hybrid)**: Migrasi penyimpanan file dokumentasi `.md` dari lokal server ke MinIO (folder `artikel/`). Sistem melakukan sinkronisasi otomatis antara file fisika di Cloud Storage dengan metadata di database (HTML & Vektor AI). Dilengkapi fitur *auto-cleanup* (menghapus file di MinIO saat artikel dihapus via Admin).
 
-*Terakhir diperbarui: 25 Mei 2026 | Versi: 2.16.0 (Pembaruan struktur storage avatar per-user di MinIO)*
+*Terakhir diperbarui: 26 Mei 2026 | Versi: 2.17.0 (Migrasi KB Storage ke MinIO & Sinkronisasi Folder artikel)*
