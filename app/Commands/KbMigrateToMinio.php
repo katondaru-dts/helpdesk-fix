@@ -47,35 +47,30 @@ class KbMigrateToMinio extends BaseCommand
         foreach ($articles as $article) {
             CLI::write("Memproses: {$article['title']}...");
 
-            // Cari file lokal yang cocok
-            // Prioritas 1: Berdasarkan slug (slug.md)
-            // Prioritas 2: Berdasarkan title match? (agak berisiko, pakai slug saja)
-            $filename = $article['slug'] . '.md';
-            $localPath = $localDir . $filename;
+            // Cari file lokal yang cocok dengan logika lebih fleksibel
+            $slug = $article['slug'];
+            $normalizedSlug = str_replace(['-', '_'], '', $slug);
+            $files = glob($localDir . "*.md");
+            $foundPath = null;
 
-            // Jika tidak ketemu dengan slug, coba scan file yang mungkin mirip? 
-            // Untuk sekarang kita asumsikan slug.md adalah standar.
-            if (!file_exists($localPath)) {
-                // Fallback: coba cari file yang contains title atau slug di folder
-                $files = glob($localDir . "*.md");
-                $found = false;
-                foreach ($files as $f) {
-                    if (str_contains(basename($f), $article['slug'])) {
-                        $localPath = $f;
-                        $filename = basename($f);
-                        $found = true;
-                        break;
-                    }
-                }
+            foreach ($files as $f) {
+                $fname = strtolower(basename($f, '.md'));
+                $normalizedFile = str_replace(['-', '_', ' '], '', $fname);
 
-                if (!$found) {
-                    CLI::write("  - File tidak ditemukan untuk slug: {$article['slug']}", 'yellow');
-                    $skipped++;
-                    continue;
+                if ($normalizedFile === $normalizedSlug || str_contains($normalizedFile, $normalizedSlug) || str_contains($normalizedSlug, $normalizedFile)) {
+                    $foundPath = $f;
+                    break;
                 }
             }
 
+            if (!$foundPath) {
+                CLI::write("  - File tidak ditemukan untuk: {$article['title']}", 'yellow');
+                $skipped++;
+                continue;
+            }
+
             try {
+                $localPath = $foundPath;
                 $minioFilename = $article['slug'] . '.md'; // Standarisasi nama di MinIO
                 $minio->upload($localPath, $minioFilename, 'artikel');
 
