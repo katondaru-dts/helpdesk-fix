@@ -12,10 +12,11 @@ class KnowledgeBase extends BaseController
 {
     protected $articleModel;
     protected $categoryModel;
+    protected $db;
 
     public function __construct()
     {
-        $this->articleModel  = new KbArticleModel();
+        $this->articleModel = new KbArticleModel();
         $this->categoryModel = new KbCategoryModel();
         $this->db = \Config\Database::connect();
     }
@@ -23,24 +24,24 @@ class KnowledgeBase extends BaseController
     public function index()
     {
         $filters = [
-            'search'      => $this->request->getGet('search') ?? '',
+            'search' => $this->request->getGet('search') ?? '',
             'category_id' => (int) $this->request->getGet('cat'),
-            'status'      => $this->request->getGet('status') ?? '',
+            'status' => $this->request->getGet('status') ?? '',
         ];
-        $page    = max(1, (int) $this->request->getGet('page'));
+        $page = max(1, (int) $this->request->getGet('page'));
         $perPage = 15;
-        $offset  = ($page - 1) * $perPage;
+        $offset = ($page - 1) * $perPage;
 
         return view('admin/knowledge_base/index', [
             'activePage' => 'admin-kb',
-            'pageTitle'  => 'Admin Knowledge Base',
-            'articles'   => $this->articleModel->adminList($filters, $perPage, $offset),
-            'total'      => $this->articleModel->adminCount($filters),
+            'pageTitle' => 'Admin Knowledge Base',
+            'articles' => $this->articleModel->adminList($filters, $perPage, $offset),
+            'total' => $this->articleModel->adminCount($filters),
             'categories' => $this->categoryModel->findAll(),
-            'filters'    => $filters,
-            'currentPage'=> $page,
-            'perPage'    => $perPage,
-            'stats'      => $this->getStats(),
+            'filters' => $filters,
+            'currentPage' => $page,
+            'perPage' => $perPage,
+            'stats' => $this->getStats(),
         ]);
     }
 
@@ -48,8 +49,8 @@ class KnowledgeBase extends BaseController
     {
         return view('admin/knowledge_base/form', [
             'activePage' => 'admin-kb',
-            'pageTitle'  => 'Tambah Artikel',
-            'article'    => null,
+            'pageTitle' => 'Tambah Artikel',
+            'article' => null,
             'categories' => $this->categoryModel->findAll(),
         ]);
     }
@@ -57,12 +58,15 @@ class KnowledgeBase extends BaseController
     public function store()
     {
         $data = $this->request->getPost();
-        $data = $this->applyMdFile($data);
-        $data['slug']       = $this->articleModel->generateSlug($data['title']);
+        $data['slug'] = $this->articleModel->generateSlug($data['title']);
         $data['created_by'] = session()->get('id');
         $data['use_for_ai'] = isset($data['use_for_ai']) ? 1 : 0;
 
-        if (!empty($data['status_submit'])) $data['status'] = $data['status_submit'];
+        // Handle MD file upload to MinIO
+        $data = $this->applyMdFile($data, $data['slug']);
+
+        if (!empty($data['status_submit']))
+            $data['status'] = $data['status_submit'];
         unset($data['status_submit']);
 
         if ($data['use_for_ai'] && $data['status'] === 'published') {
@@ -76,24 +80,40 @@ class KnowledgeBase extends BaseController
     public function edit(int $id)
     {
         $article = $this->articleModel->find($id);
-        if (!$article) return redirect()->to(base_url('admin/knowledge-base'));
+        if (!$article)
+            return redirect()->to(base_url('admin/knowledge-base'));
 
         return view('admin/knowledge_base/form', [
             'activePage' => 'admin-kb',
-            'pageTitle'  => 'Edit Artikel',
-            'article'    => $article,
+            'pageTitle' => 'Edit Artikel',
+            'article' => $article,
             'categories' => $this->categoryModel->findAll(),
         ]);
     }
 
     public function update(int $id)
     {
+        $article = $this->articleModel->find($id);
+        if (!$article)
+            return redirect()->to(base_url('admin/knowledge-base'));
+
         $data = $this->request->getPost();
-        $data = $this->applyMdFile($data);
         $data['use_for_ai'] = isset($data['use_for_ai']) ? 1 : 0;
         unset($data['slug']);
 
-        if (!empty($data['status_submit'])) $data['status'] = $data['status_submit'];
+        // Handle MD file update to MinIO
+        $data = $this->applyMdFile($data, $article['slug']);
+
+        // Delete old file if name is different or replacing? 
+        // Our resolveKey and upload will overwrite if name is same (slug is same)
+        // But if we want to be safe or if key changed:
+        if (!empty($data['md_key']) && !empty($article['md_key']) && $data['md_key'] !== $article['md_key']) {
+            $minio = new \App\Libraries\MinioStorage();
+            $minio->delete($article['md_key'], 'documentation');
+        }
+
+        if (!empty($data['status_submit']))
+            $data['status'] = $data['status_submit'];
         unset($data['status_submit']);
 
         if ($data['use_for_ai'] && ($data['status'] ?? '') === 'published') {
@@ -106,24 +126,39 @@ class KnowledgeBase extends BaseController
         return redirect()->to(base_url('admin/knowledge-base'))->with('success', 'Artikel berhasil diperbarui.');
     }
 
-    private function applyMdFile(array $data): array
+    private function applyMdFile(array $data, string $slug): array
     {
         $file = $this->request->getFile('md_file');
-        if (!$file || !$file->isValid() || $file->getSize() === 0) return $data;
+        if (!$file || !$file->isValid() || $file->getSize() === 0)
+            return $data;
 
-        $md = file_get_contents($file->getTempName());
+        $tempPath = $file->getTempName();
+        $md = file_get_contents($tempPath);
         $data['content'] = MarkdownHelper::toHtml($md);
+
+        // Upload to MinIO
+        $minio = new \App\Libraries\MinioStorage();
+        $minioFilename = $slug . '.md';
+
+        try {
+            $minio->upload($tempPath, $minioFilename, 'documentation');
+            $data['md_key'] = $minioFilename;
+        } catch (\Exception $e) {
+            log_message('error', '[KB] MinIO Upload failed: ' . $e->getMessage());
+        }
 
         // Ambil judul dari baris pertama jika kosong
         if (empty(trim($data['title'] ?? ''))) {
             preg_match('/^#\s+(.+)/m', $md, $m);
-            if (!empty($m[1])) $data['title'] = trim($m[1]);
+            if (!empty($m[1]))
+                $data['title'] = trim($m[1]);
         }
 
         // Ambil excerpt dari paragraf pertama jika kosong
         if (empty(trim($data['excerpt'] ?? ''))) {
             preg_match('/^(?!#)[^\n]{20,}/m', $md, $m);
-            if (!empty($m[0])) $data['excerpt'] = mb_strimwidth(trim($m[0]), 0, 200, '...');
+            if (!empty($m[0]))
+                $data['excerpt'] = mb_strimwidth(trim($m[0]), 0, 200, '...');
         }
 
         return $data;
@@ -133,8 +168,8 @@ class KnowledgeBase extends BaseController
     {
         try {
             $gemini = new GeminiHelper();
-            $text   = $title . "\n" . mb_substr(strip_tags($content), 0, 2000);
-            $vec    = $gemini->embed($text);
+            $text = $title . "\n" . mb_substr(strip_tags($content), 0, 2000);
+            $vec = $gemini->embed($text);
             return $vec ? json_encode($vec) : null;
         } catch (\Throwable $e) {
             log_message('error', 'KB embedding error: ' . $e->getMessage());
@@ -149,14 +184,15 @@ class KnowledgeBase extends BaseController
             ->join('kb_categories', 'kb_categories.id = kb_articles.category_id')
             ->find($id);
 
-        if (!$article) throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        if (!$article)
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
 
         return view('knowledge_base/show', [
             'activePage' => 'admin-kb',
-            'pageTitle'  => '[Preview] ' . $article['title'],
-            'article'    => $article,
-            'related'    => [],
-            'isPreview'  => true,
+            'pageTitle' => '[Preview] ' . $article['title'],
+            'article' => $article,
+            'related' => [],
+            'isPreview' => true,
         ]);
     }
 
@@ -169,7 +205,8 @@ class KnowledgeBase extends BaseController
     public function reembed(int $id)
     {
         $article = $this->articleModel->find($id);
-        if (!$article) return $this->response->setJSON(['error' => 'Artikel tidak ditemukan'], 404);
+        if (!$article)
+            return $this->response->setJSON(['error' => 'Artikel tidak ditemukan'], 404);
 
         $embedding = $this->generateEmbedding($article['title'], $article['content']);
         $this->articleModel->update($id, ['embedding' => $embedding]);
@@ -183,7 +220,8 @@ class KnowledgeBase extends BaseController
             "SELECT id, title, content FROM kb_articles WHERE status='published' AND use_for_ai=1"
         )->getResultArray();
 
-        $ok = 0; $fail = 0;
+        $ok = 0;
+        $fail = 0;
         foreach ($articles as $article) {
             $embedding = $this->generateEmbedding($article['title'], $article['content']);
             if ($embedding) {
@@ -197,8 +235,8 @@ class KnowledgeBase extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'embedded' => $ok,
-            'failed'   => $fail,
-            'message'  => "Re-embed selesai: {$ok} berhasil, {$fail} gagal.",
+            'failed' => $fail,
+            'message' => "Re-embed selesai: {$ok} berhasil, {$fail} gagal.",
         ]);
     }
 
@@ -212,7 +250,8 @@ class KnowledgeBase extends BaseController
     public function storeCategory()
     {
         $data = $this->request->getJSON(true);
-        if (empty($data['name'])) return $this->response->setJSON(['error' => 'Nama wajib diisi'], 422);
+        if (empty($data['name']))
+            return $this->response->setJSON(['error' => 'Nama wajib diisi'], 422);
         $id = $this->categoryModel->insert(['name' => $data['name'], 'icon' => $data['icon'] ?? 'bi-folder', 'color' => $data['color'] ?? '#2563EB']);
         return $this->response->setJSON(['id' => $id, 'message' => 'Kategori ditambahkan']);
     }
@@ -220,7 +259,7 @@ class KnowledgeBase extends BaseController
     public function updateCategory(int $id)
     {
         $data = $this->request->getJSON(true);
-        $this->categoryModel->update($id, array_intersect_key($data, array_flip(['name','icon','color'])));
+        $this->categoryModel->update($id, array_intersect_key($data, array_flip(['name', 'icon', 'color'])));
         return $this->response->setJSON(['message' => 'Kategori diperbarui']);
     }
 
@@ -234,10 +273,10 @@ class KnowledgeBase extends BaseController
     {
         $db = \Config\Database::connect();
         return [
-            'total'     => $db->table('kb_articles')->countAllResults(),
-            'published' => $db->table('kb_articles')->where('status','published')->countAllResults(),
-            'draft'     => $db->table('kb_articles')->where('status','draft')->countAllResults(),
-            'views'     => (int) $db->query("SELECT COALESCE(SUM(view_count),0) as v FROM kb_articles")->getRow()->v,
+            'total' => $db->table('kb_articles')->countAllResults(),
+            'published' => $db->table('kb_articles')->where('status', 'published')->countAllResults(),
+            'draft' => $db->table('kb_articles')->where('status', 'draft')->countAllResults(),
+            'views' => (int) $db->query("SELECT COALESCE(SUM(view_count),0) as v FROM kb_articles")->getRow()->v,
         ];
     }
 }

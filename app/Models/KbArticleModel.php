@@ -20,7 +20,8 @@ class KbArticleModel extends Model
         'use_for_ai',
         'view_count',
         'embedding',
-        'created_by'
+        'created_by',
+        'md_key'
     ];
     protected $useTimestamps = true;
 
