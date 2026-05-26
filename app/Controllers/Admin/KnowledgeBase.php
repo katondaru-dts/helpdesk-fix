@@ -109,7 +109,7 @@ class KnowledgeBase extends BaseController
         // But if we want to be safe or if key changed:
         if (!empty($data['md_key']) && !empty($article['md_key']) && $data['md_key'] !== $article['md_key']) {
             $minio = new \App\Libraries\MinioStorage();
-            $minio->delete($article['md_key'], 'documentation');
+            $minio->delete($article['md_key'], 'artikel');
         }
 
         if (!empty($data['status_submit']))
@@ -141,7 +141,7 @@ class KnowledgeBase extends BaseController
         $minioFilename = $slug . '.md';
 
         try {
-            $minio->upload($tempPath, $minioFilename, 'documentation');
+            $minio->upload($tempPath, $minioFilename, 'artikel');
             $data['md_key'] = $minioFilename;
         } catch (\Exception $e) {
             log_message('error', '[KB] MinIO Upload failed: ' . $e->getMessage());

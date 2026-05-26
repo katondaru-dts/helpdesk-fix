@@ -77,13 +77,13 @@ class KbMigrateToMinio extends BaseCommand
 
             try {
                 $minioFilename = $article['slug'] . '.md'; // Standarisasi nama di MinIO
-                $minio->upload($localPath, $minioFilename, 'documentation');
+                $minio->upload($localPath, $minioFilename, 'artikel');
 
                 $db->table('kb_articles')
                     ->where('id', $article['id'])
                     ->update(['md_key' => $minioFilename]);
 
-                CLI::write("  - Berhasil diupload sebagai: documentation/{$minioFilename}", 'green');
+                CLI::write("  - Berhasil diupload sebagai: artikel/{$minioFilename}", 'green');
                 $success++;
             } catch (\Exception $e) {
                 CLI::error("  - Gagal upload: " . $e->getMessage());
