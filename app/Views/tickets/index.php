@@ -102,6 +102,7 @@ function exportTickets() {
         <select name="bulk_status" class="form-select" style="width:auto;" required>
             <option value="">-- Ubah Status ke --</option>
             <?php foreach(['OPEN' => 'OPEN', 'IN_PROGRESS' => 'IN_PROGRESS', 'PENDING' => 'PENDING', 'RESOLVED' => 'RESOLVED', 'CLOSED' => 'CLOSED'] as $val => $label): ?>
+                <?php if ($val === 'CLOSED' && is_technician() && !is_admin()): continue; endif; ?>
                 <option value="<?= $val ?>"><?= $label ?></option>
             <?php endforeach; ?>
         </select>

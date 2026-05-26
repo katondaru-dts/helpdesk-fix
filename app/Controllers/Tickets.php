@@ -528,6 +528,10 @@ class Tickets extends BaseController
             return redirect()->back()->with('error', 'Pilih tiket dan status yang valid.');
         }
 
+        if ($newStatus === 'CLOSED' && is_technician() && !is_admin()) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengubah status ke CLOSED.');
+        }
+
         $ticketModel = new TicketModel();
         $historyModel = new TicketHistoryModel();
         $db = \Config\Database::connect();
