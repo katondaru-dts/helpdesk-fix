@@ -20,7 +20,7 @@ class Cron extends BaseController
         // 1. Find tickets that are OVERDUE, NOT RESOLVED/CLOSED, and NOT YET NOTIFIED
         $overdueTickets = $ticketModel
             ->where('sla_deadline <=', date('Y-m-d H:i:s'))
-            ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
+            ->whereNotIn('status', ['RESOLVED', 'CLOSED', 'PENDING'])
             ->where('sla_notified', 0)
             ->findAll();
 

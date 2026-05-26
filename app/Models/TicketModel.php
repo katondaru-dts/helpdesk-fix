@@ -87,6 +87,11 @@ class TicketModel extends Model
                 ->whereNotIn('tickets.status', ['RESOLVED', 'CLOSED']);
         }
 
+        if (!empty($filters['overdue'])) {
+            $builder->where('tickets.sla_deadline <', date('Y-m-d H:i:s'))
+                ->whereNotIn('tickets.status', ['RESOLVED', 'CLOSED', 'PENDING']);
+        }
+
         $allowedSort = [
             'id' => 'tickets.id',
             'title' => 'tickets.title',

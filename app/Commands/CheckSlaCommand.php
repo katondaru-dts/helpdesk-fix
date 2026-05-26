@@ -27,7 +27,7 @@ class CheckSlaCommand extends BaseCommand
         // 1. Cari tiket Overdue yang belum dinotifikasi
         $overdueTickets = $ticketModel
             ->where('sla_deadline <=', date('Y-m-d H:i:s'))
-            ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
+            ->whereNotIn('status', ['RESOLVED', 'CLOSED', 'PENDING'])
             ->where('sla_notified', 0)
             ->findAll();
 

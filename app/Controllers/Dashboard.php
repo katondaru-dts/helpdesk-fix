@@ -30,7 +30,7 @@ class Dashboard extends BaseController
         if (has_permission('Update Status Tiket')) {
             // Admin or Support
             $avgRating = $ratingModel->selectAvg('rating')->first();
-            
+
             $data['stats'] = [
                 'total' => $ticketModel->countAllResults(),
                 'open' => $ticketModel->where('status', 'OPEN')->countAllResults(),
@@ -42,8 +42,8 @@ class Dashboard extends BaseController
                 'urgent' => $ticketModel->whereIn('priority', ['HIGH', 'URGENT'])->whereNotIn('status', ['RESOLVED', 'CLOSED'])->countAllResults(),
                 'avgRating' => $avgRating ? round($avgRating['rating'], 1) : 0,
                 'overdue' => $ticketModel->where('sla_deadline <', date('Y-m-d H:i:s'))
-                                        ->whereNotIn('status', ['RESOLVED', 'CLOSED'])
-                                        ->countAllResults(),
+                    ->whereNotIn('status', ['RESOLVED', 'CLOSED', 'PENDING'])
+                    ->countAllResults(),
             ];
 
             // Highlight Notifikasi: Pesan terbaru dari Reporter (User)
@@ -115,11 +115,11 @@ class Dashboard extends BaseController
                 ->findAll();
 
             // --- CHART DATA GENERATION ---
-            
+
             $filter = $this->request->getGet('filter') ?? 'minggu_ini';
             $daysCount = 6;
             $startDay = 0;
-            
+
             if ($filter === 'hari_ini') {
                 $daysCount = 0;
                 $startDay = 0;
@@ -150,14 +150,14 @@ class Dashboard extends BaseController
                 $fullName = ucwords(strtolower($tech['name']));
                 $lineData['datasets'][] = [
                     'label' => $fullName,
-                    'data'  => [],
+                    'data' => [],
                     'color' => $colors[$idx % count($colors)]
                 ];
             }
 
             $loopStart = $daysCount;
             $loopEnd = 0;
-            
+
             // If today or yesterday, show at least 3 days for a better trend line
             if ($filter === 'hari_ini') {
                 $loopStart = 2; // Show H-2, H-1, Today
@@ -169,13 +169,15 @@ class Dashboard extends BaseController
 
             for ($i = $loopStart; $i >= $loopEnd; $i--) {
                 $date = date('Y-m-d', strtotime("-$i days"));
-                
+
                 $label = date('d M', strtotime($date));
-                if ($filter === 'hari_ini' && $i == 0) $label = "Hari Ini";
-                else if ($filter === 'kemarin' && $i == 1) $label = "Kemarin";
-                
+                if ($filter === 'hari_ini' && $i == 0)
+                    $label = "Hari Ini";
+                else if ($filter === 'kemarin' && $i == 1)
+                    $label = "Kemarin";
+
                 $lineData['labels'][] = $label;
-                
+
                 if (!empty($techs)) {
                     foreach ($techs as $idx => $tech) {
                         $count = $db->query("
@@ -185,7 +187,7 @@ class Dashboard extends BaseController
                               AND status IN ('RESOLVED','CLOSED') 
                               AND DATE(updated_at) = '$date'
                         ")->getRow()->c;
-                        $lineData['datasets'][$idx]['data'][] = (int)$count;
+                        $lineData['datasets'][$idx]['data'][] = (int) $count;
                     }
                 }
             }
@@ -193,7 +195,7 @@ class Dashboard extends BaseController
 
             // Bar Chart: Rata-rata Waktu Respons (Jam) by Category (top 7)
             $barData = ['labels' => [], 'data' => []];
-            
+
             $whereClause = "";
             if ($filter === 'hari_ini') {
                 $whereClause = " AND DATE(t.updated_at) = CURDATE()";
@@ -219,18 +221,17 @@ class Dashboard extends BaseController
                 $barData['labels'] = ['Belum ada data'];
                 $barData['data'] = [0];
             } else {
-                foreach($catAvg as $c){
+                foreach ($catAvg as $c) {
                     $barData['labels'][] = $c['name'];
                     // fallback to 0 if null
-                    $val = $c['avg_hours'] !== null ? round((float)$c['avg_hours'], 1) : 0;
+                    $val = $c['avg_hours'] !== null ? round((float) $c['avg_hours'], 1) : 0;
                     $barData['data'][] = $val;
                 }
             }
             $data['chartBar'] = json_encode($barData);
 
             return view('dashboard/admin', $data);
-        }
-        else {
+        } else {
             // Regular User
             $data['stats'] = [
                 'total' => $ticketModel->where('reporter_id', $userId)->countAllResults(),
