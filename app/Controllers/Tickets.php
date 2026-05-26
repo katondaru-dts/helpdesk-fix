@@ -680,7 +680,7 @@ class Tickets extends BaseController
             if ($file && $file->isValid() && !$file->hasMoved()) {
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
                 $ext = strtolower($file->getExtension());
-                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 5 * 1024 * 1024) {
+                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 10 * 1024 * 1024) {
                     $fileName = $field . '_' . $newId . '_' . $file->getRandomName();
                     // Temporarily move to local, then upload to MinIO
                     $tempPath = FCPATH . 'uploads/tickets/' . $fileName;

@@ -19,6 +19,9 @@ RUN docker-php-ext-install \
     gd \
     opcache
 
+# Copy custom php.ini
+COPY php.ini $PHP_INI_DIR/php.ini
+
 # Set working directory
 WORKDIR /var/www/html
 

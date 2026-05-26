@@ -120,7 +120,7 @@
                     </div>
                 </div>
                 <div style="font-size:12px;color:#9ca3af;margin-top:6px"><i class="bi bi-info-circle"></i> Format: JPG,
-                    PNG. Maks 5MB per foto. Bisa ambil dari kamera.</div>
+                    PNG. Maks 10MB per foto. Bisa ambil dari kamera.</div>
             </div>
             <div style="display:flex;gap:10px">
                 <button type="submit" id="submitBtn"
