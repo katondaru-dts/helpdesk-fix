@@ -198,8 +198,23 @@ class KnowledgeBase extends BaseController
 
     public function delete(int $id)
     {
-        $this->articleModel->delete($id);
-        return redirect()->to(base_url('admin/knowledge-base'))->with('success', 'Artikel dihapus.');
+        $article = $this->articleModel->find($id);
+        if ($article) {
+            // Delete from MinIO if exists
+            if (!empty($article['md_key'])) {
+                try {
+                    $minio = new \App\Libraries\MinioStorage();
+                    $minio->delete($article['md_key'], 'artikel');
+                } catch (\Exception $e) {
+                    log_message('error', '[KB] Failed to delete MinIO file: ' . $e->getMessage());
+                }
+            }
+
+            $this->articleModel->delete($id);
+            return redirect()->to(base_url('admin/knowledge-base'))->with('success', 'Artikel berhasil dihapus dari database dan storage.');
+        }
+
+        return redirect()->to(base_url('admin/knowledge-base'))->with('error', 'Artikel tidak ditemukan.');
     }
 
     public function reembed(int $id)
