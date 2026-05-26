@@ -92,6 +92,25 @@ function exportTickets() {
     </div>
 </div>
 
+<?php if ($isStaff): ?>
+<!-- Bulk Action Toolbar -->
+<div id="bulkToolbar" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 16px; margin-bottom:12px; align-items:center; gap:10px; flex-wrap:wrap;">
+    <span id="bulkCount" style="font-weight:600; color:#1e40af; font-size:14px;">0 tiket dipilih</span>
+    <form id="bulkForm" action="<?= base_url('tickets/bulk-update-status') ?>" method="POST" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <?= csrf_field() ?>
+        <div id="bulkIdsContainer"></div>
+        <select name="bulk_status" class="form-select" style="width:auto;" required>
+            <option value="">-- Ubah Status ke --</option>
+            <?php foreach(['OPEN' => 'OPEN', 'IN_PROGRESS' => 'IN_PROGRESS', 'PENDING' => 'PENDING', 'RESOLVED' => 'RESOLVED', 'CLOSED' => 'CLOSED'] as $val => $label): ?>
+                <option value="<?= $val ?>"><?= $label ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Ubah status tiket yang dipilih?')"><i class="bi bi-check2-all"></i> Terapkan</button>
+    </form>
+    <button class="btn btn-outline btn-sm" onclick="clearSelection()"><i class="bi bi-x"></i> Batal</button>
+</div>
+<?php endif; ?>
+
 <div class="card">
     <div class="table-wrap">
         <table class="table">
@@ -112,7 +131,12 @@ function exportTickets() {
                 };
                 ?>
                 <tr>
-                    <th style="width:90px;padding-left:16px"><?= $sortLink('id', 'ID') ?></th>
+                    <?php if ($isStaff): ?>
+                    <th style="width:36px;padding-left:12px;text-align:center">
+                        <input type="checkbox" id="checkAll" title="Pilih semua" style="cursor:pointer;width:16px;height:16px;">
+                    </th>
+                    <?php endif; ?>
+                    <th style="width:90px;padding-left:<?= $isStaff ? '8px' : '16px' ?>"><?= $sortLink('id', 'ID') ?></th>
                     <th style="width:200px"><?= $sortLink('title', 'Judul') ?></th>
                     <th style="width:120px">Nama Pemohon</th>
                     <th style="width:100px"><?= $sortLink('cat_name', 'Kategori') ?></th>
@@ -128,8 +152,13 @@ function exportTickets() {
             <tbody>
                 <?php if (!empty($tickets)): ?>
                     <?php foreach ($tickets as $t): ?>
-                        <tr onclick="window.location='<?= base_url('tickets/detail/' . $t['id']) ?>'" style="cursor:pointer">
-                            <td style="padding-left:16px"><span style="font-family:monospace;font-size:12px;font-weight:700;color:#2563eb;background:#dbeafe;padding:2px 8px;border-radius:6px"><?= $t['id'] ?></span></td>
+                        <tr onclick="window.location='<?= base_url('tickets/detail/' . $t['id']) ?>'" style="cursor:pointer" class="ticket-row">
+                            <?php if ($isStaff): ?>
+                            <td onclick="event.stopPropagation()" style="text-align:center;padding-left:12px;">
+                                <input type="checkbox" class="ticket-check" value="<?= esc($t['id']) ?>" style="cursor:pointer;width:16px;height:16px;">
+                            </td>
+                            <?php endif; ?>
+                            <td style="padding-left:8px"><span style="font-family:monospace;font-size:12px;font-weight:700;color:#2563eb;background:#dbeafe;padding:2px 8px;border-radius:6px"><?= $t['id'] ?></span></td>
                             <td><div style="font-weight:600;font-size:13.5px;word-break:break-word;line-height:1.4"><?= esc($t['title']) ?></div></td>
                             <td><span style="font-size:13px;color:#475569;font-weight:500"><?= esc($t['requester_name'] ?? '') ?></span></td>
                             <td><span class="text-sm" style="font-size:13px"><?= esc($t['cat_name']) ?></span></td>
@@ -161,7 +190,7 @@ function exportTickets() {
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="11" class="text-center p-4 text-muted">Tidak ada tiket yang ditemukan.</td></tr>
+                    <tr><td colspan="<?= $isStaff ? '12' : '11' ?>" class="text-center p-4 text-muted">Tidak ada tiket yang ditemukan.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -223,5 +252,57 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
+</script>
+<script>
+(function() {
+    var checkAll = document.getElementById('checkAll');
+    var toolbar = document.getElementById('bulkToolbar');
+    var countEl = document.getElementById('bulkCount');
+    var idsContainer = document.getElementById('bulkIdsContainer');
+    if (!checkAll) return;
+
+    function getChecked() {
+        return Array.from(document.querySelectorAll('.ticket-check:checked'));
+    }
+
+    function updateToolbar() {
+        var checked = getChecked();
+        if (checked.length > 0) {
+            toolbar.style.display = 'flex';
+            countEl.textContent = checked.length + ' tiket dipilih';
+            idsContainer.innerHTML = '';
+            checked.forEach(function(cb) {
+                var inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'ticket_ids[]';
+                inp.value = cb.value;
+                idsContainer.appendChild(inp);
+            });
+        } else {
+            toolbar.style.display = 'none';
+            idsContainer.innerHTML = '';
+        }
+        checkAll.indeterminate = checked.length > 0 && checked.length < document.querySelectorAll('.ticket-check').length;
+        checkAll.checked = checked.length > 0 && checked.length === document.querySelectorAll('.ticket-check').length;
+    }
+
+    checkAll.addEventListener('change', function() {
+        document.querySelectorAll('.ticket-check').forEach(function(cb) {
+            cb.checked = checkAll.checked;
+        });
+        updateToolbar();
+    });
+
+    document.querySelectorAll('.ticket-check').forEach(function(cb) {
+        cb.addEventListener('change', updateToolbar);
+    });
+})();
+
+function clearSelection() {
+    document.querySelectorAll('.ticket-check').forEach(function(cb) { cb.checked = false; });
+    var checkAll = document.getElementById('checkAll');
+    if (checkAll) { checkAll.checked = false; checkAll.indeterminate = false; }
+    document.getElementById('bulkToolbar').style.display = 'none';
+}
 </script>
 <?= $this->endSection() ?>

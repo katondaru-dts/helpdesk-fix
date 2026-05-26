@@ -51,6 +51,7 @@ $routes->group('', ['filter' => ['auth', 'rolecheck']], function ($routes) {
             $routes->get('export', 'Tickets::export');
             $routes->post('delete/(:segment)', 'Tickets::delete/$1');
             $routes->post('update-link/(:segment)', 'Tickets::updateLink/$1');
+            $routes->post('bulk-update-status', 'Tickets::bulkUpdateStatus');
         }
     );
 });

@@ -510,6 +510,69 @@ class Tickets extends BaseController
         return redirect()->back();
     }
 
+    public function bulkUpdateStatus()
+    {
+        $session = session();
+        $userPerms = $session->get('permissions') ?: [];
+        $canUpdate = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_staff();
+
+        if (!$canUpdate) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengubah status tiket.');
+        }
+
+        $ids = $this->request->getPost('ticket_ids');
+        $newStatus = $this->request->getPost('bulk_status');
+
+        $validStatuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED'];
+        if (empty($ids) || !is_array($ids) || !in_array($newStatus, $validStatuses)) {
+            return redirect()->back()->with('error', 'Pilih tiket dan status yang valid.');
+        }
+
+        $ticketModel = new TicketModel();
+        $historyModel = new TicketHistoryModel();
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        foreach ($ids as $id) {
+            $id = trim($id);
+            $ticket = $ticketModel->find($id);
+            if (!$ticket) continue;
+
+            $updateData = ['status' => $newStatus];
+            if ($newStatus === 'IN_PROGRESS' && empty($ticket['assigned_to'])) {
+                $updateData['assigned_to'] = $session->get('id');
+            }
+            if ($newStatus === 'PENDING' && $ticket['status'] !== 'PENDING') {
+                $updateData['sla_paused_at'] = date('Y-m-d H:i:s');
+            } elseif ($ticket['status'] === 'PENDING' && $newStatus !== 'PENDING') {
+                if (!empty($ticket['sla_paused_at']) && !empty($ticket['sla_deadline'])) {
+                    $pauseTime = time() - strtotime($ticket['sla_paused_at']);
+                    $updateData['sla_deadline'] = date('Y-m-d H:i:s', strtotime($ticket['sla_deadline']) + $pauseTime);
+                    $updateData['sla_paused_at'] = null;
+                }
+            }
+
+            $ticketModel->update($id, $updateData);
+            $historyModel->insert([
+                'ticket_id' => $id,
+                'status' => $newStatus,
+                'notes' => 'Bulk update status oleh ' . $session->get('name'),
+                'changed_by' => $session->get('id'),
+            ]);
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->with('error', 'Gagal memperbarui status tiket.');
+        }
+
+        $auditLog = new AuditLogModel();
+        $auditLog->logAction('BULK_UPDATE_STATUS', 'tickets', implode(',', $ids), ['status' => $newStatus]);
+
+        return redirect()->back()->with('success', count($ids) . ' tiket berhasil diubah ke status ' . $newStatus . '.');
+    }
+
     public function assign($id)
     {
         $session = session();
