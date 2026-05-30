@@ -30,10 +30,12 @@
         <div
             style="display:flex;align-items:center;gap:20px;margin-bottom:25px;padding-bottom:20px;border-bottom:1px solid #f3f4f6">
             <!-- Profile Picture (WhatsApp Style) -->
-            <?php $hasPhoto = !empty($user['profile_pic']); $picUrl = get_profile_pic_url($user['profile_pic'] ?? ''); ?>
+            <?php $hasPhoto = !empty($user['profile_pic']);
+            $picUrl = get_profile_pic_url($user['profile_pic'] ?? ''); ?>
             <div style="position:relative;width:90px;height:90px;flex-shrink:0">
                 <!-- Foto: klik → preview -->
-                <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.1);<?= $hasPhoto ? 'cursor:zoom-in' : '' ?>" onclick="<?= $hasPhoto ? 'openPhotoPreview()' : '' ?>">
+                <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.1);<?= $hasPhoto ? 'cursor:zoom-in' : '' ?>"
+                    onclick="<?= $hasPhoto ? 'openPhotoPreview()' : '' ?>">
                     <img id="profile-pic-img" src="<?= $picUrl ?>" style="width:100%;height:100%;object-fit:cover">
                 </div>
 
@@ -44,12 +46,16 @@
                 </button>
 
                 <!-- Hidden inputs -->
-                <form id="profile-pic-form" action="<?= base_url('profile/update-photo') ?>" method="POST" enctype="multipart/form-data">
+                <form id="profile-pic-form" action="<?= base_url('profile/update-photo') ?>" method="POST"
+                    enctype="multipart/form-data">
                     <?= csrf_field() ?>
-                    <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" capture="environment" style="display:none">
-                    <input type="file" name="profile_pic" id="profile-pic-gallery" accept="image/*" style="display:none">
+                    <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" capture="environment"
+                        style="display:none">
+                    <input type="file" name="profile_pic" id="profile-pic-gallery" accept="image/*"
+                        style="display:none">
                 </form>
-                <form id="delete-pic-form" action="<?= base_url('profile/delete-photo') ?>" method="POST" style="display:none">
+                <form id="delete-pic-form" action="<?= base_url('profile/delete-photo') ?>" method="POST"
+                    style="display:none">
                     <?= csrf_field() ?>
                 </form>
             </div>
@@ -368,14 +374,14 @@
 <script>
 
     // ── Upload Logic (Cropper) ──
-    const profilePicInput   = document.getElementById('profile-pic-input');
+    const profilePicInput = document.getElementById('profile-pic-input');
     const profilePicGallery = document.getElementById('profile-pic-gallery');
-    const profilePicForm    = document.getElementById('profile-pic-form');
-    const cropperModal      = document.getElementById('cropperModal');
-    const imageToCrop       = document.getElementById('imageToCrop');
-    const saveCrop          = document.getElementById('saveCrop');
-    const cancelCrop        = document.getElementById('cancelCrop');
-    const closeCropper      = document.getElementById('closeCropper');
+    const profilePicForm = document.getElementById('profile-pic-form');
+    const cropperModal = document.getElementById('cropperModal');
+    const imageToCrop = document.getElementById('imageToCrop');
+    const saveCrop = document.getElementById('saveCrop');
+    const cancelCrop = document.getElementById('cancelCrop');
+    const closeCropper = document.getElementById('closeCropper');
     let cropper;
 
     function handleFileSelected(input) {
@@ -389,12 +395,12 @@
             cropperModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             if (cropper) cropper.destroy();
-            cropper = new Cropper(imageToCrop, { aspectRatio:1, viewMode:1, dragMode:'move', guides:false, center:true, highlight:false, cropBoxMovable:false, cropBoxResizable:false, toggleDragModeOnDblclick:false });
+            cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1, dragMode: 'move', guides: false, center: true, highlight: false, cropBoxMovable: false, cropBoxResizable: false, toggleDragModeOnDblclick: false });
         };
         reader.readAsDataURL(file);
     }
 
-    if (profilePicInput)   profilePicInput.addEventListener('change',   () => handleFileSelected(profilePicInput));
+    if (profilePicInput) profilePicInput.addEventListener('change', () => handleFileSelected(profilePicInput));
     if (profilePicGallery) profilePicGallery.addEventListener('change', () => handleFileSelected(profilePicGallery));
 
     const hideModal = () => {
@@ -405,15 +411,15 @@
         if (cropper) cropper.destroy();
     };
 
-    if (cancelCrop)   cancelCrop.addEventListener('click', hideModal);
+    if (cancelCrop) cancelCrop.addEventListener('click', hideModal);
     if (closeCropper) closeCropper.addEventListener('click', hideModal);
 
     if (saveCrop) saveCrop.addEventListener('click', () => {
-        const canvas = cropper.getCroppedCanvas({ width:500, height:500 });
+        const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
         canvas.toBlob((blob) => {
             const formData = new FormData();
             formData.append('profile_pic', blob, 'profile_pic.jpg');
-            const csrfName  = '<?= csrf_token() ?>';
+            const csrfName = '<?= csrf_token() ?>';
             const csrfInput = profilePicForm.querySelector('input[name="' + csrfName + '"]');
             if (csrfInput) formData.append(csrfName, csrfInput.value);
             const img = document.getElementById('profile-pic-img');
@@ -422,77 +428,110 @@
             fetch('<?= base_url('profile/update-photo') ?>', {
                 method: 'POST', body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfInput ? csrfInput.value : '' }
-            }).then(r => { if (r.ok) location.reload(); else { alert('Gagal mengunggah foto.'); if (img) img.style.opacity='1'; } })
-              .catch(() => { alert('Terjadi kesalahan.'); if (img) img.style.opacity='1'; });
+            }).then(r => { if (r.ok) location.reload(); else { alert('Gagal mengunggah foto.'); if (img) img.style.opacity = '1'; } })
+                .catch(() => { alert('Terjadi kesalahan.'); if (img) img.style.opacity = '1'; });
         }, 'image/jpeg', 0.9);
     });
 
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function () {
             const input = this.previousElementSibling;
-            const icon  = this.querySelector('i');
-            if (input.type === 'password') { input.type = 'text'; icon.classList.replace('bi-eye','bi-eye-slash'); }
-            else { input.type = 'password'; icon.classList.replace('bi-eye-slash','bi-eye'); }
+            const icon = this.querySelector('i');
+            if (input.type === 'password') { input.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash'); }
+            else { input.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye'); }
         });
     });
 </script>
 
-<!-- ── Edit Menu (WA-style action sheet) ── -->
-<div id="editMenuOverlay" onclick="closeEditMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998"></div>
-<div id="editMenuSheet" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-radius:16px 16px 0 0;z-index:9999;padding:8px 0 24px;box-shadow:0 -4px 30px rgba(0,0,0,0.15)">
-    <div style="width:40px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 16px"></div>
-    <div style="font-size:13px;font-weight:600;color:#9ca3af;padding:0 20px 8px;text-transform:uppercase;letter-spacing:.5px">Foto Profil</div>
-    <button onclick="closeEditMenu(); profilePicInput.click()" style="width:100%;padding:14px 20px;background:none;border:none;text-align:left;font-size:15px;color:#111827;cursor:pointer;display:flex;align-items:center;gap:14px">
-        <i class="bi bi-camera-fill" style="font-size:20px;color:#3b82f6;width:24px"></i> Ambil Foto dari Kamera
+<!-- ── Edit Menu (dropdown anchor ke foto profil) ── -->
+<div id="editMenuOverlay" onclick="closeEditMenu()" style="display:none;position:fixed;inset:0;z-index:9998"></div>
+<div id="editMenuSheet"
+    style="display:none;position:fixed;z-index:9999;background:white;border-radius:12px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:6px 0;border:1px solid #e5e7eb">
+    <div
+        style="font-size:11px;font-weight:700;color:#9ca3af;padding:8px 16px 4px;text-transform:uppercase;letter-spacing:.6px">
+        Foto Profil</div>
+    <button onclick="closeEditMenu(); profilePicInput.click()"
+        style="width:100%;padding:11px 16px;background:none;border:none;text-align:left;font-size:14px;color:#111827;cursor:pointer;display:flex;align-items:center;gap:12px"
+        onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+        <i class="bi bi-camera-fill" style="font-size:18px;color:#3b82f6;width:22px"></i> Ambil Foto dari Kamera
     </button>
-    <button onclick="closeEditMenu(); profilePicGallery.click()" style="width:100%;padding:14px 20px;background:none;border:none;text-align:left;font-size:15px;color:#111827;cursor:pointer;display:flex;align-items:center;gap:14px">
-        <i class="bi bi-image-fill" style="font-size:20px;color:#10b981;width:24px"></i> Pilih dari Penyimpanan
+    <button onclick="closeEditMenu(); profilePicGallery.click()"
+        style="width:100%;padding:11px 16px;background:none;border:none;text-align:left;font-size:14px;color:#111827;cursor:pointer;display:flex;align-items:center;gap:12px"
+        onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+        <i class="bi bi-image-fill" style="font-size:18px;color:#10b981;width:22px"></i> Pilih dari Penyimpanan
     </button>
     <?php if ($hasPhoto): ?>
-    <div style="height:1px;background:#f3f4f6;margin:4px 0"></div>
-    <button onclick="closeEditMenu(); if(confirm('Hapus foto profil?')) document.getElementById('delete-pic-form').submit()" style="width:100%;padding:14px 20px;background:none;border:none;text-align:left;font-size:15px;color:#ef4444;cursor:pointer;display:flex;align-items:center;gap:14px">
-        <i class="bi bi-trash-fill" style="font-size:20px;width:24px"></i> Hapus Foto
-    </button>
+        <div style="height:1px;background:#f3f4f6;margin:4px 0"></div>
+        <button
+            onclick="closeEditMenu(); if(confirm('Hapus foto profil?')) document.getElementById('delete-pic-form').submit()"
+            style="width:100%;padding:11px 16px;background:none;border:none;text-align:left;font-size:14px;color:#ef4444;cursor:pointer;display:flex;align-items:center;gap:12px"
+            onmouseover="this.style.background='#fff1f2'" onmouseout="this.style.background='none'">
+            <i class="bi bi-trash-fill" style="font-size:18px;width:22px"></i> Hapus Foto
+        </button>
     <?php endif; ?>
 </div>
 
 <!-- ── Photo Preview Lightbox ── -->
-<div id="photoPreviewOverlay" onclick="closePhotoPreview()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s">
-    <button onclick="event.stopPropagation();closePhotoPreview()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:white;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">&times;</button>
-    <img id="photoPreviewImg" src="" onclick="event.stopPropagation()" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain;transform:scale(0.88);transition:transform 0.2s ease">
+<div id="photoPreviewOverlay" onclick="closePhotoPreview()"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s">
+    <button onclick="event.stopPropagation();closePhotoPreview()"
+        style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:white;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">&times;</button>
+    <img id="photoPreviewImg" src="" onclick="event.stopPropagation()"
+        style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain;transform:scale(0.88);transition:transform 0.2s ease">
 </div>
 
 <script>
-// Edit menu
-function openEditMenu() {
-    document.getElementById('editMenuOverlay').style.display = 'block';
-    document.getElementById('editMenuSheet').style.display = 'block';
-}
-function closeEditMenu() {
-    document.getElementById('editMenuOverlay').style.display = 'none';
-    document.getElementById('editMenuSheet').style.display = 'none';
-}
+    // Edit menu – anchored to pencil button
+    function openEditMenu() {
+        var btn = document.querySelector('button[onclick="openEditMenu()"]');
+        var sheet = document.getElementById('editMenuSheet');
+        var overlay = document.getElementById('editMenuOverlay');
 
-// Photo preview
-function openPhotoPreview() {
-    var img = document.getElementById('profile-pic-img');
-    var overlay = document.getElementById('photoPreviewOverlay');
-    var previewImg = document.getElementById('photoPreviewImg');
-    previewImg.src = img.src;
-    overlay.style.display = 'flex';
-    requestAnimationFrame(function() {
-        overlay.style.opacity = '1';
-        previewImg.style.transform = 'scale(1)';
-    });
-}
-function closePhotoPreview() {
-    var overlay = document.getElementById('photoPreviewOverlay');
-    var previewImg = document.getElementById('photoPreviewImg');
-    overlay.style.opacity = '0';
-    previewImg.style.transform = 'scale(0.88)';
-    setTimeout(function() { overlay.style.display = 'none'; }, 200);
-}
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closePhotoPreview(); closeEditMenu(); } });
+        // Show sheet briefly (hidden) to measure its width
+        sheet.style.visibility = 'hidden';
+        sheet.style.display = 'block';
+        var sheetW = sheet.offsetWidth;
+        sheet.style.visibility = '';
+
+        var rect = btn.getBoundingClientRect();
+        var top = rect.bottom + window.scrollY + 8;   // 8px gap below button
+        var left = rect.left + window.scrollX + (rect.width / 2) - (sheetW / 2);
+
+        // Keep inside viewport horizontally
+        var vw = window.innerWidth;
+        if (left + sheetW > vw - 12) left = vw - sheetW - 12;
+        if (left < 12) left = 12;
+
+        sheet.style.top = top + 'px';
+        sheet.style.left = left + 'px';
+
+        overlay.style.display = 'block';
+    }
+    function closeEditMenu() {
+        document.getElementById('editMenuOverlay').style.display = 'none';
+        document.getElementById('editMenuSheet').style.display = 'none';
+    }
+
+    // Photo preview
+    function openPhotoPreview() {
+        var img = document.getElementById('profile-pic-img');
+        var overlay = document.getElementById('photoPreviewOverlay');
+        var previewImg = document.getElementById('photoPreviewImg');
+        previewImg.src = img.src;
+        overlay.style.display = 'flex';
+        requestAnimationFrame(function () {
+            overlay.style.opacity = '1';
+            previewImg.style.transform = 'scale(1)';
+        });
+    }
+    function closePhotoPreview() {
+        var overlay = document.getElementById('photoPreviewOverlay');
+        var previewImg = document.getElementById('photoPreviewImg');
+        overlay.style.opacity = '0';
+        previewImg.style.transform = 'scale(0.88)';
+        setTimeout(function () { overlay.style.display = 'none'; }, 200);
+    }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closePhotoPreview(); closeEditMenu(); } });
 </script>
 
 <?= $this->endSection() ?>
