@@ -30,38 +30,28 @@
         <div
             style="display:flex;align-items:center;gap:20px;margin-bottom:25px;padding-bottom:20px;border-bottom:1px solid #f3f4f6">
             <!-- Profile Picture (WhatsApp Style) -->
+            <?php $hasPhoto = !empty($user['profile_pic']); $picUrl = get_profile_pic_url($user['profile_pic'] ?? ''); ?>
             <div style="position:relative;width:90px;height:90px;flex-shrink:0">
-                <div id="profile-pic-container"
-                    style="width:90px;height:90px;border-radius:50%;overflow:hidden;background:#f3f4f6;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.1);cursor:pointer;position:relative">
-                    <?php
-                    $picUrl = get_profile_pic_url($user['profile_pic'] ?? '');
-                    ?>
+                <!-- Foto: klik → preview -->
+                <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid white;box-shadow:0 0 10px rgba(0,0,0,0.1);<?= $hasPhoto ? 'cursor:zoom-in' : '' ?>" onclick="<?= $hasPhoto ? 'openPhotoPreview()' : '' ?>">
                     <img id="profile-pic-img" src="<?= $picUrl ?>" style="width:100%;height:100%;object-fit:cover">
-
-                    <!-- Overlay on Hover -->
-                    <div class="pic-overlay"
-                        style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;opacity:0;transition:opacity 0.3s">
-                        <i class="bi bi-camera-fill" style="font-size:24px"></i>
-                        <span style="font-size:10px;font-weight:600;text-transform:uppercase">Ubah</span>
-                    </div>
                 </div>
 
-                <!-- Hidden Form for Image Upload -->
-                <form id="profile-pic-form" action="<?= base_url('profile/update-photo') ?>" method="POST"
-                    enctype="multipart/form-data">
-                    <?= csrf_field() ?>
-                    <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" style="display:none">
-                </form>
+                <!-- Tombol Edit (pensil) -->
+                <button type="button" onclick="openEditMenu()" title="Edit foto profil"
+                    style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:#3b82f6;border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">
+                    <i class="bi bi-pencil-fill" style="font-size:11px"></i>
+                </button>
 
-                <?php if (!empty($user['profile_pic'])): ?>
-                    <form action="<?= base_url('profile/delete-photo') ?>" method="POST" style="margin-top:8px;text-align:center">
-                        <?= csrf_field() ?>
-                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus foto profil?')" 
-                            style="background:none;border:none;color:#ef4444;font-size:12px;font-weight:600;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;width:100%">
-                            <i class="bi bi-trash"></i> Hapus Foto
-                        </button>
-                    </form>
-                <?php endif; ?>
+                <!-- Hidden inputs -->
+                <form id="profile-pic-form" action="<?= base_url('profile/update-photo') ?>" method="POST" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+                    <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" capture="environment" style="display:none">
+                    <input type="file" name="profile_pic" id="profile-pic-gallery" accept="image/*" style="display:none">
+                </form>
+                <form id="delete-pic-form" action="<?= base_url('profile/delete-photo') ?>" method="POST" style="display:none">
+                    <?= csrf_field() ?>
+                </form>
             </div>
 
             <div>
@@ -74,11 +64,6 @@
             </div>
         </div>
 
-        <style>
-            #profile-pic-container:hover .pic-overlay {
-                opacity: 1 !important;
-            }
-        </style>
 
         <form action="<?= base_url('profile/update') ?>" method="POST">
             <?= csrf_field() ?>
@@ -382,128 +367,132 @@
 
 <script>
 
-    // Profile Picture Upload Logic (WhatsApp Style with Cropper)
-    const profilePicContainer = document.getElementById('profile-pic-container');
-    const profilePicInput = document.getElementById('profile-pic-input');
-    const profilePicForm = document.getElementById('profile-pic-form');
-    const cropperModal = document.getElementById('cropperModal');
-    const imageToCrop = document.getElementById('imageToCrop');
-    const saveCrop = document.getElementById('saveCrop');
-    const cancelCrop = document.getElementById('cancelCrop');
-    const closeCropper = document.getElementById('closeCropper');
+    // ── Upload Logic (Cropper) ──
+    const profilePicInput   = document.getElementById('profile-pic-input');
+    const profilePicGallery = document.getElementById('profile-pic-gallery');
+    const profilePicForm    = document.getElementById('profile-pic-form');
+    const cropperModal      = document.getElementById('cropperModal');
+    const imageToCrop       = document.getElementById('imageToCrop');
+    const saveCrop          = document.getElementById('saveCrop');
+    const cancelCrop        = document.getElementById('cancelCrop');
+    const closeCropper      = document.getElementById('closeCropper');
     let cropper;
 
-    if (profilePicContainer && profilePicInput) {
-        profilePicContainer.addEventListener('click', () => profilePicInput.click());
-
-        profilePicInput.addEventListener('change', (e) => {
-            const files = e.target.files;
-            if (files && files.length > 0) {
-                const file = files[0];
-
-                // Validasi size (10MB)
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('Ukuran file terlalu besar! Maksimal 10MB.');
-                    profilePicInput.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    imageToCrop.src = event.target.result;
-                    cropperModal.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-
-                    if (cropper) cropper.destroy();
-                    cropper = new Cropper(imageToCrop, {
-                        aspectRatio: 1,
-                        viewMode: 1,
-                        dragMode: 'move',
-                        guides: false,
-                        center: true,
-                        highlight: false,
-                        cropBoxMovable: false,
-                        cropBoxResizable: false,
-                        toggleDragModeOnDblclick: false,
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        const hideModal = () => {
-            cropperModal.style.display = 'none';
-            document.body.style.overflow = '';
-            profilePicInput.value = '';
+    function handleFileSelected(input) {
+        const files = input.files;
+        if (!files || !files.length) return;
+        const file = files[0];
+        if (file.size > 10 * 1024 * 1024) { alert('Ukuran file terlalu besar! Maksimal 10MB.'); input.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imageToCrop.src = e.target.result;
+            cropperModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
             if (cropper) cropper.destroy();
+            cropper = new Cropper(imageToCrop, { aspectRatio:1, viewMode:1, dragMode:'move', guides:false, center:true, highlight:false, cropBoxMovable:false, cropBoxResizable:false, toggleDragModeOnDblclick:false });
         };
-
-        cancelCrop.addEventListener('click', hideModal);
-        closeCropper.addEventListener('click', hideModal);
-
-        saveCrop.addEventListener('click', () => {
-            const canvas = cropper.getCroppedCanvas({
-                width: 500,
-                height: 500
-            });
-
-            canvas.toBlob((blob) => {
-                const formData = new FormData();
-                formData.append('profile_pic', blob, 'profile_pic.jpg');
-
-                // Baca CSRF token SEBELUM hideModal() me-reset form
-                const csrfTokenName = '<?= csrf_token() ?>';
-                const csrfInput = profilePicForm.querySelector('input[name="' + csrfTokenName + '"]');
-                const csrfValue = csrfInput ? csrfInput.value : '';
-                if (csrfValue) {
-                    formData.append(csrfTokenName, csrfValue);
-                }
-
-                // Show loading
-                profilePicContainer.style.opacity = '0.5';
-                hideModal();
-
-                // Kirim via fetch supaya tidak reload seluruh halaman
-                fetch('<?= base_url('profile/update-photo') ?>', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfValue
-                    }
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            window.location.reload(); // Refresh untuk melihat hasil
-                        } else {
-                            alert('Gagal mengunggah foto. Silakan coba lagi.');
-                            profilePicContainer.style.opacity = '1';
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert('Terjadi kesalahan saat mengunggah.');
-                        profilePicContainer.style.opacity = '1';
-                    });
-            }, 'image/jpeg', 0.9);
-        });
+        reader.readAsDataURL(file);
     }
+
+    if (profilePicInput)   profilePicInput.addEventListener('change',   () => handleFileSelected(profilePicInput));
+    if (profilePicGallery) profilePicGallery.addEventListener('change', () => handleFileSelected(profilePicGallery));
+
+    const hideModal = () => {
+        cropperModal.style.display = 'none';
+        document.body.style.overflow = '';
+        profilePicInput.value = '';
+        profilePicGallery.value = '';
+        if (cropper) cropper.destroy();
+    };
+
+    if (cancelCrop)   cancelCrop.addEventListener('click', hideModal);
+    if (closeCropper) closeCropper.addEventListener('click', hideModal);
+
+    if (saveCrop) saveCrop.addEventListener('click', () => {
+        const canvas = cropper.getCroppedCanvas({ width:500, height:500 });
+        canvas.toBlob((blob) => {
+            const formData = new FormData();
+            formData.append('profile_pic', blob, 'profile_pic.jpg');
+            const csrfName  = '<?= csrf_token() ?>';
+            const csrfInput = profilePicForm.querySelector('input[name="' + csrfName + '"]');
+            if (csrfInput) formData.append(csrfName, csrfInput.value);
+            const img = document.getElementById('profile-pic-img');
+            if (img) img.style.opacity = '0.5';
+            hideModal();
+            fetch('<?= base_url('profile/update-photo') ?>', {
+                method: 'POST', body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfInput ? csrfInput.value : '' }
+            }).then(r => { if (r.ok) location.reload(); else { alert('Gagal mengunggah foto.'); if (img) img.style.opacity='1'; } })
+              .catch(() => { alert('Terjadi kesalahan.'); if (img) img.style.opacity='1'; });
+        }, 'image/jpeg', 0.9);
+    });
 
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function () {
             const input = this.previousElementSibling;
-            const icon = this.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
+            const icon  = this.querySelector('i');
+            if (input.type === 'password') { input.type = 'text'; icon.classList.replace('bi-eye','bi-eye-slash'); }
+            else { input.type = 'password'; icon.classList.replace('bi-eye-slash','bi-eye'); }
         });
     });
+</script>
+
+<!-- ── Edit Menu (WA-style action sheet) ── -->
+<div id="editMenuOverlay" onclick="closeEditMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998"></div>
+<div id="editMenuSheet" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-radius:16px 16px 0 0;z-index:9999;padding:8px 0 24px;box-shadow:0 -4px 30px rgba(0,0,0,0.15)">
+    <div style="width:40px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 16px"></div>
+    <div style="font-size:13px;font-weight:600;color:#9ca3af;padding:0 20px 8px;text-transform:uppercase;letter-spacing:.5px">Foto Profil</div>
+    <button onclick="closeEditMenu(); profilePicInput.click()" style="width:100%;padding:14px 20px;background:none;border:none;text-align:left;font-size:15px;color:#111827;cursor:pointer;display:flex;align-items:center;gap:14px">
+        <i class="bi bi-camera-fill" style="font-size:20px;color:#3b82f6;width:24px"></i> Ambil Foto dari Kamera
+    </button>
+    <button onclick="closeEditMenu(); profilePicGallery.click()" style="width:100%;padding:14px 20px;background:none;border:none;text-align:left;font-size:15px;color:#111827;cursor:pointer;display:flex;align-items:center;gap:14px">
+        <i class="bi bi-image-fill" style="font-size:20px;color:#10b981;width:24px"></i> Pilih dari Penyimpanan
+    </button>
+    <?php if ($hasPhoto): ?>
+    <div style="height:1px;background:#f3f4f6;margin:4px 0"></div>
+    <button onclick="closeEditMenu(); if(confirm('Hapus foto profil?')) document.getElementById('delete-pic-form').submit()" style="width:100%;padding:14px 20px;background:none;border:none;text-align:left;font-size:15px;color:#ef4444;cursor:pointer;display:flex;align-items:center;gap:14px">
+        <i class="bi bi-trash-fill" style="font-size:20px;width:24px"></i> Hapus Foto
+    </button>
+    <?php endif; ?>
+</div>
+
+<!-- ── Photo Preview Lightbox ── -->
+<div id="photoPreviewOverlay" onclick="closePhotoPreview()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s">
+    <button onclick="event.stopPropagation();closePhotoPreview()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:white;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">&times;</button>
+    <img id="photoPreviewImg" src="" onclick="event.stopPropagation()" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain;transform:scale(0.88);transition:transform 0.2s ease">
+</div>
+
+<script>
+// Edit menu
+function openEditMenu() {
+    document.getElementById('editMenuOverlay').style.display = 'block';
+    document.getElementById('editMenuSheet').style.display = 'block';
+}
+function closeEditMenu() {
+    document.getElementById('editMenuOverlay').style.display = 'none';
+    document.getElementById('editMenuSheet').style.display = 'none';
+}
+
+// Photo preview
+function openPhotoPreview() {
+    var img = document.getElementById('profile-pic-img');
+    var overlay = document.getElementById('photoPreviewOverlay');
+    var previewImg = document.getElementById('photoPreviewImg');
+    previewImg.src = img.src;
+    overlay.style.display = 'flex';
+    requestAnimationFrame(function() {
+        overlay.style.opacity = '1';
+        previewImg.style.transform = 'scale(1)';
+    });
+}
+function closePhotoPreview() {
+    var overlay = document.getElementById('photoPreviewOverlay');
+    var previewImg = document.getElementById('photoPreviewImg');
+    overlay.style.opacity = '0';
+    previewImg.style.transform = 'scale(0.88)';
+    setTimeout(function() { overlay.style.display = 'none'; }, 200);
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closePhotoPreview(); closeEditMenu(); } });
 </script>
 
 <?= $this->endSection() ?>
