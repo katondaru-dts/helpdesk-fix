@@ -6,61 +6,79 @@
  */
 
 if (!function_exists('send_email_notification')) {
-    /**
-     * Kirim email notifikasi ke user tertentu.
-     *
-     * @param string $toEmail   Alamat email tujuan
-     * @param string $toName    Nama penerima
-     * @param string $subject   Subjek email
-     * @param string $body      Isi email (HTML)
-     * @return bool
-     */
-    function send_email_notification(string $toEmail, string $toName, string $subject, string $body): bool
-    {
-        if (empty($toEmail)) {
-            log_message('warning', '[Email] Alamat email tujuan kosong, email tidak dikirim.');
-            return false;
-        }
-
-        try {
-            $emailService = \Config\Services::email();
-
-            $emailService->setTo($toEmail);
-            $emailService->setSubject($subject);
-            $emailService->setMessage($body);
-
-            $result = $emailService->send(false);
-
-            if (!$result) {
-                log_message('error', '[Email] Gagal mengirim email ke ' . $toEmail . ' | Debug: ' . $emailService->printDebugger(['headers']));
-            } else {
-                log_message('info', '[Email] Email berhasil dikirim ke ' . $toEmail . ' | Subjek: ' . $subject);
-            }
-
-            return $result;
-        } catch (\Throwable $e) {
-            log_message('error', '[Email] Exception saat mengirim email: ' . $e->getMessage());
-            return false;
-        }
+  /**
+   * Kirim email notifikasi ke user tertentu.
+   *
+   * @param string $toEmail   Alamat email tujuan
+   * @param string $toName    Nama penerima
+   * @param string $subject   Subjek email
+   * @param string $body      Isi email (HTML)
+   * @return bool
+   */
+  function send_email_notification(string $toEmail, string $toName, string $subject, string $body): bool
+  {
+    if (empty($toEmail)) {
+      log_message('warning', '[Email] Alamat email tujuan kosong, email tidak dikirim.');
+      return false;
     }
+
+    try {
+      $emailService = \Config\Services::email();
+
+      $emailService->setTo($toEmail);
+      $emailService->setSubject($subject);
+      $emailService->setMessage($body);
+
+      $result = $emailService->send(false);
+
+      if (!$result) {
+        log_message('error', '[Email] Gagal mengirim email ke ' . $toEmail . ' | Debug: ' . $emailService->printDebugger(['headers']));
+      } else {
+        log_message('info', '[Email] Email berhasil dikirim ke ' . $toEmail . ' | Subjek: ' . $subject);
+      }
+
+      return $result;
+    } catch (\Throwable $e) {
+      log_message('error', '[Email] Exception saat mengirim email: ' . $e->getMessage());
+      return false;
+    }
+  }
 }
 
 if (!function_exists('email_template_reply')) {
-    /**
-     * Buat template HTML email untuk notifikasi balasan komentar tiket.
-     *
-     * @param array  $ticket      Data tiket
-     * @param string $senderName  Nama pengirim balasan
-     * @param string $message     Isi pesan balasan
-     * @return string             HTML email
-     */
-    function email_template_reply(array $ticket, string $senderName, string $message): string
-    {
-        $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
-        $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
-        $previewMsg = mb_substr(strip_tags($message), 0, 200) . (mb_strlen(strip_tags($message)) > 200 ? '...' : '');
+  /**
+   * Buat template HTML email untuk notifikasi balasan komentar tiket.
+   *
+   * @param array  $ticket      Data tiket
+   * @param string $senderName  Nama pengirim balasan
+   * @param string $message     Isi pesan balasan
+   * @return string             HTML email
+   */
+  function email_template_reply(array $ticket, string $senderName, string $message, ?string $photoUrl = null): string
+  {
+    $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
+    $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
+    $previewMsg = mb_substr(strip_tags($message), 0, 200) . (mb_strlen(strip_tags($message)) > 200 ? '...' : '');
 
-        return '<!DOCTYPE html>
+    // Photo section (rendered only if photoUrl is provided)
+    $photoSection = '';
+    if (!empty($photoUrl)) {
+      $photoSection = '
+              <!-- Photo Attachment Notice -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:0.5px;">📷 Foto Bukti Pengecekkan</p>
+                    <p style="margin:0 0 10px;font-size:14px;color:#374151;line-height:1.6;">Teknisi melampirkan foto bukti pengecekkan pada balasan ini.</p>
+                    <a href="' . htmlspecialchars($photoUrl) . '" target="_blank" style="display:inline-block;background:#059669;color:#ffffff;text-decoration:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;">
+                      🔗 Lihat Foto
+                    </a>
+                  </td>
+                </tr>
+              </table>';
+    }
+
+    return '<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -100,7 +118,7 @@ if (!function_exists('email_template_reply')) {
               </table>
 
               <!-- Message Preview -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border-radius:8px;border-left:4px solid #f59e0b;margin-bottom:28px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border-radius:8px;border-left:4px solid #f59e0b;margin-bottom:24px;">
                 <tr>
                   <td style="padding:16px 20px;">
                     <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;">Isi Pesan</p>
@@ -108,6 +126,8 @@ if (!function_exists('email_template_reply')) {
                   </td>
                 </tr>
               </table>
+
+              ' . $photoSection . '
 
               <!-- CTA Button -->
               <table width="100%" cellpadding="0" cellspacing="0">
@@ -134,34 +154,34 @@ if (!function_exists('email_template_reply')) {
   </table>
 </body>
 </html>';
-    }
+  }
 }
 
 if (!function_exists('email_template_status_change')) {
-    /**
-     * Buat template HTML email untuk notifikasi perubahan status tiket (selain RESOLVED).
-     *
-     * @param array  $ticket      Data tiket
-     * @param string $newStatus   Status baru (OPEN, IN_PROGRESS, PENDING, CLOSED)
-     * @param string $changedBy   Nama staf yang mengubah status
-     * @param string $notes       Catatan (opsional)
-     * @return string             HTML email
-     */
-    function email_template_status_change(array $ticket, string $newStatus, string $changedBy, string $notes = ''): string
-    {
-        $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
-        $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
+  /**
+   * Buat template HTML email untuk notifikasi perubahan status tiket (selain RESOLVED).
+   *
+   * @param array  $ticket      Data tiket
+   * @param string $newStatus   Status baru (OPEN, IN_PROGRESS, PENDING, CLOSED)
+   * @param string $changedBy   Nama staf yang mengubah status
+   * @param string $notes       Catatan (opsional)
+   * @return string             HTML email
+   */
+  function email_template_status_change(array $ticket, string $newStatus, string $changedBy, string $notes = ''): string
+  {
+    $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
+    $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
 
-        $statusConfig = [
-            'OPEN'        => ['label' => 'Terbuka',          'emoji' => '🔴', 'color' => '#dc2626', 'bg' => '#fef2f2', 'border' => '#fecaca'],
-            'IN_PROGRESS' => ['label' => 'Sedang Diproses',  'emoji' => '🟡', 'color' => '#d97706', 'bg' => '#fffbeb', 'border' => '#fde68a'],
-            'PENDING'     => ['label' => 'Ditunda',          'emoji' => '⏸️', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'border' => '#ddd6fe'],
-            'CLOSED'      => ['label' => 'Ditutup',          'emoji' => '✅', 'color' => '#374151', 'bg' => '#f9fafb', 'border' => '#e5e7eb'],
-        ];
+    $statusConfig = [
+      'OPEN' => ['label' => 'Terbuka', 'emoji' => '🔴', 'color' => '#dc2626', 'bg' => '#fef2f2', 'border' => '#fecaca'],
+      'IN_PROGRESS' => ['label' => 'Sedang Diproses', 'emoji' => '🟡', 'color' => '#d97706', 'bg' => '#fffbeb', 'border' => '#fde68a'],
+      'PENDING' => ['label' => 'Ditunda', 'emoji' => '⏸️', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'border' => '#ddd6fe'],
+      'CLOSED' => ['label' => 'Ditutup', 'emoji' => '✅', 'color' => '#374151', 'bg' => '#f9fafb', 'border' => '#e5e7eb'],
+    ];
 
-        $cfg = $statusConfig[$newStatus] ?? ['label' => $newStatus, 'emoji' => '🔵', 'color' => '#1a56db', 'bg' => '#eff6ff', 'border' => '#bfdbfe'];
+    $cfg = $statusConfig[$newStatus] ?? ['label' => $newStatus, 'emoji' => '🔵', 'color' => '#1a56db', 'bg' => '#eff6ff', 'border' => '#bfdbfe'];
 
-        return '<!DOCTYPE html>
+    return '<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -238,24 +258,24 @@ if (!function_exists('email_template_status_change')) {
   </table>
 </body>
 </html>';
-    }
+  }
 }
 
 if (!function_exists('email_template_resolved')) {
-    /**
-     * Buat template HTML email untuk notifikasi tiket resolved.
-     *
-     * @param array  $ticket      Data tiket
-     * @param string $changedBy   Nama staf yang mengubah status
-     * @param string $notes       Catatan (opsional)
-     * @return string             HTML email
-     */
-    function email_template_resolved(array $ticket, string $changedBy, string $notes = ''): string
-    {
-        $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
-        $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
+  /**
+   * Buat template HTML email untuk notifikasi tiket resolved.
+   *
+   * @param array  $ticket      Data tiket
+   * @param string $changedBy   Nama staf yang mengubah status
+   * @param string $notes       Catatan (opsional)
+   * @return string             HTML email
+   */
+  function email_template_resolved(array $ticket, string $changedBy, string $notes = ''): string
+  {
+    $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
+    $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
 
-        return '<!DOCTYPE html>
+    return '<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -342,5 +362,5 @@ if (!function_exists('email_template_resolved')) {
   </table>
 </body>
 </html>';
-    }
+  }
 }

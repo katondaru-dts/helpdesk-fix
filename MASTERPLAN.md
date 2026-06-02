@@ -117,7 +117,7 @@ helpdesk-v2/
 | `categories` | Kategori tiket (name, description, is_active) |
 | `tickets` | Data tiket (id, title, description, drive_link, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
-| `ticket_replies` | Balasan/komentar pada tiket |
+| `ticket_messages` | Balasan/komentar pada tiket (ticket_id, sender_id, message, is_internal, **photo**, sent_at) |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
 
 ---
@@ -144,7 +144,7 @@ helpdesk-v2/
 | GET | `/tickets/create` | Form buat tiket baru |
 | POST | `/tickets/store` | Simpan tiket baru |
 | GET | `/tickets/detail/{id}` | Detail tiket |
-| POST | `/tickets/reply/{id}` | Balas tiket |
+| POST | `/tickets/reply/{id}` | Balas tiket (Mendukung upload foto bukti pengecekkan) |
 | POST | `/tickets/status/{id}` | Update status tiket |
 | POST | `/tickets/assign/{id}` | Assign tiket ke support |
 | GET | `/tickets/export` | Export tiket ke CSV |
@@ -212,6 +212,7 @@ Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
   - **Artikel Populer** (Menampilkan 5 artikel Knowledge Base yang paling sering dilihat)
   - **CTA AI Assistant** (Akses cepat ke Tanya AI dan Knowledge Base jika user tidak menemukan solusi)
 - **Upload Foto Dokumentasi**: Form buat tiket mendukung 2 slot foto dengan dukungan kamera mobile, preview modal interaktif (zoom/drag), dan validasi ukuran hingga 5MB.
+- **Foto Dokumentasi Balasan**: Fitur opsional unggah foto (bukti pemeriksaan teknisi) pada form balasan tiket. Foto disimpan di folder `foto balasan tiket` dan ditampilkan dalam riwayat percakapan dengan preview modal.
 
 ---
 
@@ -369,6 +370,7 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 | `public/uploads/tickets/` | Root/public | Folder penyimpanan fisik foto dokumentasi tiket |
+| `public/foto balasan tiket/` | Root/public | Folder penyimpanan foto bukti pengecekkan teknisi |
 
 ---
 
@@ -401,4 +403,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 - **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem pemotongan gambar (CropperJS) sebelum diunggah.
 - **Knowledge Base Storage (Hybrid)**: Migrasi penyimpanan file dokumentasi `.md` dari lokal server ke MinIO (folder `artikel/`). Sistem melakukan sinkronisasi otomatis antara file fisika di Cloud Storage dengan metadata di database (HTML & Vektor AI). Dilengkapi fitur *auto-cleanup* (menghapus file di MinIO saat artikel dihapus via Admin).
 
-*Terakhir diperbarui: 26 Mei 2026 | Versi: 2.17.0 (Migrasi KB Storage ke MinIO & Sinkronisasi Folder artikel)*
+*Terakhir diperbarui: 2 Juni 2026 | Versi: 2.18.0 (Penambahan Fitur Foto Bukti Pengecekkan pada Balasan Tiket)*

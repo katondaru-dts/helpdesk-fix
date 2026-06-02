@@ -208,7 +208,22 @@ class Tickets extends BaseController
             $timeline[] = ['type' => 'status', 'at' => $h['changed_at'], 'status' => $h['status'], 'notes' => $h['notes'], 'by' => $h['changed_by_name']];
         }
         foreach ($messages as $m) {
-            $timeline[] = ['type' => 'msg', 'at' => $m['sent_at'], 'msg' => $m['message'], 'by' => $m['sender_name'], 'internal' => $m['is_internal']];
+            $photoUrl = null;
+            if (!empty($m['photo'])) {
+                if (is_minio_key($m['photo'])) {
+                    $photoUrl = $minio->getPresignedUrl($m['photo'], 'foto balasan tiket');
+                } else {
+                    $photoUrl = base_url($m['photo']);
+                }
+            }
+            $timeline[] = [
+                'type' => 'msg',
+                'at' => $m['sent_at'],
+                'msg' => $m['message'],
+                'by' => $m['sender_name'],
+                'internal' => $m['is_internal'],
+                'photo' => $photoUrl
+            ];
         }
         usort($timeline, function ($a, $b) {
             return strtotime($a['at']) - strtotime($b['at']);
@@ -243,13 +258,39 @@ class Tickets extends BaseController
         $isInternal = $this->request->getPost('is_internal') ? 1 : 0;
         $session = session();
 
-        if ($message) {
-            $messageModel->insert([
+        if ($message || $this->request->getFile('photo')) {
+            $data = [
                 'ticket_id' => $id,
                 'sender_id' => $session->get('id'),
-                'message' => $message,
+                'message' => $message ?: '',
                 'is_internal' => $isInternal
-            ]);
+            ];
+
+            // Handle Photo Upload (Technician Check Proof)
+            $file = $this->request->getFile('photo');
+            if ($file && $file->isValid() && !$file->hasMoved()) {
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                $ext = strtolower($file->getExtension());
+                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, ['jpg', 'jpeg', 'png']) && $file->getSize() <= 5 * 1024 * 1024) {
+                    $newName = 'msg_' . $id . '_' . $file->getRandomName();
+                    $folder = 'foto balasan tiket';
+
+                    if ($file->move(FCPATH . $folder, $newName)) {
+                        $data['photo'] = $folder . '/' . $newName;
+
+                        // Optional: Upload to MinIO if possible
+                        try {
+                            $minio = new MinioStorage();
+                            $minio->upload(FCPATH . $folder . '/' . $newName, $newName, $folder);
+                            $data['photo'] = $newName; // Store basename for MinIO compatibility
+                        } catch (\Exception $e) {
+                            log_message('error', '[Tickets] Reply photo MinIO upload failed: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
+            $messageModel->insert($data);
 
             $ticket = $ticketModel->find($id);
             if ($ticket) {
@@ -344,7 +385,17 @@ class Tickets extends BaseController
                         $session->get('id') != $ticket['reporter_id']
                     ) {
                         helper('email');
-                        $emailBody = email_template_reply($ticket, $session->get('name'), $message);
+                        // Resolve photo URL for email
+                        $emailPhotoUrl = null;
+                        if (!empty($data['photo'])) {
+                            if (is_minio_key($data['photo'])) {
+                                $minioForEmail = new MinioStorage();
+                                $emailPhotoUrl = $minioForEmail->getPresignedUrl($data['photo'], 'foto balasan tiket') ?: null;
+                            } else {
+                                $emailPhotoUrl = base_url($data['photo']);
+                            }
+                        }
+                        $emailBody = email_template_reply($ticket, $session->get('name'), $message, $emailPhotoUrl);
                         send_email_notification(
                             $reporter['email'],
                             $reporter['name'],
@@ -540,7 +591,8 @@ class Tickets extends BaseController
         foreach ($ids as $id) {
             $id = trim($id);
             $ticket = $ticketModel->find($id);
-            if (!$ticket) continue;
+            if (!$ticket)
+                continue;
 
             $updateData = ['status' => $newStatus];
             if ($newStatus === 'IN_PROGRESS' && empty($ticket['assigned_to'])) {
@@ -581,7 +633,7 @@ class Tickets extends BaseController
     {
         $session = session();
         $userPerms = $session->get('permissions') ?: [];
-        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms);
+        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin() || is_staff();
 
         if (!$canAssign) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk melakukan penugasan.');
