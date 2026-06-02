@@ -182,14 +182,16 @@ class Tickets extends BaseController
         $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
         $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_admin();
 
-        if (!$isStaff && $ticket['reporter_id'] != $userId) {
+        // Meloloskan jika user punya izin khusus tertentu (selain cuma lihat tiket sendiri) atau memang staff
+        $hasManagementPerm = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || in_array('Tugaskan Support', $userPerms);
+
+        if (!$isStaff && !$hasManagementPerm && $ticket['reporter_id'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
         }
 
         // Teknisi hanya bisa lihat tiket yang ditugaskan kepadanya atau belum diassign
-        // KECUALI jika user punya izin "Full Access" atau izin kustom tertentu
-        $hasFullAccess = in_array('Full Access', $userPerms);
-        if (!$hasFullAccess && is_technician() && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
+        // KECUALI jika user punya izin manajemen (Full Access, Update Status, dsb)
+        if (!$hasManagementPerm && is_technician() && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak. Tiket ini tidak ditugaskan kepada Anda.');
         }
 
