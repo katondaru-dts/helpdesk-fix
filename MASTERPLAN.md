@@ -403,4 +403,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 - **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem pemotongan gambar (CropperJS) sebelum diunggah.
 - **Knowledge Base Storage (Hybrid)**: Migrasi penyimpanan file dokumentasi `.md` dari lokal server ke MinIO (folder `artikel/`). Sistem melakukan sinkronisasi otomatis antara file fisika di Cloud Storage dengan metadata di database (HTML & Vektor AI). Dilengkapi fitur *auto-cleanup* (menghapus file di MinIO saat artikel dihapus via Admin).
 
-*Terakhir diperbarui: 2 Juni 2026 | Versi: 2.18.0 (Penambahan Fitur Foto Bukti Pengecekkan pada Balasan Tiket)*
+*Terakhir diperbarui: 2 Juni 2026 | Versi: 2.18.1 (Penambahan Foto Bukti Balasan & Integrasi Link Foto di Notifikasi Email)*
