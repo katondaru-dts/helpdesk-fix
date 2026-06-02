@@ -174,16 +174,22 @@ class Tickets extends BaseController
         $roleId = $session->get('role_id');
         $isStaff = is_staff();
 
-        $userPerms = $session->get('permissions') ?: [];
-        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin() || is_staff();
-        $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_staff();
+        // Ambil gabungan izin Role + Izin Khusus User
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+
+        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
+        $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_admin();
 
         if (!$isStaff && $ticket['reporter_id'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
         }
 
         // Teknisi hanya bisa lihat tiket yang ditugaskan kepadanya atau belum diassign
-        if (is_technician() && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
+        // KECUALI jika user punya izin "Full Access" atau izin kustom tertentu
+        $hasFullAccess = in_array('Full Access', $userPerms);
+        if (!$hasFullAccess && is_technician() && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak. Tiket ini tidak ditugaskan kepada Anda.');
         }
 
@@ -579,7 +585,10 @@ class Tickets extends BaseController
     public function bulkUpdateStatus()
     {
         $session = session();
-        $userPerms = $session->get('permissions') ?: [];
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+
         $canUpdate = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_staff();
 
         if (!$canUpdate) {
@@ -647,8 +656,11 @@ class Tickets extends BaseController
     public function assign($id)
     {
         $session = session();
-        $userPerms = $session->get('permissions') ?: [];
-        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin() || is_staff();
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+
+        $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
 
         if (!$canAssign) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk melakukan penugasan.');
@@ -934,8 +946,9 @@ class Tickets extends BaseController
     {
         $ticketModel = new TicketModel();
         $session = session();
-        $roleId = $session->get('role_id');
-        $userPerms = $session->get('permissions') ?: [];
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
 
         // Staff can edit documentation link
         if (!is_staff() && !in_array('Full Access', $userPerms)) {
@@ -950,7 +963,11 @@ class Tickets extends BaseController
     public function delete($id)
     {
         $session = session();
-        if (!is_admin()) {
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+
+        if (!is_admin() && !in_array('Full Access', $userPerms)) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk menghapus tiket.');
         }
 
