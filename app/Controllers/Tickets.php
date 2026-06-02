@@ -372,7 +372,22 @@ class Tickets extends BaseController
                     $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($ticket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
                     $telegramMsg .= "✍️ <b>Pengirim:</b> " . $session->get('name') . "\n";
                     $telegramMsg .= "💬 <b>Pesan:</b> " . mb_substr($message, 0, 200) . (mb_strlen($message) > 200 ? '...' : '') . "\n";
-                    $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
+
+                    // Tambahkan link foto jika ada
+                    if (!empty($data['photo'])) {
+                        $telegramPhotoUrl = null;
+                        if (is_minio_key($data['photo'])) {
+                            $minioForTele = new MinioStorage();
+                            $telegramPhotoUrl = $minioForTele->getPresignedUrl($data['photo'], 'foto balasan tiket');
+                        } else {
+                            $telegramPhotoUrl = base_url($data['photo']);
+                        }
+                        if ($telegramPhotoUrl) {
+                            $telegramMsg .= "\n📷 <b>Foto Bukti:</b> <a href=\"{$telegramPhotoUrl}\">Klik Lihat Foto</a>\n";
+                        }
+                    }
+
+                    $telegramMsg .= "\n⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
                     send_telegram($telegramMsg);
 
                     // Kirim email ke reporter jika: pengirim bukan reporter DAN reporter adalah role user (role_id=3)
@@ -883,6 +898,31 @@ class Tickets extends BaseController
         }
         $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> Belum ditugaskan\n";
         $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB\n";
+
+        // Tambahkan link foto dokumentasi jika ada
+        $finalTicket = $ticketModel->find($newId);
+        if ($finalTicket) {
+            $photoLinks = [];
+            foreach (['photo', 'photo2'] as $f) {
+                if (!empty($finalTicket[$f])) {
+                    if (is_minio_key($finalTicket[$f])) {
+                        $minioStore = new MinioStorage();
+                        $pUrl = $minioStore->getPresignedUrl($finalTicket[$f]);
+                        if ($pUrl)
+                            $photoLinks[] = $pUrl;
+                    } else {
+                        $photoLinks[] = base_url($finalTicket[$f]);
+                    }
+                }
+            }
+            if (!empty($photoLinks)) {
+                $telegramMsg .= "\n🖼️ <b>Dokumentasi Foto:</b>\n";
+                foreach ($photoLinks as $idx => $link) {
+                    $telegramMsg .= ($idx + 1) . ". <a href=\"{$link}\">Lihat Foto " . ($idx + 1) . "</a>\n";
+                }
+            }
+        }
+
         $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
         $telegramMsg .= "🔗 Segera tangani di sistem helpdesk.";
         send_telegram($telegramMsg);
