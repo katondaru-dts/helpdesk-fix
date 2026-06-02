@@ -16,15 +16,13 @@ if (!function_exists('has_permission')) {
             return true;
         }
 
-        // User-level permissions override role permissions if set
-        $userPermissions = $session->get('user_permissions');
-        if (is_array($userPermissions) && !empty($userPermissions)) {
-            return in_array($permission, $userPermissions);
-        }
+        // Combined permissions: User-level + Role permissions
+        $userPermissions = $session->get('user_permissions') ?: [];
+        $rolePermissions = $session->get('permissions') ?: [];
 
-        // Fall back to role permissions
-        $permissions = $session->get('permissions') ?: [];
-        return in_array($permission, $permissions);
+        $allPermissions = array_unique(array_merge($userPermissions, $rolePermissions));
+
+        return in_array($permission, $allPermissions);
     }
 }
 

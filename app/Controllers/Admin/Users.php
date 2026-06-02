@@ -42,13 +42,13 @@ class Users extends BaseController
             'f_role' => $f_role,
             'search' => $search,
             'availablePermissions' => [
-                'Lihat Laporan'       => 'Akses Laporan & Statistik',
-                'Ekspor Data'         => 'Ekspor Data ke PDF/Excel',
+                'Lihat Laporan' => 'Akses Laporan & Statistik',
+                'Ekspor Data' => 'Ekspor Data ke PDF/Excel',
                 'Update Status Tiket' => 'Mengubah Status Tiket',
-                'Tugaskan Support'    => 'Menugaskan Tiket ke Staff Support',
-                'Tambah Solusi'       => 'Memberikan Solusi Tiket',
-                'Buat Tiket'          => 'Membuat Tiket Baru',
-                'Lihat Tiket Sendiri' => 'Melihat Daftar Tiket Pribadi',
+                'Tugaskan Support' => 'Menugaskan Tiket ke Staff Support',
+                'Tambah Solusi' => 'Memberikan Solusi Tiket',
+                'Buat Tiket' => 'Membuat Tiket Baru',
+                'Lihat Tiket Sendiri' => 'Melihat Daftar Tiket Pribadi'
             ],
         ];
 
@@ -107,6 +107,7 @@ class Users extends BaseController
                 'dept_id' => $dept_id,
                 'gender' => $gender,
                 'phone' => $phone,
+                'permissions' => $permissions,
                 'is_active' => 1
             ];
             $userModel->insert($data);
