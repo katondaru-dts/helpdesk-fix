@@ -388,7 +388,7 @@
         const files = input.files;
         if (!files || !files.length) return;
         const file = files[0];
-        if (file.size > 10 * 1024 * 1024) { alert('Ukuran file terlalu besar! Maksimal 10MB.'); input.value = ''; return; }
+        if (file.size > 20 * 1024 * 1024) { alert('Ukuran file terlalu besar! Maksimal 20MB.'); input.value = ''; return; }
         const reader = new FileReader();
         reader.onload = (e) => {
             imageToCrop.src = e.target.result;

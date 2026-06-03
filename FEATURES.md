@@ -46,7 +46,8 @@
     - Integrasi kamera native pada perangkat mobile.
     - Preview gambar langsung sebelum kirim.
     - **Picasa-Style Modal Viewer** — Fitur zoom, pan (drag), dan reset pada modal preview foto.
-    - Validasi format (JPG, PNG) dan ukuran maksimal 5MB per file.
+    - Validasi format (JPG, PNG) dan ukuran maksimal 10MB per file.
+    - **Automatic Image Compression** — Foto yang diunggah otomatis dikompresi (kualitas ~75% dan max width 1200px) sebelum disimpan untuk menghemat ruang penyimpanan namun tetap menjaga kualitas visual yang baik.
     - Konfirmasi akhir pengiriman jika terdapat lampiran foto.
 - [x] **Perbaikan Tampilan Riwayat & Balasan** — Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual, serta dilengkapi dengan **Scrollbar Vertikal Custom** (max-height 800px) untuk mencegah halaman memanjang saat obrolan tiket lebih dari ~10-15 balasan.
 - [x] **Penghapusan Tiket Menyeluruh** — Notifikasi yang terkait dengan tiket akan ikut terhapus secara otomatis ketika tiket tersebut dihapus untuk mencegah data notifikasi tertinggal (*orphan data*).
@@ -64,6 +65,7 @@
 
 ### 👤 Profil Pengguna
 - [x] Lihat dan edit data profil (nama, email, telepon, jenis kelamin, departemen)
+- [x] **Auto-Compressed Profile Picture** — Foto profil otomatis dikompresi dan diubah ukurannya (max 800px) saat diunggah untuk optimalisasi performa loading.
 - [x] Ganti password (verifikasi password lama, perbaikan error 404 Form Submit)
 
 ### 🔔 Notifikasi & Aktivitas Tiket

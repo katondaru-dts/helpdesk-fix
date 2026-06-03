@@ -279,11 +279,17 @@ class Tickets extends BaseController
             if ($file && $file->isValid() && !$file->hasMoved()) {
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
                 $ext = strtolower($file->getExtension());
-                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, ['jpg', 'jpeg', 'png']) && $file->getSize() <= 5 * 1024 * 1024) {
+                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, ['jpg', 'jpeg', 'png']) && $file->getSize() <= 20 * 1024 * 1024) {
                     $newName = 'msg_' . $id . '_' . $file->getRandomName();
                     $folder = 'foto balasan tiket';
 
                     if ($file->move(FCPATH . $folder, $newName)) {
+                        $fullPath = FCPATH . $folder . '/' . $newName;
+
+                        // Compress image before upload
+                        helper('image');
+                        compress_image($fullPath, $fullPath, 75, 1200);
+
                         $data['photo'] = $folder . '/' . $newName;
 
                         // Optional: Upload to MinIO if possible
@@ -828,11 +834,15 @@ class Tickets extends BaseController
             if ($file && $file->isValid() && !$file->hasMoved()) {
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
                 $ext = strtolower($file->getExtension());
-                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 10 * 1024 * 1024) {
+                if (in_array($file->getMimeType(), $allowedTypes) && in_array($ext, $allowedExts) && $file->getSize() <= 20 * 1024 * 1024) {
                     $fileName = $field . '_' . $newId . '_' . $file->getRandomName();
                     // Temporarily move to local, then upload to MinIO
                     $tempPath = FCPATH . 'uploads/tickets/' . $fileName;
                     if ($file->move(FCPATH . 'uploads/tickets', $fileName)) {
+                        // Compress image before upload
+                        helper('image');
+                        compress_image($tempPath, $tempPath, 75, 1200);
+
                         try {
                             $minio->upload($tempPath, $fileName);
                             // Store only the basename (MinIO key — no path prefix)

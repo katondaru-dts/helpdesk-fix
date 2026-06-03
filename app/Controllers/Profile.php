@@ -117,8 +117,8 @@ class Profile extends BaseController
                 return redirect()->back()->with('error', 'Format file tidak didukung. Gunakan JPG atau PNG.');
             }
 
-            if ($file->getSize() > 10 * 1024 * 1024) {
-                return redirect()->back()->with('error', 'Ukuran file terlalu besar. Maksimal 10MB.');
+            if ($file->getSize() > 20 * 1024 * 1024) {
+                return redirect()->back()->with('error', 'Ukuran file terlalu besar. Maksimal 20MB.');
             }
 
             $minio = new \App\Libraries\MinioStorage();
@@ -138,6 +138,10 @@ class Profile extends BaseController
             }
 
             if ($file->move(FCPATH . 'uploads/avatars', $tempName)) {
+                // Compress image before upload
+                helper('image');
+                compress_image($tempPath, $tempPath, 70, 800); // 800px max width for profile pic
+
                 try {
                     // Delete old pic from MinIO if exists
                     if (!empty($user['profile_pic']) && is_minio_key($user['profile_pic'])) {

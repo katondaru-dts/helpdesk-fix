@@ -120,7 +120,7 @@
                     </div>
                 </div>
                 <div style="font-size:12px;color:#9ca3af;margin-top:6px"><i class="bi bi-info-circle"></i> Format: JPG,
-                    PNG. Maks 10MB per foto. Bisa ambil dari kamera.</div>
+                    PNG. Maks 20MB per foto. Bisa ambil dari kamera.</div>
             </div>
             <div style="display:flex;gap:10px">
                 <button type="submit" id="submitBtn"
@@ -354,8 +354,8 @@
             input.addEventListener('change', function () {
                 const file = this.files[0];
                 if (!file) return;
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('Ukuran foto maks 10MB!');
+                if (file.size > 20 * 1024 * 1024) {
+                    alert('Ukuran foto maks 20MB!');
                     this.value = '';
                     return;
                 }

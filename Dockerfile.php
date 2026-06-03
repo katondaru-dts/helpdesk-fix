@@ -17,6 +17,7 @@ RUN docker-php-ext-install \
     curl \
     xml \
     gd \
+    exif \
     opcache
 
 # Copy custom php.ini
