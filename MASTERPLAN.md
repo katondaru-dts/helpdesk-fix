@@ -115,7 +115,7 @@ helpdesk-v2/
 | `roles` | Data role (code, name, permissions JSON, **is_staff**, **is_technician**, **role_updated_at**) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
-| `tickets` | Data tiket (id, title, description, drive_link, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
+| `tickets` | Data tiket (id, title, description, **drive_link (TEXT)**, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
 | `ticket_messages` | Balasan/komentar pada tiket (ticket_id, sender_id, message, is_internal, **photo**, sent_at) |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
@@ -366,7 +366,7 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 | `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
 | `telegram_helper.php` | `app/Helpers/` | Fungsi `send_telegram()`: wrapper API asinkron non-blocking mengirim JSON ke API Bot Telegram |
 | `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`: notifikasi email HTML ke user |
-| `app_helper.php` | `app/Helpers/` | Fungsi global: `is_minio_key()` untuk deteksi storage, `get_profile_pic_url()` untuk resolusi URL foto profil |
+| `app_helper.php` | `app/Helpers/` | Fungsi global: `is_minio_key()` untuk deteksi storage, `resolve_minio_url()` untuk resolusi & refresh URL presigned, `get_profile_pic_url()` untuk resolusi URL foto profil |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
 | `public/uploads/tickets/` | Root/public | Folder penyimpanan fisik foto dokumentasi tiket |
@@ -403,4 +403,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 - **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem pemotongan gambar (CropperJS) sebelum diunggah.
 - **Knowledge Base Storage (Hybrid)**: Migrasi penyimpanan file dokumentasi `.md` dari lokal server ke MinIO (folder `artikel/`). Sistem melakukan sinkronisasi otomatis antara file fisika di Cloud Storage dengan metadata di database (HTML & Vektor AI). Dilengkapi fitur *auto-cleanup* (menghapus file di MinIO saat artikel dihapus via Admin).
 
-*Terakhir diperbarui: 2 Juni 2026 | Versi: 2.18.1 (Penambahan Foto Bukti Balasan & Integrasi Link Foto di Notifikasi Email)*
+*Terakhir diperbarui: 3 Juni 2026 | Versi: 2.19.0 (Integrasi MinIO Docs Link Refresh, Fix Truncation URL (TEXT), dan Auto-Resolve Spasi Folder)*
