@@ -489,17 +489,20 @@
                             </td>
                             <td>
                                 <div style="font-size: 13px; color: #475569; font-weight: 500;">
-                                    <?= esc($t['requester_name'] ?? '') ?></div>
+                                    <?= esc($t['requester_name'] ?? '') ?>
+                                </div>
                             </td>
                             <td>
                                 <div style="font-size: 13px; color: #475569; font-weight: 500;">
-                                    <?= esc($t['teknisi_name'] ?? '-') ?></div>
+                                    <?= esc($t['teknisi_name'] ?? '-') ?>
+                                </div>
                             </td>
                             <td>
                                 <div style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
                                     <?php if (!empty($t['location'])): ?><i class="bi bi-geo-alt-fill"
                                             style="color: #f59e0b; font-size: 11px;"></i>
-                                        <?= esc($t['location']) ?>        <?php else: ?>—<?php endif; ?></div>
+                                        <?= esc($t['location']) ?>         <?php else: ?>—<?php endif; ?>
+                                </div>
                             </td>
                             <td>
                                 <div style="max-width: 200px; font-size: 12px; color: #64748b; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"
@@ -516,9 +519,9 @@
                                 <form action="<?= base_url('admin/reports/update-link/' . $t['id']) ?>" method="POST"
                                     class="link-input-wrap no-print">
                                     <?= csrf_field() ?>
-                                    <?php /* Input HANYA menampilkan drive_link yang tersimpan, BUKAN presigned URL */ ?>
+                                    <?php /* Tampilkan link otomatis jika drive_link kosong */ ?>
                                     <input type="text" name="drive_link" class="link-input" placeholder="Tambahkan link..."
-                                        value="<?= esc($t['drive_link'] ?? '') ?>">
+                                        value="<?= esc($t['drive_link'] ?: $displayLink) ?>">
                                     <button type="submit" class="link-save-btn" title="Simpan"><i
                                             class="bi bi-check-lg"></i></button>
                                     <?php if (!empty($openLink)): ?>

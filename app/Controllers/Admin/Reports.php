@@ -122,6 +122,19 @@ class Reports extends BaseController
             }
 
             $photoUrls = array_unique(array_filter($photoUrls));
+
+            // LOGIKA REFRESH: Jika drive_link berisi link MinIO, kita refresh agar tidak expired
+            if (!empty($t['drive_link']) && str_contains($t['drive_link'], 'helpdesk-minio')) {
+                $urlParts = parse_url($t['drive_link']);
+                $path = ltrim($urlParts['path'] ?? '', '/');
+                $path = preg_replace('/^helpdesk\//', '', $path);
+                if (!empty($path)) {
+                    $freshUrl = resolve_minio_url($path);
+                    if ($freshUrl)
+                        $t['drive_link'] = $freshUrl;
+                }
+            }
+
             $t['display_link'] = !empty($t['drive_link']) ? $t['drive_link'] : implode("\n", $photoUrls);
         }
         unset($t);
