@@ -31,6 +31,10 @@ if (!function_exists('resolve_minio_url')) {
     {
         if (empty($value))
             return null;
+
+        // Decode URL agar spasi %20 dkk tidak merusak pengecekan folder
+        $value = urldecode($value);
+
         $minio = new \App\Libraries\MinioStorage();
 
         if (str_contains($value, '/')) {
