@@ -39,14 +39,11 @@ class Reports extends BaseController
 
         foreach ($tickets as &$t) {
             $photoUrls = [];
-
-            // PRIORITY 1: Foto Utama (photo atau photo2)
             if (!empty($t['photo']))
                 $photoUrls[] = $this->resolvePhotoUrl($t['photo']);
             if (!empty($t['photo2']))
                 $photoUrls[] = $this->resolvePhotoUrl($t['photo2']);
 
-            // PRIORITY 2: Jika foto utama KOSONG, cari foto dari balasan (ticket_messages)
             if (empty($photoUrls)) {
                 $msgPhotos = $db->table('ticket_messages')
                     ->where('ticket_id', $t['id'])
@@ -103,7 +100,6 @@ class Reports extends BaseController
 
         foreach ($tickets as &$t) {
             $photoUrls = [];
-
             if (!empty($t['photo']))
                 $photoUrls[] = $this->resolvePhotoUrl($t['photo']);
             if (!empty($t['photo2']))
@@ -142,5 +138,32 @@ class Reports extends BaseController
         return view('admin/reports/index', $data);
     }
 
-    // ... excel and other methods remain same as original
+    public function excel()
+    {
+        $db = \Config\Database::connect();
+        $statsBuilder = $db->table('tickets t')->select("COUNT(*) as total, SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets, SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress, SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyDateFilter($statsBuilder);
+        $stats = $statsBuilder->get()->getRowArray();
+        $tickets = $this->getTickets();
+        $filename = "Helpdesk_Laporan_" . date('Ymd_His') . ".xls";
+        return response()->setHeader('Content-Type', 'application/vnd.ms-excel')->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')->setBody(view('admin/reports/export_excel', ['stats' => $stats, 'tickets' => $tickets]));
+    }
+
+    public function pdf()
+    {
+        $db = \Config\Database::connect();
+        $statsBuilder = $db->table('tickets t')->select("COUNT(*) as total, SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets, SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress, SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyDateFilter($statsBuilder);
+        $stats = $statsBuilder->get()->getRowArray();
+        $tickets = $this->getTickets();
+        return view('admin/reports/export_excel', ['stats' => $stats, 'tickets' => $tickets]);
+    }
+
+    public function updateLink($id)
+    {
+        $db = \Config\Database::connect();
+        $link = $this->request->getPost('drive_link');
+        $db->table('tickets')->where('id', $id)->update(['drive_link' => $link]);
+        return redirect()->back()->with('success', 'Link Dokumentasi berhasil diperbarui.');
+    }
 }
