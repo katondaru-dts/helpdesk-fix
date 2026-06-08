@@ -403,5 +403,6 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 - **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem **Automatic Compression & Auto-Rotation** sebelum diunggah.
 - **Knowledge Base Storage (Hybrid)**: Migrasi penyimpanan file dokumentasi `.md` dari lokal server ke MinIO (folder `artikel/`). Sistem melakukan sinkronisasi otomatis antara file fisika di Cloud Storage dengan metadata di database (HTML & Vektor AI). Dilengkapi fitur *auto-cleanup* (menghapus file di MinIO saat artikel dihapus via Admin).
 - **Robust Mobile Upload System**: Implementasi sistem kompresi dan rotasi otomatis (via PHP `exif` & GD) untuk menangani foto dari smartphone. Batas unggah ditingkatkan menjadi **20MB** di sisi aplikasi (backend & frontend) untuk menampung foto resolusi tinggi sebelum otomatis dikompresi menjadi ukuran efisien (~200KB-500KB).
+- **Mobile UX Fixes**: Perbaikan bug posisi popup menu edit foto profil pada perangkat mobile dengan sistem *Bottom Sheet* yang lebih intuitif dan stabil.
 
-*Terakhir diperbarui: 3 Juni 2026 | Versi: 2.21.0 (Robust Mobile Uploads & Image Auto-Rotation)*
+*Terakhir diperbarui: 8 Juni 2026 | Versi: 2.22.0 (Fixing Mobile Profile Photo Popup & Bottom Sheet Implementation)*
