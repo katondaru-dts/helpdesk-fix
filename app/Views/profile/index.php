@@ -40,7 +40,7 @@
                 </div>
 
                 <!-- Tombol Edit (pensil) -->
-                <button type="button" onclick="openEditMenu()" title="Edit foto profil"
+                <button type="button" onclick="openEditMenu(event, this)" title="Edit foto profil"
                     style="position:absolute;bottom:-4px;right:-4px;width:38px;height:38px;border-radius:50%;background:#3b82f6;border:3px solid white;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.25);z-index:10;transition:transform 0.1s"
                     onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'">
                     <i class="bi bi-pencil-fill" style="font-size:14px"></i>
@@ -364,6 +364,11 @@
         }
     }
 
+    @keyframes sheetUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
     .cropper-view-box,
     .cropper-face {
         border-radius: 50%;
@@ -483,30 +488,58 @@
 
 <script>
     // Edit menu – anchored to pencil button
-    function openEditMenu() {
-        var btn = document.querySelector('button[onclick="openEditMenu()"]');
+    function openEditMenu(e, btn) {
+        if (e) e.stopPropagation();
         var sheet = document.getElementById('editMenuSheet');
         var overlay = document.getElementById('editMenuOverlay');
 
-        // Show sheet briefly (hidden) to measure its width
+        if (!btn) btn = document.querySelector('button[onclick*="openEditMenu"]');
+
+        // Measure sheet size
         sheet.style.visibility = 'hidden';
         sheet.style.display = 'block';
         var sheetW = sheet.offsetWidth;
+        var sheetH = sheet.offsetHeight;
         sheet.style.visibility = '';
 
-        var rect = btn.getBoundingClientRect();
-        var top = rect.bottom + 8;   // 8px gap below button (rect.bottom is relative to viewport)
-        var left = rect.left + (rect.width / 2) - (sheetW / 2); // rect.left is relative to viewport
-
-        // Keep inside viewport horizontally
         var vw = window.innerWidth;
-        if (left + sheetW > vw - 12) left = vw - sheetW - 12;
-        if (left < 12) left = 12;
+        var vh = window.innerHeight;
 
-        sheet.style.top = top + 'px';
-        sheet.style.left = left + 'px';
+        if (vw < 600) {
+            // ── Mobile: Bottom Sheet Mode ──
+            sheet.style.top = 'auto';
+            sheet.style.bottom = '0';
+            sheet.style.left = '0';
+            sheet.style.right = '0';
+            sheet.style.width = '100%';
+            sheet.style.minWidth = '100%';
+            sheet.style.borderRadius = '20px 20px 0 0';
+            sheet.style.animation = 'sheetUp 0.3s ease-out';
+            // Overlay and Sheet display
+            overlay.style.display = 'block';
+            overlay.style.background = 'rgba(0,0,0,0.5)';
+        } else {
+            // ── PC: Dropdown Mode ──
+            var rect = btn.getBoundingClientRect();
+            var top = rect.bottom + 8;
+            var left = rect.left + (rect.width / 2) - (sheetW / 2);
 
-        overlay.style.display = 'block';
+            if (left + sheetW > vw - 12) left = vw - sheetW - 12;
+            if (left < 12) left = 12;
+            if (top + sheetH > vh - 20) top = rect.top - sheetH - 8;
+
+            sheet.style.top = top + 'px';
+            sheet.style.left = left + 'px';
+            sheet.style.bottom = 'auto';
+            sheet.style.right = 'auto';
+            sheet.style.width = 'auto';
+            sheet.style.minWidth = '220px';
+            sheet.style.borderRadius = '12px';
+            sheet.style.animation = 'none';
+
+            overlay.style.display = 'block';
+            overlay.style.background = 'transparent';
+        }
     }
     function closeEditMenu() {
         document.getElementById('editMenuOverlay').style.display = 'none';
