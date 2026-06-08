@@ -41,18 +41,19 @@
 
                 <!-- Tombol Edit (pensil) -->
                 <button type="button" onclick="openEditMenu()" title="Edit foto profil"
-                    style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:#3b82f6;border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">
-                    <i class="bi bi-pencil-fill" style="font-size:11px"></i>
+                    style="position:absolute;bottom:-4px;right:-4px;width:38px;height:38px;border-radius:50%;background:#3b82f6;border:3px solid white;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.25);z-index:10;transition:transform 0.1s"
+                    onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'">
+                    <i class="bi bi-pencil-fill" style="font-size:14px"></i>
                 </button>
 
                 <!-- Hidden inputs -->
                 <form id="profile-pic-form" action="<?= base_url('profile/update-photo') ?>" method="POST"
                     enctype="multipart/form-data">
                     <?= csrf_field() ?>
-                    <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" capture="environment"
-                        style="display:none">
+                    <input type="file" name="profile_pic" id="profile-pic-input" accept="image/*" capture="user"
+                        style="visibility:hidden;position:absolute;width:0;height:0">
                     <input type="file" name="profile_pic" id="profile-pic-gallery" accept="image/*"
-                        style="display:none">
+                        style="visibility:hidden;position:absolute;width:0;height:0">
                 </form>
                 <form id="delete-pic-form" action="<?= base_url('profile/delete-photo') ?>" method="POST"
                     style="display:none">
@@ -494,8 +495,8 @@
         sheet.style.visibility = '';
 
         var rect = btn.getBoundingClientRect();
-        var top = rect.bottom + window.scrollY + 8;   // 8px gap below button
-        var left = rect.left + window.scrollX + (rect.width / 2) - (sheetW / 2);
+        var top = rect.bottom + 8;   // 8px gap below button (rect.bottom is relative to viewport)
+        var left = rect.left + (rect.width / 2) - (sheetW / 2); // rect.left is relative to viewport
 
         // Keep inside viewport horizontally
         var vw = window.innerWidth;
