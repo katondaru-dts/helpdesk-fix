@@ -12,6 +12,8 @@
 |------|--------|
 | **Framework** | CodeIgniter 4 (PHP 8.2) |
 | **Database** | MySQL / MariaDB |
+| **Storage** | **MinIO Object Storage** (S3 Compatible) |
+| **AI Engine** | **Google Gemini AI** (Generative AI Integration) |
 | **Web Server** | Nginx |
 | **Environment** | Docker (PHP-FPM + Nginx + MariaDB) |
 | **Bahasa** | Indonesia |
@@ -118,6 +120,9 @@ helpdesk-v2/
 | `tickets` | Data tiket (id, title, description, **drive_link (TEXT)**, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
 | `ticket_messages` | Balasan/komentar pada tiket (ticket_id, sender_id, message, is_internal, **photo**, sent_at) |
+| `ticket_ratings` | Rating & feedback setelah tiket selesai (ticket_id, rated_by, rating, feedback, rated_at) |
+| `kb_articles` | Artikel pusat bantuan (title, content, slug, cat_id, author_id, view_count, **md_key**, status) |
+| `kb_categories` | Kategori artikel KB (name, slug, description, is_active) |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
 
 ---
@@ -158,6 +163,12 @@ helpdesk-v2/
 | POST | `/profile/update` | Update data profil |
 | POST | `/profile/change-password` | Ganti password |
 | POST | `/profile/update-photo` | Update foto profil (WhatsApp Style via MinIO) |
+| POST | `/profile/delete-photo` | Hapus foto profil dari storage MinIO |
+| GET | `/knowledge-base` | Daftar artikel pusat bantuan |
+| GET | `/knowledge-base/search` | Pencarian artikel (dengan query) |
+| GET | `/knowledge-base/{slug}` | Baca isi artikel |
+| POST | `/ai/chat` | API Tanya AI (Integrasi Gemini) |
+| POST | `/tickets/rate/{id}` | Beri rating & feedback tiket yang sudah selesai |
 
 ### Admin (Perlu Login + Role Admin — Filter: `admin`)
 | Method | URL | Fungsi |
@@ -176,15 +187,25 @@ helpdesk-v2/
 | GET | `/admin/reports/excel` | Export laporan ke CSV/Excel |
 | GET | `/admin/reports/pdf` | Export laporan ke PDF |
 | POST | `/admin/reports/update-link/{id}` | Simpan/update Link Dokumentasi per tiket |
+| POST | `/tickets/bulk-update-status` | Update status massal untuk banyak tiket |
 | GET | `/admin/audit-logs` | Log aktivitas admin |
+| GET | `/admin/knowledge-base` | Manajemen artikel Knowledge Base |
+| POST | `/admin/knowledge-base/store` | Simpan artikel baru ke MinIO |
+| POST | `/admin/knowledge-base/{id}/update` | Update artikel |
+| POST | `/admin/knowledge-base/{id}/delete` | Hapus artikel & file di MinIO |
+| POST | `/admin/knowledge-base/reembed-all` | Sinkronisasi ulang vektor AI |
 
 ---
 
-## ✅ Fitur yang Telah Diimplementasikan
-
 Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket (termasuk upload dokumentasi), notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
 
-Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
+**Fitur Terbaru (v2.30.0):**
+- [x] **Knowledge Base System** — Pusat bantuan mandiri yang terintegrasi dengan storage MinIO.
+- [x] **Tanya AI (Gemini Integration)** — Asisten AI yang dapat menjawab pertanyaan user berdasarkan basis pengetahuan IT Support.
+- [x] **Rating & Feedback** — Pengguna dapat memberikan penilaian bintang 1-5 dan saran perbaikan setelah tiket diselesaikan.
+- [x] **Dashboard Analytics Advance** — Visualisasi trend kinerja teknisi dan rata-rata waktu respons menggunakan Chart.js.
+
+Untuk daftar detail lengkap fitur lainnya, silakan lihat [FEATURES.md](FEATURES.md).
 
 ---
 
@@ -193,24 +214,15 @@ Untuk daftar detail lengkap fitur, silakan lihat [FEATURES.md](FEATURES.md).
 - **Font**: Inter (Google Fonts)
 - **Icon**: Bootstrap Icons v1.11
 - **Layout**: Sidebar kiri (dark) + Konten utama (light)
-- **Dashboard**: "Dashboard Status & Kinerja Layanan" dengan desain enterprise premium.
-- **Halaman Login**: Desain premium dengan background dark blue gradient, glassmorphism card (frosted glass), logo aplikasi dalam lingkaran, geometric SVG pattern, dan animasi sparkle dekoratif
-- **Sidebar Branding**: Menggunakan logo resmi aplikasi menggantikan ikon generik untuk memperkuat identitas visual.
-- **Warna Status Tiket**:
-  - OPEN → Merah
-  - IN_PROGRESS → Kuning/Oranye
-  - PENDING → Abu-abu
-  - RESOLVED/CLOSED → Hijau
-- **Warna Prioritas**:
-  - LOW → Abu-abu
-  - MEDIUM → Biru
-  - HIGH → Oranye
-  - URGENT → Merah
-
-- **Sidebar Buat Tiket**: Dilengkapi dengan 3 widget cerdas:
+- **Dashboard Analytics**:
+  - **Kinerja Tim Support**: Grafik garis (Area-style) interaktif yang menunjukkan jumlah penyelesaian tiket per teknisi.
+  - **Waktu Respons**: Grafik batang (Bar chart) yang menunjukkan rata-rata durasi penanganan per kategori.
+  - **Real-time Categories**: Statistik donat dinamis untuk setiap kategori gangguan.
+- **Form Buat Tiket**: Dilengkapi dengan 3 widget cerdas:
   - **Tips Pelaporan** (Checklist instruksi pelaporan)
   - **Artikel Populer** (Menampilkan 5 artikel Knowledge Base yang paling sering dilihat)
   - **CTA AI Assistant** (Akses cepat ke Tanya AI dan Knowledge Base jika user tidak menemukan solusi)
+- **Sistem Rating**: Modal popup rating otomatis muncul saat tiket berstatus RESOLVED/CLOSED untuk pengumpulan feedback kualitas layanan.
 - **Upload Foto Dokumentasi**: Form buat tiket mendukung 2 slot foto dengan dukungan kamera mobile, preview modal interaktif (zoom/drag), dan validasi ukuran hingga 5MB.
 - **Foto Dokumentasi Balasan**: Fitur opsional unggah foto (bukti pemeriksaan teknisi) pada form balasan tiket. Foto disimpan di folder `foto balasan tiket` dan ditampilkan dalam riwayat percakapan dengan preview modal.
 
@@ -380,29 +392,21 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 
 1. ~~**Integrasi SSO (Single Sign-On) via Google Workspace**~~ ✅ *(Sudah diimplementasikan penuh)*
    - Login terpusat menggunakan ekosistem email kampus (`@unmer.ac.id` dan `@student.unmer.ac.id`).
-   - Pencocokan akun secara aman tanpa menimpa *Role* atau kehilangan riwayat tiket lama dengan meminimalisir redundansi network/DB call.
-2. **Email-to-Ticket (Omnichannel)**
-   - Konversi email masuk ke kotak pengaduan menjadi tiket baru di aplikasi secara otomatis (menggunakan API/Cron Job).
-   - Mendukung balasan *threading* langsung dari antarmuka email.
-3. **SLA (Service Level Agreement) & Auto-Escalation**
-   - Penentuan batas waktu maksimal pengerjaan/respons berdasarkan prioritas tiket.
-   - Eskalasi otomatis ke kepala bagian jika SLA dilanggar.
-4. ~~**Knowledge Base (Self-Service Pusat Bantuan)**~~ ✅ *(Sudah diimplementasikan penuh)*
-   - Basis data FAQ yang direkomendasikan secara cerdas kepada User saat akan melapor (Widget "Artikel Populer" di sidebar buat tiket), bertujuan mengurangi duplikasi pelaporan yang sama.
-5. **Asset & Inventory Management** *(Menunggu kesiapan infrastruktur internal)*
+2. ~~**Knowledge Base (Self-Service Pusat Bantuan)**~~ ✅ *(Sudah diimplementasikan penuh)*
+   - Basis data FAQ mandiri yang tersimpan di MinIO dan terintegrasi dengan chatbot AI.
+3. ~~**AI Assistant (Tanya AI via Gemini API)**~~ ✅ *(Sudah diimplementasikan penuh)*
+   - Bot asisten yang membantu user menemukan jawaban dari Knowledge Base secara percakapan.
+4. **Asset & Inventory Management** *(Tahap Perencanaan)*
    - Mengaitkan laporan kerusakan tiket secara langsung dengan kode Inventaris Hardware yang bermasalah.
-6. **Routing & Workflow Automation**
-   - Aturan pelimpahan tugas bersyarat, seperti otomatis `Assign` staf ahli Jaringan jika kategori yang dilaporkan adalah koneksi Internet.
+5. **Email-to-Ticket (Omnichannel)**
+   - Konversi email masuk ke kotak pengaduan menjadi tiket baru di aplikasi secara otomatis.
+6. **SLA Auto-Escalation**
+   - Eskalasi otomatis ke kepala bagian IT jika SLA dilanggar oleh teknisi.
 
-7. **UI/UX Refinements**
-   - Halaman login kini ditenagai oleh animasi matematika interaktif berbasis HTML5 Canvas (*Infinite Node Topology*) yang sangat responsif (anti-pecah). Desain ini dikombinasikan dengan sentuhan akhir *Glassmorphism* dan warna dasar Dark Slate Navy-Blue murni.
-   - **Dashboard Admin**: Menggantikan panel "Respon Terbaru" dengan "Tiket Masuk Terbaru" untuk pemantauan antrean secara real-time. Panel ini menampilkan 10 tiket terbaru dengan sistem *scrollbar* vertikal otomatis.
-   - **Navigasi Global**: Perbaikan presisi *hover/hitbox* dropdown profil pada *topbar* dengan implementasi *gap-bridge pseudo-element* CSS untuk mencegah menu tertutup secara tidak sengaja.
-   - **Alignment Card Dashboard**: Perbaikan CSS pada ROW 3 dashboard admin — card "Laporan Gangguan & Tiket Baru" kini melakukan *stretch* penuh (`align-items:stretch`, `display:flex`, `height:100%`) agar border bagian bawahnya sejajar rata dengan border bawah card "Belum Diassign" di kolom kanan, tanpa memandang jumlah data yang tampil.
-   - **Peningkatan Filter Pencarian**: Kotak pencarian kini dapat mencari tidak hanya berdasarkan ID dan Judul, tetapi juga "Isi Laporan" (description). Selain itu, UX ditingkatkan dengan fungsi submit instan saat icon kaca pembesar diklik atau saat menekan tombol "Enter".
-- **Foto Profil (WhatsApp Style)**: Implementasi fitur ganti foto profil yang tersimpan di MinIO dengan struktur folder per-user (`avatar/nama_user_id/profile.jpg`). UI menggunakan preview lingkaran dengan ikon kamera hover, integrasi foto di navbar, dan sistem **Automatic Compression & Auto-Rotation** sebelum diunggah.
-- **Knowledge Base Storage (Hybrid)**: Migrasi penyimpanan file dokumentasi `.md` dari lokal server ke MinIO (folder `artikel/`). Sistem melakukan sinkronisasi otomatis antara file fisika di Cloud Storage dengan metadata di database (HTML & Vektor AI). Dilengkapi fitur *auto-cleanup* (menghapus file di MinIO saat artikel dihapus via Admin).
-- **Robust Mobile Upload System**: Implementasi sistem kompresi dan rotasi otomatis (via PHP `exif` & GD) untuk menangani foto dari smartphone. Batas unggah ditingkatkan menjadi **20MB** di sisi aplikasi (backend & frontend) untuk menampung foto resolusi tinggi sebelum otomatis dikompresi menjadi ukuran efisien (~200KB-500KB).
-- **Mobile UX Fixes**: Perbaikan bug posisi popup menu edit foto profil pada perangkat mobile dengan sistem *Bottom Sheet* yang lebih intuitif dan stabil.
+7. **UI/UX Refinements v2.30**:
+   - **Dashboard Admin**: Penambahan visualisasi data analytics (Chart.js) untuk monitoring kinerja tim dan efisiensi waktu respons.
+   - **Performance Filter**: Fitur filter rentang waktu (Hari ini, Kemarin, Minggu ini, Bulan ini) pada dashboard untuk analisis trend yang lebih akurat.
+   - **Rating System**: Implementasi sistem bintang dan feedback untuk mengukur kepuasan pengguna (*User Satisfaction Score*).
+   - **Mobile Optimization**: Perbaikan UI modal preview foto dan bottom-sheet menu profil untuk pengalaman mobile yang lebih mulus.
 
-*Terakhir diperbarui: 8 Juni 2026 | Versi: 2.22.0 (Fixing Mobile Profile Photo Popup & Bottom Sheet Implementation)*
+*Terakhir diperbarui: 10 Juni 2026 | Versi: 2.30.0 (Integrasi Knowledge Base, AI Assistant Gemini, & Dashboard Analytics Advance)*

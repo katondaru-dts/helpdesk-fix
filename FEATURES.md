@@ -31,6 +31,12 @@
     - Kartu **User Aktif** disembunyikan otomatis untuk role Teknisi.
 - [x] **Navigasi Cepat** — Kartu *User Aktif* dan *Laporan* dapat diklik untuk akses instan ke halaman manajemen terkait.
 - [x] **Spinning Refresh Buttons** — Tombol refresh di seluruh bagian dashboard memiliki animasi putaran saat diklik.
+- [x] **Advanced Support KPI Analytics**:
+    - **Trend Kinerja Teknisi**: Grafik area (Chart.js) yang memonitor jumlah tiket selesai per teknisi secara harian.
+    - **Rata-rata Waktu Penanganan**: Grafik batang (Chart.js) yang memvisualisasikan durasi (dalam jam) per kategori gangguan.
+    - **Time-range Filtering**: Seluruh data dashboard dapat difilter berdasarkan Hari ini, Kemarin, Minggu ini, atau Bulan ini.
+- [x] **Customer Satisfaction Monitoring**: Kartu skor rata-rata rating dari pengguna untuk evaluasi kualitas layanan tim IT.
+
 
 ### 🎫 Manajemen Tiket
 - [x] **Auto-Assign Workflow** — Tiket otomatis ditugaskan kepada teknisi yang mengubah status menjadi **IN_PROGRESS** (jika tiket belum memiliki penanggung jawab).
@@ -51,6 +57,10 @@
     - Konfirmasi akhir pengiriman jika terdapat lampiran foto.
 - [x] **Perbaikan Tampilan Riwayat & Balasan** — Tampilan kini membedakan antara entri perubahan status dan balasan pesan secara visual, serta dilengkapi dengan **Scrollbar Vertikal Custom** (max-height 800px) untuk mencegah halaman memanjang saat obrolan tiket lebih dari ~10-15 balasan.
 - [x] **Penghapusan Tiket Menyeluruh** — Notifikasi yang terkait dengan tiket akan ikut terhapus secara otomatis ketika tiket tersebut dihapus untuk mencegah data notifikasi tertinggal (*orphan data*).
+- [x] **Rating & Feedback System** — Setelah tiket ditandai sebagai RESOLVED atau CLOSED, pengguna dapat memberikan rating bintang (1-5) dan komentar feedback. Data ini direkam dalam tabel `ticket_ratings` untuk keperluan audit kinerja.
+- [x] **Bulk Actions** — Admin dapat melakukan update status massal pada daftar tiket untuk efisiensi manajemen antrean tinggi.
+- [x] **Rating KPI Integration** — Skor kepuasan pengguna ditampilkan secara real-time di dashboard admin.
+
 
 ### ⏳ SLA (Service Level Agreement) & Timer
 - [x] **Real-time Countdown Timer** — Hitung mundur sisa waktu pengerjaan di daftar tiket dan detail tiket.
@@ -130,3 +140,10 @@
 - [x] Rekam semua aktivitas admin (CREATE, UPDATE, DELETE, TOGGLE_STATUS)
 - [x] Data: Waktu, User, IP Address, Tabel, ID Target, Detail perubahan
 - [x] Pagination halaman log dengan desain antarmuka premium dan indikator aktif.
+
+### 📚 Knowledge Base & AI Support
+- [x] **Hybrid Storage Article** — Artikel disimpan dalam format `.md` di MinIO dan metadata-nya di database MySQL.
+- [x] **Self-Service Portal** — User dapat mencari solusi mandiri sebelum membuat tiket melalui portal Knowledge Base.
+- [x] **Tanya AI (Gemini Pro/Flash)** — Chatbot cerdas yang terintegrasi dengan basis pengetahuan. Menggunakan RAG (Retrieval-Augmented Generation) sederhana untuk memberikan jawaban akurat.
+- [x] **Smart Sidebars** — Widget "Artikel Populer" dan "Rekomendasi AI" tampil secara kontekstual di halaman pembuatan tiket.
+- [x] **Admin KB Management** — Dashboard khusus untuk teknisi mengelola konten bantuan, termasuk fitur *re-indexing* vektor AI.
