@@ -350,14 +350,15 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
     - **Balasan (Pesan Publik)**: Notifikasi diskusi / kendala lanjutan ke teknisi.
     - **Perubahan Status**: Pemberitahuan setiap status diupdate (misal OPEN menjadi IN_PROGRESS).
 3. **Email Notification (SMTP)**: Email HTML otomatis dikirim ke **User (role_id=3)** berdasarkan event berikut:
-    - **Balasan Komentar Baru**: Dikirim saat staf/teknisi membalas tiket milik user (pesan publik). Template berwarna biru dengan detail ID tiket, judul, preview pesan, dan tombol "Lihat Tiket & Balas".
+    - **Konfirmasi Tiket Dibuat**: Dikirim segera setelah user berhasil membuat tiket baru. Template biru menampilkan ID tiket, judul, lokasi, prioritas, status, dan tombol "Pantau Status Tiket".
+    - **Balasan Komentar Baru**: Dikirim saat staf/teknisi membalas tiket milik user (pesan publik). Template berwarna biru dengan detail ID tiket, judul, preview pesan, link foto bukti (jika ada), dan tombol "Lihat Tiket & Balas".
     - **Perubahan Status Tiket**: Dikirim saat status tiket diubah oleh staf, **kecuali status CLOSED**. Setiap status memiliki warna template berbeda:
         - 🔴 **OPEN** → Template merah
         - 🟡 **IN_PROGRESS** → Template kuning/amber
         - ⏸️ **PENDING** → Template ungu
         - ✅ **RESOLVED** → Template hijau khusus dengan catatan teknisi (jika ada)
-    - Konfigurasi via `.env` (`email.SMTPHost`, `email.SMTPUser`, `email.SMTPPass`, dll.).
-    - Helper: `app/Helpers/email_helper.php` — berisi fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`.
+    - Konfigurasi via `.env` (`email.SMTPHost`, `email.SMTPUser`, `email.SMTPPass`, dll.). App Password Gmail wajib aktif di akun pengirim.
+    - Helper: `app/Helpers/email_helper.php` — berisi fungsi `send_email_notification()`, `email_template_ticket_created()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`.
 
 ---
 
@@ -377,7 +378,7 @@ Sistem Helpdesk ini menggunakan **3 jalur notifikasi** secara paralel:
 | `auth_helper.php` | `app/Helpers/` | Fungsi `has_permission()` untuk validasi izin granular per role |
 | `captcha_helper.php` | `app/Helpers/` | Fungsi `generate_captcha()`, `verify_captcha()`, `clear_captcha()` untuk sistem CAPTCHA alfanumerik |
 | `telegram_helper.php` | `app/Helpers/` | Fungsi `send_telegram()`: wrapper API asinkron non-blocking mengirim JSON ke API Bot Telegram |
-| `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`: notifikasi email HTML ke user |
+| `email_helper.php` | `app/Helpers/` | Fungsi `send_email_notification()`, `email_template_ticket_created()`, `email_template_reply()`, `email_template_resolved()`, `email_template_status_change()`: notifikasi email HTML ke user |
 | `app_helper.php` | `app/Helpers/` | Fungsi global: `is_minio_key()` untuk deteksi storage, `resolve_minio_url()` untuk resolusi & refresh URL presigned, `get_profile_pic_url()` untuk resolusi URL foto profil |
 | `Reports.php` | `app/Controllers/Admin/` | Controller laporan — berisi pembatasan akses ekspor di method `excel()`, `pdf()`, `printReport()` |
 | `index.php` (reports) | `app/Views/admin/reports/` | Tampilan laporan — tombol ekspor dibungkus pengecekan izin |
@@ -409,4 +410,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Rating System**: Implementasi sistem bintang dan feedback untuk mengukur kepuasan pengguna (*User Satisfaction Score*).
    - **Mobile Optimization**: Perbaikan UI modal preview foto dan bottom-sheet menu profil untuk pengalaman mobile yang lebih mulus.
 
-*Terakhir diperbarui: 10 Juni 2026 | Versi: 2.30.0 (Integrasi Knowledge Base, AI Assistant Gemini, & Dashboard Analytics Advance)*
+*Terakhir diperbarui: 15 Juni 2026 | Versi: 2.30.1 (Fix email notifikasi — App Password Gmail, tambah email konfirmasi tiket dibuat)*
