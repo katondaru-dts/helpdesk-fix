@@ -364,3 +364,104 @@ if (!function_exists('email_template_resolved')) {
 </html>';
   }
 }
+
+if (!function_exists('email_template_ticket_created')) {
+  /**
+   * Buat template HTML email konfirmasi tiket berhasil dibuat.
+   *
+   * @param array  $ticket      Data tiket
+   * @param string $reporterName Nama pelapor
+   * @return string             HTML email
+   */
+  function email_template_ticket_created(array $ticket, string $reporterName): string
+  {
+    $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
+    $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
+
+    $priorityConfig = [
+      'LOW'    => ['label' => 'Rendah',   'emoji' => '🟢', 'color' => '#16a34a'],
+      'MEDIUM' => ['label' => 'Sedang',   'emoji' => '🟡', 'color' => '#d97706'],
+      'HIGH'   => ['label' => 'Tinggi',   'emoji' => '🟠', 'color' => '#ea580c'],
+      'URGENT' => ['label' => 'Mendesak', 'emoji' => '🔴', 'color' => '#dc2626'],
+    ];
+    $pCfg = $priorityConfig[$ticket['priority'] ?? 'MEDIUM'] ?? $priorityConfig['MEDIUM'];
+
+    return '<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiket Berhasil Dibuat</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:\'Segoe UI\',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f4f8;padding:30px 0;">
+    <tr>
+      <td align="center">
+        <table width="620" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1a56db 0%,#1e40af 100%);padding:32px 40px;text-align:center;">
+              <div style="font-size:48px;margin-bottom:12px;">🎫</div>
+              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Tiket Berhasil Dibuat</h1>
+              <p style="margin:8px 0 0;color:#bfdbfe;font-size:14px;">Helpdesk Universitas Merdeka Malang</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px;">
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">
+                Halo <strong style="color:#1a56db;">' . htmlspecialchars($reporterName) . '</strong>, tiket Anda telah <strong>berhasil dibuat</strong> dan sedang menunggu penanganan dari tim kami.
+              </p>
+
+              <!-- Ticket Info Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#1e40af;text-transform:uppercase;letter-spacing:0.5px;">Detail Tiket</p>
+                    <p style="margin:0 0 8px;font-size:14px;color:#111827;"><strong>ID Tiket:</strong> <span style="font-family:monospace;background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:4px;font-size:15px;">' . htmlspecialchars($ticket['id']) . '</span></p>
+                    <p style="margin:0 0 6px;font-size:14px;color:#111827;"><strong>Judul:</strong> ' . htmlspecialchars($ticket['title']) . '</p>
+                    ' . (!empty($ticket['location']) ? '<p style="margin:0 0 6px;font-size:14px;color:#111827;"><strong>Lokasi:</strong> ' . htmlspecialchars($ticket['location']) . '</p>' : '') . '
+                    <p style="margin:0 0 6px;font-size:14px;color:#111827;"><strong>Prioritas:</strong> <span style="color:' . $pCfg['color'] . ';font-weight:600;">' . $pCfg['emoji'] . ' ' . $pCfg['label'] . '</span></p>
+                    <p style="margin:0;font-size:14px;color:#111827;"><strong>Status:</strong> <span style="color:#1a56db;font-weight:600;">🔵 Terbuka (menunggu penanganan)</span></p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Info Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border-radius:8px;border-left:4px solid #f59e0b;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0;font-size:14px;color:#92400e;line-height:1.6;">
+                      ℹ️ Tim kami akan segera menangani tiket Anda. Anda akan mendapat notifikasi email saat ada pembaruan status atau balasan dari teknisi.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="' . $ticketUrl . '" style="display:inline-block;background:linear-gradient(135deg,#1a56db,#1e40af);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.3px;">
+                      Pantau Status Tiket
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9ca3af;">Email ini dikirim otomatis oleh sistem Helpdesk UNMER. Jangan membalas email ini.</p>
+              <p style="margin:6px 0 0;font-size:12px;color:#d1d5db;">Universitas Merdeka Malang &copy; ' . date('Y') . '</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>';
+  }
+}

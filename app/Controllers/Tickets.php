@@ -887,6 +887,25 @@ class Tickets extends BaseController
             $newId
         );
 
+        // 1b. Kirim email konfirmasi ke reporter jika role user biasa (role_id=3)
+        $reporter = $userModel->find($session->get('id'));
+        if ($reporter && !empty($reporter['email']) && $reporter['role_id'] == 3) {
+            helper('email');
+            $ticketForEmail = [
+                'id'       => $newId,
+                'title'    => $ticketTitle,
+                'location' => $this->request->getPost('location'),
+                'priority' => $priority,
+            ];
+            $emailBody = email_template_ticket_created($ticketForEmail, $session->get('name'));
+            send_email_notification(
+                $reporter['email'],
+                $reporter['name'],
+                '[Helpdesk] Tiket #' . $newId . ' Berhasil Dibuat: ' . $ticketTitle,
+                $emailBody
+            );
+        }
+
         // 2. Notify all staff
         $staffToNotify = $userModel->select('users.*')
             ->join('roles', 'users.role_id = roles.id')
