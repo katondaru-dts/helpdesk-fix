@@ -472,8 +472,8 @@ class Tickets extends BaseController
             }
             $hasAssignees = count($assigneeIds) > 0;
 
-            // PROTEKSI: Jika tiket sudah ada teknisinya, dan user saat ini BUKAN salah satu teknisinya, dan BUKAN admin (role_id=1)
-            if ($hasAssignees && $session->get('role_id') != 1) {
+            // PROTEKSI: Jika tiket sudah ada teknisinya, dan user saat ini BUKAN salah satu teknisinya, dan BUKAN admin/operator (role_id != 1 & role_id != 4)
+            if ($hasAssignees && !in_array($session->get('role_id'), [1, 4])) {
                 if (!in_array($session->get('id'), $assigneeIds)) {
                     return redirect()->back()->with('error', 'Maaf, tiket ini sudah ditangani oleh teknisi lain.');
                 }
