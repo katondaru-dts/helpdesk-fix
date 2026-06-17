@@ -60,7 +60,11 @@ class Tickets extends BaseController
             'dir' => $this->request->getGet('dir') ?: 'DESC',
         ];
 
-        $query = $ticketModel->getFilteredTickets($filters, $isStaff, $userId);
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+        $hasManagementPerm = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
+        $query = $ticketModel->getFilteredTickets($filters, $isStaff, $userId, $hasManagementPerm);
 
         // Load list of technicians (support staff) for filter dropdown
         $technicians = $userModel->select('users.*')
@@ -88,6 +92,9 @@ class Tickets extends BaseController
 
     public function export()
     {
+        if (!has_permission('Ekspor Data')) {
+            return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
+        }
         $ticketModel = new TicketModel();
         $session = session();
         $isStaff = is_staff();
@@ -105,7 +112,11 @@ class Tickets extends BaseController
             'unassigned' => $this->request->getGet('f-unassigned'),
         ];
 
-        $tickets = $ticketModel->getFilteredTickets($filters, $isStaff, $userId)->findAll();
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+        $hasManagementPerm = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
+        $tickets = $ticketModel->getFilteredTickets($filters, $isStaff, $userId, $hasManagementPerm)->findAll();
 
         $filename = "Helpdesk_Tiket_" . date('Ymd_His') . ".xls";
 
@@ -184,7 +195,7 @@ class Tickets extends BaseController
         $canUpdateStatus = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || is_admin();
 
         // Meloloskan jika user punya izin khusus tertentu (selain cuma lihat tiket sendiri) atau memang staff
-        $hasManagementPerm = in_array('Full Access', $userPerms) || in_array('Update Status Tiket', $userPerms) || in_array('Tugaskan Support', $userPerms);
+        $hasManagementPerm = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
 
         if (!$isStaff && !$hasManagementPerm && $ticket['reporter_id'] != $userId) {
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
@@ -484,7 +495,16 @@ class Tickets extends BaseController
             $hasAssignees = count($assigneeIds) > 0;
 
             // PROTEKSI: Jika tiket sudah ada teknisinya, dan user saat ini BUKAN salah satu teknisinya, dan BUKAN admin/operator (role_id != 1 & role_id != 4)
-            if ($hasAssignees && !in_array($session->get('role_id'), [1, 4])) {
+            $rolePerms = $session->get('permissions') ?: [];
+            $specialPerms = $session->get('user_permissions') ?: [];
+            $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+            $canUpdateAny = in_array('Update Status Tiket', $userPerms) || in_array('Full Access', $userPerms) || is_admin();
+
+            if (is_staff() && !$canUpdateAny && $session->get('role_id') != 4) {
+                 return redirect()->back()->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengubah status tiket.');
+            }
+
+            if ($hasAssignees && !in_array($session->get('role_id'), [1, 4]) && !$canUpdateAny) {
                 if (!in_array($session->get('id'), $assigneeIds)) {
                     return redirect()->back()->with('error', 'Maaf, tiket ini sudah ditangani oleh teknisi lain.');
                 }
@@ -808,6 +828,9 @@ class Tickets extends BaseController
 
     public function create()
     {
+        if (!has_permission('Buat Tiket')) {
+            return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
+        }
         $catModel = new CategoryModel();
         $kbModel = new \App\Models\KbArticleModel();
 

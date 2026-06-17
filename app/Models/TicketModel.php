@@ -35,7 +35,7 @@ class TicketModel extends Model
     protected $afterUpdate = [];
     protected $beforeFind = [];
     protected $afterFind = [];
-    public function getFilteredTickets($filters = [], $isStaff = false, $userId = null)
+    public function getFilteredTickets($filters = [], $isStaff = false, $userId = null, $hasManagementPerm = true)
     {
         $builder = $this->select('tickets.*, categories.name as cat_name, reporter.name as reporter_name, assigned.name as assigned_name, ' .
             '(SELECT GROUP_CONCAT(usr.name ORDER BY ta.assigned_at ASC SEPARATOR ", ") ' .
