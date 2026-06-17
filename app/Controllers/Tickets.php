@@ -464,13 +464,33 @@ class Tickets extends BaseController
             $ticket = $ticketModel->find($id);
             $updateData = [];
 
+            // Proteksi & Assignees Logic
+            $ticketAssigneeModel = new \App\Models\TicketAssigneeModel();
+            $assigneeIds = $ticketAssigneeModel->getAssigneeIds($id);
+            if (!empty($ticket['assigned_to']) && !in_array($ticket['assigned_to'], $assigneeIds)) {
+                $assigneeIds[] = $ticket['assigned_to'];
+            }
+            $hasAssignees = count($assigneeIds) > 0;
+
+            // PROTEKSI: Jika tiket sudah ada teknisinya, dan user saat ini BUKAN salah satu teknisinya, dan BUKAN admin (role_id=1)
+            if ($hasAssignees && $session->get('role_id') != 1) {
+                if (!in_array($session->get('id'), $assigneeIds)) {
+                    return redirect()->back()->with('error', 'Maaf, tiket ini sudah ditangani oleh teknisi lain.');
+                }
+            }
+
             if ($newStatus) {
                 $updateData['status'] = $newStatus;
 
-                // Auto-Assign Logic: If status changed to IN_PROGRESS and ticket is unassigned, 
-                // assign it to the technician who is changing the status.
-                if ($newStatus === 'IN_PROGRESS' && empty($ticket['assigned_to'])) {
+                // Auto-Assign Logic: If status changed to IN_PROGRESS and ticket is unassigned
+                if ($newStatus === 'IN_PROGRESS' && !$hasAssignees) {
                     $updateData['assigned_to'] = $session->get('id');
+                    $ticketAssigneeModel->insert([
+                        'ticket_id' => $id,
+                        'user_id' => $session->get('id'),
+                        'assigned_by' => $session->get('id'),
+                        'assigned_at' => date('Y-m-d H:i:s')
+                    ]);
                     $notes = ($notes ? $notes . " | " : "") . "Sistem: Tiket otomatis ditugaskan kepada " . $session->get('name');
                 }
 
