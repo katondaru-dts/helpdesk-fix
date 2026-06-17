@@ -56,4 +56,75 @@ class Cron extends BaseController
 
         return "Successfully notified " . count($staffToNotify) . " staff for $count overdue tickets.\n";
     }
+    public function processQueue()
+    {
+        // Hindari timeout
+        set_time_limit(0);
+        ignore_user_abort(true);
+
+        $queueModel = new \App\Models\NotificationQueueModel();
+        
+        // Ambil pending jobs (limit 5 agar tidak kepanjangan tiap eksekusi)
+        $jobs = $queueModel->where('status', 'pending')
+                           ->orderBy('created_at', 'ASC')
+                           ->limit(5)
+                           ->findAll();
+
+        if (empty($jobs)) {
+            return "No pending jobs.\n";
+        }
+
+        helper('email');
+        helper('telegram');
+
+        foreach ($jobs as $job) {
+            // Tandai processing
+            $queueModel->update($job['id'], [
+                'status' => 'processing', 
+                'attempts' => $job['attempts'] + 1,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $payload = json_decode($job['payload'], true);
+            $success = false;
+
+            try {
+                if ($job['type'] === 'email') {
+                    $success = send_email_notification(
+                        $payload['to_email'],
+                        $payload['to_name'],
+                        $payload['subject'],
+                        $payload['body']
+                    );
+                } elseif ($job['type'] === 'telegram') {
+                    $success = send_telegram(
+                        $payload['message'],
+                        $payload['chat_id'] ?? null
+                    );
+                }
+            } catch (\Exception $e) {
+                log_message('error', '[Queue] Error processing job ID ' . $job['id'] . ': ' . $e->getMessage());
+                $success = false;
+            }
+
+            if ($success) {
+                $queueModel->delete($job['id']);
+            } else {
+                $newStatus = ($job['attempts'] + 1) >= 3 ? 'failed' : 'pending';
+                $queueModel->update($job['id'], [
+                    'status' => $newStatus,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+        }
+
+        // Jika masih ada sisa, trigger worker lagi
+        $remaining = $queueModel->where('status', 'pending')->countAllResults();
+        if ($remaining > 0) {
+            helper('queue');
+            trigger_queue_worker();
+        }
+
+        return "Processed " . count($jobs) . " jobs.\n";
+    }
 }

@@ -119,3 +119,5 @@ $routes->post('ai/chat', 'AiAssistant::chat', ['filter' => 'auth']);
 $routes->get('ai/models', 'AiAssistant::models', ['filter' => 'auth']);
 $routes->post('ai/clear-cache', 'AiAssistant::clearCache', ['filter' => 'admin']);
 
+// Cron & Async Workers
+$routes->get('cron/process-queue', 'Cron::processQueue');

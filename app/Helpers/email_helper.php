@@ -5,6 +5,41 @@
  * Mengirim notifikasi email ke pengguna menggunakan CodeIgniter Email Library.
  */
 
+if (!function_exists('queue_email_notification')) {
+  /**
+   * Masukkan email notifikasi ke dalam antrean (asynchronous).
+   *
+   * @param string $toEmail   Alamat email tujuan
+   * @param string $toName    Nama penerima
+   * @param string $subject   Subjek email
+   * @param string $body      Isi email (HTML)
+   * @return bool
+   */
+  function queue_email_notification(string $toEmail, string $toName, string $subject, string $body): bool
+  {
+    $queueModel = new \App\Models\NotificationQueueModel();
+    $payload = json_encode([
+        'to_email' => $toEmail,
+        'to_name'  => $toName,
+        'subject'  => $subject,
+        'body'     => $body
+    ]);
+
+    $inserted = $queueModel->insert([
+        'type'    => 'email',
+        'payload' => $payload,
+        'status'  => 'pending'
+    ]);
+
+    if ($inserted) {
+        helper('queue');
+        trigger_queue_worker();
+        return true;
+    }
+    return false;
+  }
+}
+
 if (!function_exists('send_email_notification')) {
   /**
    * Kirim email notifikasi ke user tertentu.

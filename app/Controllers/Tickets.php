@@ -410,7 +410,7 @@ class Tickets extends BaseController
                     }
 
                     $telegramMsg .= "\n⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
-                    send_telegram($telegramMsg);
+                    queue_telegram($telegramMsg);
 
                     // Kirim email ke reporter jika: pengirim bukan reporter DAN reporter adalah role user (role_id=3)
                     $userModel2 = new \App\Models\UserModel();
@@ -433,7 +433,7 @@ class Tickets extends BaseController
                             }
                         }
                         $emailBody = email_template_reply($ticket, $session->get('name'), $message, $emailPhotoUrl);
-                        send_email_notification(
+                        queue_email_notification(
                             $reporter['email'],
                             $reporter['name'],
                             '[Helpdesk] Balasan Baru pada Tiket #' . $ticket['id'] . ': ' . $ticket['title'],
@@ -550,7 +550,7 @@ class Tickets extends BaseController
                             );
                             $emailSubject = '[Helpdesk] Status Tiket #' . $ticket['id'] . ' Diperbarui: ' . $statusLabel;
                         }
-                        send_email_notification(
+                        queue_email_notification(
                             $reporter['email'],
                             $reporter['name'],
                             $emailSubject,
@@ -583,7 +583,7 @@ class Tickets extends BaseController
                     $telegramMsg .= "📝 <b>Catatan:</b> {$notes}\n";
                 }
                 $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
-                send_telegram($telegramMsg);
+                queue_telegram($telegramMsg);
             }
 
             $db->transComplete();
@@ -766,7 +766,7 @@ class Tickets extends BaseController
         $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . (empty($assignedNames) ? 'Belum ditugaskan' : implode(', ', $assignedNames)) . "\n";
         $telegramMsg .= "👤 <b>Ditugaskan oleh:</b> " . $session->get('name') . "\n";
         $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
-        send_telegram($telegramMsg);
+        queue_telegram($telegramMsg);
 
         $auditLog = new AuditLogModel();
         $auditLog->logAction('ASSIGN_TICKET', 'tickets', $id, ['assignees' => $assigneeIds]);
@@ -925,7 +925,7 @@ class Tickets extends BaseController
                 'priority' => $priority,
             ];
             $emailBody = email_template_ticket_created($ticketForEmail, $session->get('name'));
-            send_email_notification(
+            queue_email_notification(
                 $reporter['email'],
                 $reporter['name'],
                 '[Helpdesk] Tiket #' . $newId . ' Berhasil Dibuat: ' . $ticketTitle,
@@ -995,7 +995,7 @@ class Tickets extends BaseController
 
         $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
         $telegramMsg .= "🔗 Segera tangani di sistem helpdesk.";
-        send_telegram($telegramMsg);
+        queue_telegram($telegramMsg);
 
         return redirect()->to('/tickets/detail/' . $newId)->with('success', 'Tiket berhasil dibuat!');
     }

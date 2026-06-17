@@ -125,7 +125,7 @@ class Users extends BaseController
             if (!empty($phone)) {
                 $msg .= "No. HP: {$phone}\n";
             }
-            send_telegram($msg);
+            queue_telegram($msg);
 
             return redirect()->to('/admin/users')->with('success', 'User spesifik berhasil ditambahkan.');
         }
