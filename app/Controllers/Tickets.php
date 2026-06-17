@@ -190,10 +190,19 @@ class Tickets extends BaseController
             return redirect()->to('/tickets')->with('error', 'Akses ditolak.');
         }
 
+        // Load multi-assignees from pivot table
+        $assigneeModel   = new TicketAssigneeModel();
+        $ticketAssignees = $assigneeModel->getAssigneesByTicket($id); // [{user_id, name, ...}]
+        $assigneeIds     = array_column($ticketAssignees, 'user_id');
+        $hasAssignees    = count($assigneeIds) > 0 || !empty($ticket['assigned_to']);
+
         // Teknisi hanya bisa lihat tiket yang ditugaskan kepadanya atau belum diassign
         // KECUALI jika user punya izin manajemen (Full Access, Update Status, dsb)
-        if (!$hasManagementPerm && is_technician() && $ticket['assigned_to'] && $ticket['assigned_to'] != $userId) {
-            return redirect()->to('/tickets')->with('error', 'Akses ditolak. Tiket ini tidak ditugaskan kepada Anda.');
+        if (!$hasManagementPerm && is_technician() && $hasAssignees) {
+            $isAssigned = in_array($userId, $assigneeIds) || $ticket['assigned_to'] == $userId;
+            if (!$isAssigned) {
+                return redirect()->to('/tickets')->with('error', 'Akses ditolak. Tiket ini tidak ditugaskan kepada Anda.');
+            }
         }
 
         $history = $historyModel->select('ticket_history.*, users.name as changed_by_name')
@@ -243,11 +252,6 @@ class Tickets extends BaseController
             ->where('roles.is_technician', 1)
             ->where('users.is_active', 1)
             ->findAll();
-
-        // Load multi-assignees from pivot table
-        $assigneeModel   = new TicketAssigneeModel();
-        $ticketAssignees = $assigneeModel->getAssigneesByTicket($id); // [{user_id, name, ...}]
-        $assigneeIds     = array_column($ticketAssignees, 'user_id');
 
         $data = [
             'pageTitle'       => "Detail Tiket: " . $ticket['id'],
@@ -330,9 +334,16 @@ class Tickets extends BaseController
                     }
                 }
 
-                // Beritahu Teknisi yang ditugaskan (jika ada dan bukan si pengirim)
-                if ($ticket['assigned_to'] && $senderId != $ticket['assigned_to']) {
-                    $userIdsToNotify[] = $ticket['assigned_to'];
+                // Beritahu SEMUA Teknisi yang ditugaskan (jika ada dan bukan si pengirim)
+                $assigneeModelReply = new \App\Models\TicketAssigneeModel();
+                $assigneeIdsReply = $assigneeModelReply->getAssigneeIds($id);
+                if (!empty($ticket['assigned_to']) && !in_array($ticket['assigned_to'], $assigneeIdsReply)) {
+                    $assigneeIdsReply[] = $ticket['assigned_to'];
+                }
+                foreach ($assigneeIdsReply as $uid) {
+                    if ($senderId != $uid) {
+                        $userIdsToNotify[] = $uid;
+                    }
                 }
 
                 $userModel = new \App\Models\UserModel();
