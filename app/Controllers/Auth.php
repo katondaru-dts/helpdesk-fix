@@ -310,7 +310,7 @@ class Auth extends BaseController
                     . "Email: {$email}\n"
                     . "Role: User\n"
                     . "Status: Auto-Register via SSO";
-                queue_telegram($msg);
+                send_telegram($msg);
 
                 // Bangun array user minimal — tidak perlu SELECT ulang
                 $user = [

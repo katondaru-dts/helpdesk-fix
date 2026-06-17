@@ -5,37 +5,6 @@
  * Mengirim pesan notifikasi ke Telegram via Bot API.
  */
 
-if (!function_exists('queue_telegram')) {
-    /**
-     * Masukkan pesan telegram ke dalam antrean (asynchronous).
-     *
-     * @param string $message  Teks pesan (mendukung HTML parse mode)
-     * @param string|null $chatId  Override chat ID (default: dari .env)
-     * @return bool
-     */
-    function queue_telegram(string $message, ?string $chatId = null): bool
-    {
-        $queueModel = new \App\Models\NotificationQueueModel();
-        $payload = json_encode([
-            'message' => $message,
-            'chat_id' => $chatId
-        ]);
-
-        $inserted = $queueModel->insert([
-            'type'    => 'telegram',
-            'payload' => $payload,
-            'status'  => 'pending'
-        ]);
-
-        if ($inserted) {
-            helper('queue');
-            trigger_queue_worker();
-            return true;
-        }
-        return false;
-    }
-}
-
 if (!function_exists('send_telegram')) {
     /**
      * Kirim pesan teks ke Telegram.
