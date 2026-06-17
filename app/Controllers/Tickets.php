@@ -12,6 +12,7 @@ use App\Models\TicketMessageModel;
 use App\Models\UserModel;
 use App\Models\NotificationModel;
 use App\Models\AuditLogModel;
+use App\Models\TicketAssigneeModel;
 use App\Libraries\MinioStorage;
 
 
@@ -243,16 +244,23 @@ class Tickets extends BaseController
             ->where('users.is_active', 1)
             ->findAll();
 
+        // Load multi-assignees from pivot table
+        $assigneeModel   = new TicketAssigneeModel();
+        $ticketAssignees = $assigneeModel->getAssigneesByTicket($id); // [{user_id, name, ...}]
+        $assigneeIds     = array_column($ticketAssignees, 'user_id');
+
         $data = [
-            'pageTitle' => "Detail Tiket: " . $ticket['id'],
-            'activePage' => 'tickets',
-            'ticket' => $ticket,
-            'timeline' => $timeline,
-            'supports' => $supports,
-            'isStaff' => $isStaff,
-            'canAssign' => $canAssign,
+            'pageTitle'       => "Detail Tiket: " . $ticket['id'],
+            'activePage'      => 'tickets',
+            'ticket'          => $ticket,
+            'timeline'        => $timeline,
+            'supports'        => $supports,
+            'isStaff'         => $isStaff,
+            'canAssign'       => $canAssign,
             'canUpdateStatus' => $canUpdateStatus,
-            'userId' => $userId,
+            'userId'          => $userId,
+            'ticketAssignees' => $ticketAssignees,  // array lengkap [{name, ...}]
+            'assigneeIds'     => $assigneeIds,       // array user_id yang sudah dicentang
         ];
 
         return view('tickets/detail', $data);
@@ -664,9 +672,9 @@ class Tickets extends BaseController
     public function assign($id)
     {
         $session = session();
-        $rolePerms = $session->get('permissions') ?: [];
+        $rolePerms    = $session->get('permissions') ?: [];
         $specialPerms = $session->get('user_permissions') ?: [];
-        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+        $userPerms    = array_unique(array_merge($rolePerms, $specialPerms));
 
         $canAssign = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
 
@@ -674,13 +682,18 @@ class Tickets extends BaseController
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk melakukan penugasan.');
         }
 
-        $ticketModel = new TicketModel();
-        $historyModel = new TicketHistoryModel();
-        $userModel = new UserModel();
+        $ticketModel   = new TicketModel();
+        $historyModel  = new TicketHistoryModel();
+        $userModel     = new UserModel();
+        $assigneeModel = new TicketAssigneeModel();
 
-        $assigneeId = $this->request->getPost('assignee') ?: null;
+        // Terima array dari checkbox (bisa kosong = lepas semua)
+        $assigneeIds = $this->request->getPost('assignees') ?: [];
+        $assigneeIds = array_map('intval', (array) $assigneeIds);
+        $assigneeIds = array_filter($assigneeIds); // hilangkan 0 / null
+        $assigneeIds = array_values(array_unique($assigneeIds));
+
         $ticket = $ticketModel->find($id);
-
         if (!$ticket) {
             return redirect()->back()->with('error', 'Tiket tidak ditemukan.');
         }
@@ -688,61 +701,75 @@ class Tickets extends BaseController
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // Update Ticket
-        $ticketModel->update($id, ['assigned_to' => $assigneeId]);
+        // --- Sync tabel pivot ticket_assignees ---
+        $newlyAdded = $assigneeModel->syncAssignees($id, $assigneeIds, (int) $session->get('id'));
 
-        // Log History
-        $notes = "Tiket dilepas dari penugasan.";
-        if ($assigneeId) {
-            $user = $userModel->find($assigneeId);
-            $userName = $user ? $user['name'] : 'User Unknown';
-            $notes = "Tiket ditugaskan kepada: " . $userName;
+        // --- Update assigned_to (teknisi utama/PIC = pertama dalam list) ---
+        $primaryAssignee = !empty($assigneeIds) ? $assigneeIds[0] : null;
+        $ticketModel->update($id, ['assigned_to' => $primaryAssignee]);
+
+        // --- Catat di riwayat tiket ---
+        if (!empty($assigneeIds)) {
+            $names = [];
+            foreach ($assigneeIds as $uid) {
+                $u = $userModel->find($uid);
+                if ($u) $names[] = $u['name'];
+            }
+            $notes = 'Tiket ditugaskan kepada: ' . implode(', ', $names);
+        } else {
+            $notes = 'Tiket dilepas dari semua penugasan.';
         }
 
         $historyModel->insert([
-            'ticket_id' => $id,
-            'status' => $ticket['status'],
-            'notes' => $notes,
-            'changed_by' => $session->get('id')
+            'ticket_id'  => $id,
+            'status'     => $ticket['status'],
+            'notes'      => $notes,
+            'changed_by' => $session->get('id'),
         ]);
 
-        // Send notification to the assigned teknisi
-        if ($assigneeId && $assigneeId != $session->get('id')) {
-            helper('notification');
-            add_notification(
-                $assigneeId,
-                'ASSIGNED',
-                'Penugasan Tiket Baru',
-                'Anda telah ditugaskan untuk menangani tiket: ' . $ticket['title'],
-                $id
-            );
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->with('error', 'Gagal memperbarui penugasan.');
         }
 
-        // Kirim notifikasi Telegram penugasan
+        // --- Kirim notifikasi in-app ke teknisi yang BARU ditambahkan ---
+        if (!empty($newlyAdded)) {
+            helper('notification');
+            foreach ($newlyAdded as $uid) {
+                if ($uid != $session->get('id')) {
+                    add_notification(
+                        $uid,
+                        'ASSIGNED',
+                        'Penugasan Tiket Baru',
+                        'Anda telah ditugaskan untuk menangani tiket: ' . $ticket['title'],
+                        $id
+                    );
+                }
+            }
+        }
+
+        // --- Kirim notifikasi Telegram ---
         helper('telegram');
-        $notifTicket = $ticketModel->getTicketDetail($id);
-        $telegramMsg = "👨‍🔧 <b>PENUGASAN TIKET</b>\n";
+        $assignedNames = [];
+        foreach ($assigneeIds as $uid) {
+            $u = $userModel->find($uid);
+            if ($u) $assignedNames[] = $u['name'];
+        }
+        $telegramMsg  = "👨‍🔧 <b>PENUGASAN TIKET</b>\n";
         $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
         $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
         $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
         if (!empty($ticket['location'])) {
             $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
         }
-        $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($notifTicket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
+        $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . (empty($assignedNames) ? 'Belum ditugaskan' : implode(', ', $assignedNames)) . "\n";
         $telegramMsg .= "👤 <b>Ditugaskan oleh:</b> " . $session->get('name') . "\n";
         $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
         send_telegram($telegramMsg);
 
-        $db->transComplete();
-
-        if ($db->transStatus() !== false) {
-            $auditLog = new AuditLogModel();
-            $auditLog->logAction('ASSIGN_TICKET', 'tickets', $id, ['assigned_to' => $assigneeId]);
-        }
-
-        if ($db->transStatus() === false) {
-            return redirect()->back()->with('error', 'Gagal memperbarui penugasan.');
-        }
+        $auditLog = new AuditLogModel();
+        $auditLog->logAction('ASSIGN_TICKET', 'tickets', $id, ['assignees' => $assigneeIds]);
 
         return redirect()->back()->with('success', 'Penugasan diperbarui.');
     }

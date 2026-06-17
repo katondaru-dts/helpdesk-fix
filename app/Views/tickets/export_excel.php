@@ -29,7 +29,7 @@
             <td><?= esc($row['location'] ?? '') ?></td>
             <td><?= esc($row['drive_link'] ?? '') ?></td>
             <?php if ($isStaff): ?>
-                <td><?= esc($row['assigned_name'] ?? 'Unassigned') ?></td>
+                <td><?= esc(!empty($row['assigned_names']) ? $row['assigned_names'] : ($row['assigned_name'] ?? 'Unassigned')) ?></td>
             <?php endif; ?>
             <td><?= date('d/m/y', strtotime($row['created_at'])) ?></td>
         </tr>

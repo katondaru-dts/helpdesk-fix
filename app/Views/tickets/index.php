@@ -1,6 +1,19 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
+<?php
+if (!function_exists('getInitials')) {
+    function getInitials(string $name): string {
+        $parts = preg_split('/\s+/', mb_strtoupper(trim($name)));
+        $parts = array_filter($parts);
+        $parts = array_values($parts);
+        if (count($parts) === 0) return '?';
+        $first = mb_substr($parts[0], 0, 1);
+        $last  = count($parts) > 1 ? mb_substr($parts[1], 0, 1) : '';
+        return $first . $last;
+    }
+}
+?>
 <style>
 @media (max-width: 768px) {
     .ticket-header-actions { flex-direction: column; width: 100%; }
@@ -147,7 +160,7 @@ function exportTickets() {
                     <th style="width:80px;text-align:center"><?= $sortLink('priority', 'Prioritas') ?></th>
                     <th style="width:100px;text-align:center"><?= $sortLink('status', 'Status') ?></th>
                     <th style="width:110px"><?= $sortLink('sla_deadline', 'SLA') ?></th>
-                    <?php if ($isStaff): ?><th style="width:110px"><?= $sortLink('assigned_name', 'Ditangani') ?></th><?php endif; ?>
+                    <?php if ($isStaff): ?><th style="width:110px"><?= $sortLink('assigned_name', 'Teknisi') ?></th><?php endif; ?>
                     <th style="width:90px"><?= $sortLink('created_at', 'Tanggal') ?></th>
                     <th style="width:80px">Aksi</th>
                 </tr>
@@ -179,7 +192,25 @@ function exportTickets() {
                                     <span class="text-muted">&mdash;</span>
                                 <?php endif; ?>
                             </td>
-                            <?php if ($isStaff): ?><td><span style="font-size:13px;color:#475569;font-weight:500"><?= $t['assigned_name'] ?: '<span class="text-muted">&mdash;</span>' ?></span></td><?php endif; ?>
+                            <?php if ($isStaff): ?>
+                            <td>
+                                <?php
+                                    $names = !empty($t['assigned_names']) ? $t['assigned_names'] : ($t['assigned_name'] ?? '');
+                                ?>
+                                <?php if (!empty($names)): ?>
+                                    <div style="display:flex; align-items:center;">
+                                        <?php foreach (explode(', ', $names) as $idx => $nm): ?>
+                                            <span title="<?= esc(trim($nm)) ?>" 
+                                                  style="width:28px; height:28px; border-radius:50%; background:<?= ['#dbeafe','#dcfce7','#fef9c3','#fce7f3','#ede9fe'][$idx % 5] ?>; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:<?= ['#1d4ed8','#15803d','#a16207','#9d174d','#6d28d9'][$idx % 5] ?>; cursor:pointer; border:2px solid #ffffff; letter-spacing:-0.5px; margin-left: <?= $idx > 0 ? '-8px' : '0' ?>; position:relative; z-index: <?= 10 - $idx ?>; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                                <?= getInitials($nm) ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-muted">&mdash;</span>
+                                <?php endif; ?>
+                            </td>
+                            <?php endif; ?>
                             <td><span style="font-size:12px;color:#64748b"><?= date('d/m/Y', strtotime($t['created_at'])) ?></span></td>
                             <td onclick="event.stopPropagation()" style="display:flex; gap:5px; align-items:center;">
                                 <a href="<?= base_url('tickets/detail/' . $t['id']) ?>" class="btn btn-sm btn-outline"><i class="bi bi-eye"></i></a>

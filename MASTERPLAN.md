@@ -121,6 +121,7 @@ helpdesk-v2/
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
 | `ticket_messages` | Balasan/komentar pada tiket (ticket_id, sender_id, message, is_internal, **photo**, sent_at) |
 | `ticket_ratings` | Rating & feedback setelah tiket selesai (ticket_id, rated_by, rating, feedback, rated_at) |
+| `ticket_assignees` | Multi-assign teknisi pada tiket (ticket_id, user_id, assigned_by, assigned_at) — pivot many-to-many |
 | `kb_articles` | Artikel pusat bantuan (title, content, slug, cat_id, author_id, view_count, **md_key**, status) |
 | `kb_categories` | Kategori artikel KB (name, slug, description, is_active) |
 | `audit_logs` | Log aktivitas admin (user_id, action, target_table, target_id, details, ip_address) |
@@ -198,6 +199,9 @@ helpdesk-v2/
 ---
 
 Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket (termasuk upload dokumentasi), notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
+
+**Fitur Terbaru (v2.31.1):**
+- [x] **Multi-Assign Teknisi (Checkbox)** — Satu tiket dapat ditugaskan ke beberapa teknisi sekaligus via checkbox list. Sistem menggunakan tabel pivot `ticket_assignees`. Teknisi pertama yang dicentang menjadi PIC utama. Notifikasi in-app & Telegram terkirim ke semua teknisi yang baru ditambahkan. Panel "DITANGANI" di detail tiket dan kolom "Ditangani" pada daftar tiket menampilkan semua teknisi dengan avatar berwarna/inisial dan tooltip nama lengkap. Kolom teknisi di laporan/ekspor excel juga disesuaikan.
 
 **Fitur Terbaru (v2.30.0):**
 - [x] **Knowledge Base System** — Pusat bantuan mandiri yang terintegrasi dengan storage MinIO.
@@ -410,4 +414,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Rating System**: Implementasi sistem bintang dan feedback untuk mengukur kepuasan pengguna (*User Satisfaction Score*).
    - **Mobile Optimization**: Perbaikan UI modal preview foto dan bottom-sheet menu profil untuk pengalaman mobile yang lebih mulus.
 
-*Terakhir diperbarui: 15 Juni 2026 | Versi: 2.30.1 (Fix email notifikasi — App Password Gmail, tambah email konfirmasi tiket dibuat)*
+*Terakhir diperbarui: 17 Juni 2026 | Versi: 2.31.1 (Pembaruan kolom Ditangani di daftar tiket dan ekspor Excel untuk multi-teknisi)*

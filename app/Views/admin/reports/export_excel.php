@@ -33,7 +33,7 @@
                 <td><?= $r['status'] ?></td>
                 <td><?= esc($r['reporter_name']) ?></td>
                 <td><?= esc($r['requester_name']) ?></td>
-                <td><?= esc($r['teknisi_name'] ?? '-') ?></td>
+                <td><?= esc(!empty($r['teknisi_names']) ? $r['teknisi_names'] : ($r['teknisi_name'] ?? '-')) ?></td>
                 <td><?= esc($r['location'] ?? '-') ?></td>
                 <td><?= esc($r['description']) ?></td>
                 <td><?= esc($r['display_link'] ?? $r['drive_link'] ?? '-') ?></td>

@@ -29,7 +29,11 @@ class Reports extends BaseController
         $builder = $db->table('tickets t')
             ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
                       u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name,
-                      t.photo, t.photo2, t.created_at')
+                      t.photo, t.photo2, t.created_at,
+                      (SELECT GROUP_CONCAT(usr.name ORDER BY ta.assigned_at ASC SEPARATOR ", ")
+                       FROM ticket_assignees ta
+                       JOIN users usr ON ta.user_id = usr.id
+                       WHERE ta.ticket_id = t.id) as teknisi_names')
             ->join('users u', 't.reporter_id = u.id', 'left')
             ->join('users tech', 't.assigned_to = tech.id', 'left')
             ->join('departments d', 't.dept_id = d.id', 'left')
@@ -89,7 +93,11 @@ class Reports extends BaseController
         $ticketsBuilder = $db->table('tickets t')
             ->select('t.id, t.title, t.status, t.priority, t.description, t.drive_link, t.location, t.requester_name,
                       u.name as reporter_name, tech.name as teknisi_name, d.name as dept_name, c.name as cat_name,
-                      t.photo, t.photo2, t.created_at')
+                      t.photo, t.photo2, t.created_at,
+                      (SELECT GROUP_CONCAT(usr.name ORDER BY ta.assigned_at ASC SEPARATOR ", ")
+                       FROM ticket_assignees ta
+                       JOIN users usr ON ta.user_id = usr.id
+                       WHERE ta.ticket_id = t.id) as teknisi_names')
             ->join('users u', 't.reporter_id = u.id', 'left')
             ->join('users tech', 't.assigned_to = tech.id', 'left')
             ->join('departments d', 't.dept_id = d.id', 'left')

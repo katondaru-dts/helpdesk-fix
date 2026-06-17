@@ -37,7 +37,11 @@ class TicketModel extends Model
     protected $afterFind = [];
     public function getFilteredTickets($filters = [], $isStaff = false, $userId = null)
     {
-        $builder = $this->select('tickets.*, categories.name as cat_name, reporter.name as reporter_name, assigned.name as assigned_name')
+        $builder = $this->select('tickets.*, categories.name as cat_name, reporter.name as reporter_name, assigned.name as assigned_name, ' .
+            '(SELECT GROUP_CONCAT(usr.name ORDER BY ta.assigned_at ASC SEPARATOR ", ") ' .
+            ' FROM ticket_assignees ta ' .
+            ' JOIN users usr ON ta.user_id = usr.id ' .
+            ' WHERE ta.ticket_id = tickets.id) as assigned_names')
             ->join('categories', 'tickets.cat_id = categories.id', 'left')
             ->join('users as reporter', 'tickets.reporter_id = reporter.id', 'left')
             ->join('users as assigned', 'tickets.assigned_to = assigned.id', 'left');
@@ -71,7 +75,10 @@ class TicketModel extends Model
         }
 
         if ($isStaff && !empty($filters['assigned_to'])) {
-            $builder->where('tickets.assigned_to', $filters['assigned_to']);
+            $builder->groupStart()
+                ->where('tickets.assigned_to', $filters['assigned_to'])
+                ->orWhere('tickets.id IN (SELECT ticket_id FROM ticket_assignees WHERE user_id = ' . (int)$filters['assigned_to'] . ')')
+                ->groupEnd();
         }
 
         if (!empty($filters['date_from'])) {

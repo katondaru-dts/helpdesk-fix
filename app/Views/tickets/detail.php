@@ -205,8 +205,34 @@
                     </div>
                 <?php endif; ?>
                 <div>
-                    <div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DITANGANI</div>
-                    <div style="font-size:14px"><?= esc($ticket['assigned_name'] ?: 'Belum diassign') ?></div>
+                    <div style="font-size:10px;color:#9ca3af;margin-bottom:6px;font-weight:bold">TEKNISI</div>
+                    <?php
+                        // Helper: ambil inisial 2 huruf (depan + tengah)
+                        function getInitials(string $name): string {
+                            $parts = preg_split('/\s+/', mb_strtoupper(trim($name)));
+                            $parts = array_filter($parts);
+                            $parts = array_values($parts);
+                            if (count($parts) === 0) return '?';
+                            $first = mb_substr($parts[0], 0, 1);
+                            $last  = count($parts) > 1 ? mb_substr($parts[1], 0, 1) : '';
+                            return $first . $last;
+                        }
+                    ?>
+                    <?php if (!empty($ticketAssignees)): ?>
+                        <div style="display:flex;flex-direction:column;gap:5px">
+                            <?php foreach ($ticketAssignees as $idx => $ta): ?>
+                                <div style="display:flex;align-items:center;gap:7px">
+                                    <div style="width:24px;height:24px;border-radius:50%;background:<?= ['#dbeafe','#dcfce7','#fef9c3','#fce7f3','#ede9fe'][$idx % 5] ?>;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:<?= ['#1d4ed8','#15803d','#a16207','#9d174d','#6d28d9'][$idx % 5] ?>;flex-shrink:0;letter-spacing:-0.5px">
+                                        <?= getInitials($ta['name']) ?>
+                                    </div>
+                                    <span style="font-size:13px;font-weight:600"><?= esc($ta['name']) ?></span>
+                                    <?php if ($idx === 0): ?><span style="font-size:10px;background:#3b82f6;color:#fff;padding:1px 6px;border-radius:10px">PIC</span><?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div style="font-size:13px;color:#9ca3af;font-style:italic">Belum diassign</div>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">DIBUAT</div>
@@ -284,22 +310,42 @@
                 <?php endif; ?>
 
                 <?php if ($canAssign): ?>
-                    <div style="border-top:1px solid #eee;padding-top:20px">
-                        <form action="<?= base_url('tickets/assign/' . $ticket['id']) ?>" method="POST">
+                    <div style="border-top:1px solid #eee;padding-top:16px">
+                        <form action="<?= base_url('tickets/assign/' . $ticket['id']) ?>" method="POST" id="assignForm">
                             <?= csrf_field() ?>
-                            <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:bold">Assign ke
-                                Support</label>
-                            <select name="assignee" class="form-select mb-2"
-                                style="width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:10px">
-                                <option value="">-- Lepas Tugas --</option>
-                                <?php foreach ($supports as $s): ?>
-                                    <option value="<?= $s['id'] ?>" <?= $ticket['assigned_to'] == $s['id'] ? 'selected' : '' ?>>
-                                        <?= esc($s['name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button type="submit" class="btn btn-outline"
-                                style="width:100%;padding:10px;background:white;color:#3b82f6;border:1px solid #3b82f6;border-radius:8px;font-weight:bold;cursor:pointer">Simpan
-                                Penugasan</button>
+                            <label style="display:block;margin-bottom:8px;font-size:12px;font-weight:bold;color:#374151">
+                                <i class="bi bi-person-check"></i> Assign ke Teknisi
+                            </label>
+
+                            <!-- Pill / chip toggle -->
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+                                <?php if (empty($supports)): ?>
+                                    <span style="font-size:12px;color:#9ca3af;font-style:italic">Tidak ada teknisi aktif.</span>
+                                <?php else: ?>
+                                    <?php foreach ($supports as $s): ?>
+                                        <?php $checked = in_array($s['id'], $assigneeIds ?? []); ?>
+                                        <label id="pill-<?= $s['id'] ?>"
+                                            title="<?= esc($s['name']) ?>"
+                                            style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 5px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;border:1.5px solid;transition:all .15s;<?= $checked ? 'background:#eff6ff;border-color:#3b82f6;color:#1d4ed8;' : 'background:#f3f4f6;border-color:#d1d5db;color:#6b7280;' ?>user-select:none">
+                                            <input type="checkbox"
+                                                name="assignees[]"
+                                                value="<?= $s['id'] ?>"
+                                                <?= $checked ? 'checked' : '' ?>
+                                                onchange="updatePill(this)"
+                                                style="display:none">
+                                            <span style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;letter-spacing:-0.5px;<?= $checked ? 'background:#3b82f6;color:#fff;' : 'background:#d1d5db;color:#fff;' ?>">
+                                                <?= getInitials($s['name']) ?>
+                                            </span>
+                                            <?= esc(explode(' ', $s['name'])[0]) ?>
+                                        </label>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+
+                            <button type="submit"
+                                style="width:100%;padding:8px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                                <i class="bi bi-person-check-fill"></i> Simpan Penugasan
+                            </button>
                         </form>
                     </div>
                 <?php endif; ?>
@@ -523,6 +569,23 @@
                 lastTouchDist = 0;
             }, { passive: true });
         }
+        // ── Toggle visual pill saat checkbox berubah ──
+        window.updatePill = function (checkbox) {
+            const label = checkbox.closest('label');
+            const dot   = label.querySelector('span');
+            if (checkbox.checked) {
+                label.style.background     = '#eff6ff';
+                label.style.borderColor    = '#3b82f6';
+                label.style.color          = '#1d4ed8';
+                dot.style.background       = '#3b82f6';
+            } else {
+                label.style.background     = '#f3f4f6';
+                label.style.borderColor    = '#d1d5db';
+                label.style.color          = '#6b7280';
+                dot.style.background       = '#d1d5db';
+            }
+        };
     });
+
 </script>
 <?= $this->endSection() ?>
