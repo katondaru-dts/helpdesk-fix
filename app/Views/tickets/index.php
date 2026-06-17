@@ -160,7 +160,7 @@ function exportTickets() {
                     <th style="width:80px;text-align:center"><?= $sortLink('priority', 'Prioritas') ?></th>
                     <th style="width:100px;text-align:center"><?= $sortLink('status', 'Status') ?></th>
                     <th style="width:110px"><?= $sortLink('sla_deadline', 'SLA') ?></th>
-                    <?php if ($isStaff): ?><th style="width:110px"><?= $sortLink('assigned_name', 'Teknisi') ?></th><?php endif; ?>
+                    <?php if ($isStaff): ?><th style="width:110px;text-align:center"><?= $sortLink('assigned_name', 'Teknisi') ?></th><?php endif; ?>
                     <th style="width:90px"><?= $sortLink('created_at', 'Tanggal') ?></th>
                     <th style="width:80px">Aksi</th>
                 </tr>
@@ -193,12 +193,12 @@ function exportTickets() {
                                 <?php endif; ?>
                             </td>
                             <?php if ($isStaff): ?>
-                            <td>
+                            <td style="text-align: center;">
                                 <?php
                                     $names = !empty($t['assigned_names']) ? $t['assigned_names'] : ($t['assigned_name'] ?? '');
                                 ?>
                                 <?php if (!empty($names)): ?>
-                                    <div style="display:flex; align-items:center;">
+                                    <div style="display:flex; align-items:center; justify-content:center;">
                                         <?php foreach (explode(', ', $names) as $idx => $nm): ?>
                                             <span title="<?= esc(trim($nm)) ?>" 
                                                   style="width:28px; height:28px; border-radius:50%; background:<?= ['#dbeafe','#dcfce7','#fef9c3','#fce7f3','#ede9fe'][$idx % 5] ?>; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:<?= ['#1d4ed8','#15803d','#a16207','#9d174d','#6d28d9'][$idx % 5] ?>; cursor:pointer; border:2px solid #ffffff; letter-spacing:-0.5px; margin-left: <?= $idx > 0 ? '-8px' : '0' ?>; position:relative; z-index: <?= 10 - $idx ?>; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">

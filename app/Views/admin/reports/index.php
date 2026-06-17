@@ -464,7 +464,7 @@ if (!function_exists('getInitials')) {
                     <th style="text-align: center; width: 100px;">Status</th>
                     <th style="width: 120px;">Pelapor</th>
                     <th style="width: 120px;">Pemohon</th>
-                    <th style="width: 120px;">Teknisi</th>
+                    <th style="width: 120px; text-align: center;">Teknisi</th>
                     <th style="width: 130px;">Lokasi Gangguan</th>
                     <th style="width: 210px;">Deskripsi</th>
                     <th style="width: 180px;">Link Dokumentasi</th>
@@ -505,7 +505,7 @@ if (!function_exists('getInitials')) {
                                     <?= esc($t['requester_name'] ?? '') ?>
                                 </div>
                             </td>
-                            <td>
+                            <td style="text-align: center;">
                                 <div style="font-size: 13px; color: #475569; font-weight: 500;">
                                     <?php
                                         $names = !empty($t['teknisi_names'])
@@ -513,7 +513,7 @@ if (!function_exists('getInitials')) {
                                             : ($t['teknisi_name'] ?? null);
                                     ?>
                                     <?php if ($names): ?>
-                                        <div style="display:flex; align-items:center;">
+                                        <div style="display:flex; align-items:center; justify-content:center;">
                                             <?php foreach (explode(', ', $names) as $idx => $nm): ?>
                                                 <span title="<?= esc(trim($nm)) ?>" 
                                                       style="width:28px; height:28px; border-radius:50%; background:<?= ['#dbeafe','#dcfce7','#fef9c3','#fce7f3','#ede9fe'][$idx % 5] ?>; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:<?= ['#1d4ed8','#15803d','#a16207','#9d174d','#6d28d9'][$idx % 5] ?>; cursor:pointer; border:2px solid #ffffff; letter-spacing:-0.5px; margin-left: <?= $idx > 0 ? '-8px' : '0' ?>; position:relative; z-index: <?= 10 - $idx ?>; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
