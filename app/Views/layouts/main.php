@@ -102,7 +102,10 @@
                 <div class="page-title" style="flex:1;">
                     <?= $pageTitle ?? 'Halaman' ?>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px;">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div id="realtime-clock" style="font-size:13px; font-weight:500; color:var(--gray-600); display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-clock"></i> <span>--:--</span>
+                    </div>
                     <a href="<?= base_url('notifications') ?>"
                         style="position:relative;display:inline-flex;align-items:center;color:var(--gray-500);text-decoration:none;"
                         title="Notifikasi">
@@ -994,6 +997,32 @@
         })();
     </script>
 
+    <script>
+        (function() {
+            function updateClock() {
+                const clockEl = document.querySelector('#realtime-clock span');
+                if (!clockEl) return;
+                
+                const now = new Date();
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                
+                const dayName = days[now.getDay()];
+                const date = now.getDate();
+                const month = months[now.getMonth()];
+                const year = now.getFullYear();
+                
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                clockEl.textContent = `${dayName}, ${date} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+            }
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+        })();
+    </script>
 </body>
 
 </html>
