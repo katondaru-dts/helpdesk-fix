@@ -498,7 +498,7 @@
         <button type="button" class="manual-toggle-btn" id="manualToggle" aria-expanded="false" aria-controls="manualLoginSection">
             <i class="bi bi-person-fill"></i>
             Login dengan Email & Kata Sandi
-            <i class="bi bi-chevron-down toggle-chevron" style="margin-left:auto;"></i>
+            <i class="bi bi-chevron-down toggle-chevron"></i>
         </button>
 
         <div class="manual-login-section <?= isset($error) ? 'open has-error' : '' ?>" id="manualLoginSection">
