@@ -72,9 +72,10 @@
         }
 
         .logo-wrapper img {
-            width: 85px;
-            height: 85px;
+            width: 100px;
+            height: 100px;
             border-radius: 12px;
+            background: radial-gradient(closest-side, #ffffff 45%, transparent 50%);
             object-fit: cover;
         }
 
@@ -458,7 +459,7 @@
 
     <div class="login-card">
         <div class="logo-wrapper">
-            <img src="<?= base_url('images/logo.png') ?>" alt="Helpdesk Pusim Logo">
+            <img src="<?= base_url('images/logopusim.png') ?>" alt="Helpdesk Pusim Logo">
         </div>
         <h1>Helpdesk Pusim</h1>
         <p class="subtitle">Selamat datang — silakan masuk</p>
