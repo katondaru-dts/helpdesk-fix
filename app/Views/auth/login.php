@@ -92,86 +92,130 @@
             margin-bottom: 28px;
         }
 
-        .form-group {
-            text-align: left;
-            margin-bottom: 18px;
+        /* ============================
+           SSO PRIMARY BUTTON
+        ============================ */
+        .sso-section {
+            margin-bottom: 8px;
         }
 
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 6px;
+        .sso-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.35);
+            margin-bottom: 12px;
         }
 
-        .form-group input {
+        .btn-sso-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
             width: 100%;
-            padding: 12px 14px;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            color: #1a1a2e;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input::placeholder {
-            color: #8a8fa8;
-        }
-
-        .form-group input:focus {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: #5b9cf6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 13px;
-            margin-top: 6px;
-            background: linear-gradient(135deg, #4a8af4 0%, #5b9cf6 50%, #6aacfa 100%);
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #1a73e8 0%, #4285f4 50%, #5b9cf6 100%);
             color: #ffffff;
             font-size: 15px;
-            font-weight: 600;
+            font-weight: 700;
             font-family: 'Inter', sans-serif;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
+            text-decoration: none;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(74, 138, 244, 0.35);
-        }
-
-        .btn-login:hover {
-            background: linear-gradient(135deg, #3a7ae4 0%, #4b8cf6 50%, #5a9cfa 100%);
-            box-shadow: 0 6px 20px rgba(74, 138, 244, 0.5);
-            transform: translateY(-1px);
-        }
-
-        .alert-error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 13px;
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .footer-text {
+            box-shadow: 0 6px 24px rgba(66, 133, 244, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
             position: relative;
-            z-index: 1;
-            margin-top: 24px;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.45);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15);
+            letter-spacing: 0.2px;
         }
 
+        .btn-sso-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-sso-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-sso-primary:hover {
+            background: linear-gradient(135deg, #1565c0 0%, #1a73e8 50%, #4285f4 100%);
+            box-shadow: 0 8px 30px rgba(66, 133, 244, 0.7), inset 0 1px 0 rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
+        .btn-sso-primary:active {
+            transform: translateY(0px);
+        }
+
+        .sso-icon-wrapper {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sso-icon-wrapper svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sso-text-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sso-text-main {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .sso-text-sub {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.75;
+            letter-spacing: 0.3px;
+        }
+
+        /* Badge "Direkomendasikan" */
+        .recommended-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid rgba(74, 222, 128, 0.35);
+            color: #4ade80;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+
+        .recommended-badge i {
+            font-size: 10px;
+        }
+
+        /* ============================
+           DIVIDER
+        ============================ */
         .divider {
             position: relative;
-            margin: 24px 0;
+            margin: 22px 0 4px;
             text-align: center;
         }
 
@@ -182,46 +226,197 @@
             left: 0;
             width: 100%;
             height: 1px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .divider span {
             position: relative;
             background: rgba(21, 35, 59, 1);
             padding: 0 12px;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
             border-radius: 4px;
         }
 
-        .btn-google {
+        /* ============================
+           MANUAL LOGIN TOGGLE
+        ============================ */
+        .manual-toggle-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .manual-toggle-btn:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .manual-toggle-btn i {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .manual-toggle-btn.open i.toggle-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* ============================
+           MANUAL LOGIN FORM COLLAPSIBLE
+        ============================ */
+        .manual-login-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+            opacity: 0;
+        }
+
+        .manual-login-section.open {
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        .manual-form-inner {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            margin-top: 16px;
+        }
+
+        /* Jika ada error, langsung buka form manual */
+        .manual-login-section.has-error {
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        /* ============================
+           FORM FIELDS
+        ============================ */
+        .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .form-group input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(91, 156, 246, 0.6);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-login {
             width: 100%;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.95);
-            color: #1a1a2e;
+            margin-top: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.85);
             font-size: 14px;
             font-weight: 600;
-            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 10px;
+            cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-google:hover {
-            background: #ffffff;
+        .btn-login:hover {
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
             transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-google svg {
-            width: 20px;
-            height: 20px;
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: left;
         }
 
+        /* ============================
+           FOOTER
+        ============================ */
+        .footer-text {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .footer-text a {
+            color: rgba(255, 255, 255, 0.45);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-text a:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ============================
+           SECURITY INFO BADGE
+        ============================ */
+        .sso-security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 10px;
+        }
+
+        .sso-security-note i {
+            font-size: 11px;
+        }
+
+        /* ============================
+           RESPONSIVE
+        ============================ */
         @media (max-width: 480px) {
             .login-card {
                 margin: 16px;
@@ -256,99 +451,161 @@
             <img src="<?= base_url('images/logo.png') ?>" alt="Helpdesk Pusim Logo">
         </div>
         <h1>Helpdesk Pusim</h1>
-        <p class="subtitle">Login ke akun Anda</p>
+        <p class="subtitle">Selamat datang — silakan masuk</p>
 
         <?php if (isset($error)): ?>
             <div class="alert-error"><?= esc($error) ?></div>
         <?php endif; ?>
 
-        <form action="<?= base_url('login') ?>" method="POST" id="loginForm">
-            <?= csrf_field() ?>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" name="email" id="email" placeholder="user@unmer.ac.id" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div style="position:relative">
-                    <input type="password" name="password" id="password" placeholder="**********" required
-                        style="padding-right: 45px;">
-                    <button type="button" id="togglePassword"
-                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;z-index:10">
-                        <i class="bi bi-eye" id="eyeIcon" style="font-size:1.1rem"></i>
-                    </button>
-                </div>
+        <!-- =====================
+             SSO — UTAMA
+        ===================== -->
+        <div class="sso-section">
+            <div class="recommended-badge">
+                <i class="bi bi-shield-check-fill"></i>
+                Disarankan
             </div>
 
-            <?php if (!empty($captcha_required)): ?>
-                <div class="form-group">
-                    <label for="captcha_answer">Verifikasi Keamanan</label>
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="
-                            background: rgba(255,255,255,0.12) repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.05) 5px, rgba(255,255,255,0.05) 10px);
-                            border: 1px solid rgba(255,255,255,0.25);
-                            border-radius: 8px;
-                            padding: 10px 18px;
-                            font-size: 20px;
-                            font-weight: 800;
-                            font-family: 'Courier New', Courier, monospace;
-                            font-style: italic;
-                            color: #ffffff;
-                            letter-spacing: 6px;
-                            min-width: 140px;
-                            text-align: center;
-                            flex-shrink: 0;
-                            text-shadow: 2px 2px 0 rgba(74,138,244,0.5), -1px -1px 0 rgba(0,0,0,0.5);
-                            transform: skewX(-5deg);
-                            user-select: none;
-                        "><?= esc($captcha_question ?? '') ?></div>
-                        <input type="text" name="captcha_answer" id="captcha_answer" placeholder="Ketik captcha" required
-                            autocomplete="off" style="flex:1;padding-right:14px; text-transform: uppercase;">
-                    </div>
+            <a href="<?= base_url('auth/google') ?>" class="btn-sso-primary" id="btnSSO">
+                <div class="sso-icon-wrapper">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#ffffff" opacity="0.9"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#ffffff" opacity="0.9"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#ffffff" opacity="0.9"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#ffffff" opacity="0.9"/>
+                    </svg>
                 </div>
-            <?php endif; ?>
+                <div class="sso-text-group">
+                    <span class="sso-text-main">Masuk dengan SSO</span>
+                    <span class="sso-text-sub">Akun Universitas Merdeka Malang</span>
+                </div>
+            </a>
 
-            <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
-        </form>
-
-        <script>
-            const togglePassword = document.querySelector('#togglePassword');
-            const password = document.querySelector('#password');
-            const eyeIcon = document.querySelector('#eyeIcon');
-
-            togglePassword.addEventListener('click', function () {
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-                eyeIcon.classList.toggle('bi-eye');
-                eyeIcon.classList.toggle('bi-eye-slash');
-            });
-        </script>
-
-        <div class="divider">
-            <span>atau masuk dengan</span>
+            <div class="sso-security-note">
+                <i class="bi bi-lock-fill"></i>
+                Login aman via Google Workspace Unmer
+            </div>
         </div>
 
-        <a href="<?= base_url('auth/google') ?>" class="btn-google">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    fill="#4285F4" />
-                <path
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    fill="#34A853" />
-                <path
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                    fill="#FBBC05" />
-                <path
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    fill="#EA4335" />
-            </svg>
-            Login dengan SSO
-        </a>
+        <!-- =====================
+             DIVIDER
+        ===================== -->
+        <div class="divider"><span>atau</span></div>
+
+        <!-- =====================
+             MANUAL LOGIN — SEKUNDER
+        ===================== -->
+        <button type="button" class="manual-toggle-btn" id="manualToggle" aria-expanded="false" aria-controls="manualLoginSection">
+            <i class="bi bi-person-fill"></i>
+            Login dengan Email & Kata Sandi
+            <i class="bi bi-chevron-down toggle-chevron" style="margin-left:auto;"></i>
+        </button>
+
+        <div class="manual-login-section <?= isset($error) ? 'open has-error' : '' ?>" id="manualLoginSection">
+            <div class="manual-form-inner">
+                <form action="<?= base_url('login') ?>" method="POST" id="loginForm">
+                    <?= csrf_field() ?>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" placeholder="user@unmer.ac.id" required
+                            value="<?= isset($error) ? old('email') : '' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Kata Sandi</label>
+                        <div style="position:relative">
+                            <input type="password" name="password" id="password" placeholder="••••••••" required
+                                style="padding-right: 45px;">
+                            <button type="button" id="togglePassword"
+                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;z-index:10">
+                                <i class="bi bi-eye" id="eyeIcon" style="font-size:1.1rem"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <?php if (!empty($captcha_required)): ?>
+                        <div class="form-group">
+                            <label for="captcha_answer">Verifikasi Keamanan</label>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="
+                                    background: rgba(255,255,255,0.08) repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.03) 5px, rgba(255,255,255,0.03) 10px);
+                                    border: 1px solid rgba(255,255,255,0.2);
+                                    border-radius: 8px;
+                                    padding: 10px 18px;
+                                    font-size: 20px;
+                                    font-weight: 800;
+                                    font-family: 'Courier New', Courier, monospace;
+                                    font-style: italic;
+                                    color: #ffffff;
+                                    letter-spacing: 6px;
+                                    min-width: 140px;
+                                    text-align: center;
+                                    flex-shrink: 0;
+                                    text-shadow: 2px 2px 0 rgba(74,138,244,0.5), -1px -1px 0 rgba(0,0,0,0.5);
+                                    transform: skewX(-5deg);
+                                    user-select: none;
+                                "><?= esc($captcha_question ?? '') ?></div>
+                                <input type="text" name="captcha_answer" id="captcha_answer" placeholder="Ketik captcha" required
+                                    autocomplete="off" style="flex:1;padding-right:14px; text-transform: uppercase;">
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <button type="submit" class="btn-login" id="btnLogin">
+                        <i class="bi bi-box-arrow-in-right" style="margin-right:6px;"></i>
+                        Masuk
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <p class="footer-text">Lupa Kata Sandi? Hubungi Administrator.</p>
     <p class="footer-text" style="margin-top: 8px;">&copy; 2026 Universitas Merdeka Malang</p>
+
+    <script>
+        // Toggle password visibility
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                eyeIcon.classList.toggle('bi-eye');
+                eyeIcon.classList.toggle('bi-eye-slash');
+            });
+        }
+
+        // Toggle manual login section
+        const manualToggle = document.getElementById('manualToggle');
+        const manualSection = document.getElementById('manualLoginSection');
+
+        // Jika ada error, langsung tandai tombol sebagai open
+        if (manualSection.classList.contains('open')) {
+            manualToggle.classList.add('open');
+            manualToggle.setAttribute('aria-expanded', 'true');
+        }
+
+        manualToggle.addEventListener('click', function() {
+            const isOpen = manualSection.classList.toggle('open');
+            manualToggle.classList.toggle('open', isOpen);
+            manualToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        // SSO button loading state
+        const btnSSO = document.getElementById('btnSSO');
+        if (btnSSO) {
+            btnSSO.addEventListener('click', function(e) {
+                setTimeout(() => {
+                    btnSSO.style.opacity = '0.75';
+                    btnSSO.style.pointerEvents = 'none';
+                    const textMain = btnSSO.querySelector('.sso-text-main');
+                    if (textMain) textMain.textContent = 'Menghubungkan...';
+                }, 10);
+            });
+        }
+    </script>
 
     <!-- Script Jaringan Topologi Bintang Super HD Tanpa Pecah -->
     <script>
@@ -390,7 +647,6 @@
                 ctx.closePath();
                 ctx.fillStyle = properties.particleColor;
                 ctx.fill();
-                // Outer glow effect
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, properties.particleRadius * 3, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(74, 138, 244, 0.1)';
