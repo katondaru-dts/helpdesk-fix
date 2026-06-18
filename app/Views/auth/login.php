@@ -343,6 +343,16 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
+        /* Fix Chrome/Edge Autofill di tema gelap */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #141f33 inset !important;
+            -webkit-text-fill-color: #ffffff !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
         .btn-login {
             width: 100%;
             padding: 12px;
@@ -516,7 +526,7 @@
                             <input type="password" name="password" id="password" placeholder="••••••••" required
                                 style="padding-right: 45px;">
                             <button type="button" id="togglePassword"
-                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;z-index:10">
+                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;z-index:10">
                                 <i class="bi bi-eye" id="eyeIcon" style="font-size:1.1rem"></i>
                             </button>
                         </div>
