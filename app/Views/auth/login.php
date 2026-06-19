@@ -494,7 +494,10 @@
             </div>
         </div>
 
-        <?php $showManual = (isset($_GET['login']) && $_GET['login'] === 'admin') || isset($error); ?>
+        <?php 
+            $isManualAttempt = old('email') !== null;
+            $showManual = (isset($_GET['login']) && $_GET['login'] === 'admin') || ($isManualAttempt && isset($error)); 
+        ?>
         <?php if ($showManual): ?>
             <!-- =====================
                  DIVIDER
