@@ -390,12 +390,27 @@
         setupSlot(input1, drop1, label1, icon1, sub1, thumb1, prev1, rm1, 1, function (v) { if (v !== undefined) data1 = v; return data1; });
         setupSlot(input2, drop2, label2, icon2, sub2, thumb2, prev2, rm2, 2, function (v) { if (v !== undefined) data2 = v; return data2; });
 
+        let isSubmitting = false;
+
         // -- Form submit --
         form.addEventListener('submit', function (e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return;
+            }
             const hasPhoto = data1 || data2;
             if (hasPhoto) {
                 e.preventDefault();
                 openModal(data1 || data2, 'submit', 'Konfirmasi Kirim Laporan');
+            } else {
+                isSubmitting = true;
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.cursor = 'not-allowed';
+                }
             }
         });
 
@@ -403,7 +418,24 @@
         modalCloseBtn.addEventListener('click', closeModal);
         modalCancelBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-        modalSubmitBtn.addEventListener('click', function () { closeModal(); form.submit(); });
+        modalSubmitBtn.addEventListener('click', function () { 
+            if (isSubmitting) return;
+            isSubmitting = true;
+            
+            modalSubmitBtn.disabled = true;
+            modalSubmitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+            modalSubmitBtn.style.opacity = '0.7';
+            modalSubmitBtn.style.cursor = 'not-allowed';
+            
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+            }
+            
+            closeModal(); 
+            form.submit(); 
+        });
 
         // -- Zoom & Drag --
         const zoomImg = document.getElementById('modalPhotoPreview');

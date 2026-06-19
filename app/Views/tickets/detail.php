@@ -148,7 +148,7 @@
                 <div style="font-weight:bold;margin-bottom:15px;font-size:16px"><i class="bi bi-chat-dots"
                         style="color:var(--primary)"></i> Tambah Balasan</div>
                 <form action="<?= base_url('tickets/reply/' . $ticket['id']) ?>" method="POST"
-                    enctype="multipart/form-data">
+                    enctype="multipart/form-data" id="replyForm">
                     <?= csrf_field() ?>
                     <textarea name="message" class="form-control mb-3" rows="4" placeholder="Tulis balasan..." required
                         style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:10px"></textarea>
@@ -166,7 +166,7 @@
                             <input type="checkbox" name="is_internal"> Pesan internal (hanya terlihat Staff)
                         </label>
                     <?php endif; ?>
-                    <button type="submit" class="btn btn-primary"
+                    <button type="submit" class="btn btn-primary" id="replySubmitBtn"
                         style="background:#3b82f6;color:white;padding:10px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer">
                         <i class="bi bi-send"></i> Kirim Balasan
                     </button>
@@ -585,6 +585,26 @@
                 dot.style.background       = '#d1d5db';
             }
         };
+
+        // ── Cegah double submit balasan ──
+        const replyForm = document.getElementById('replyForm');
+        if (replyForm) {
+            let isReplying = false;
+            replyForm.addEventListener('submit', function(e) {
+                if (isReplying) {
+                    e.preventDefault();
+                    return;
+                }
+                isReplying = true;
+                const btn = document.getElementById('replySubmitBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Mengirim...';
+                    btn.style.opacity = '0.7';
+                    btn.style.cursor = 'not-allowed';
+                }
+            });
+        }
     });
 
 </script>
