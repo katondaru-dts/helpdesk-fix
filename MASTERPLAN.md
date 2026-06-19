@@ -200,6 +200,9 @@ helpdesk-v2/
 
 Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket (termasuk upload dokumentasi), notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
 
+**Fitur Terbaru (v2.31.2):**
+- [x] **Penyederhanaan UI Login** — Memperbarui logo login, menghapus informasi statis yang tidak perlu, dan menyembunyikan form login manual secara default (kini hanya dapat diakses melalui link rahasia `?login=admin`).
+
 **Fitur Terbaru (v2.31.1):**
 - [x] **Multi-Assign Teknisi (Checkbox)** — Satu tiket dapat ditugaskan ke beberapa teknisi sekaligus via checkbox list. Sistem menggunakan tabel pivot `ticket_assignees`. Teknisi pertama yang dicentang menjadi PIC utama. Notifikasi in-app & Telegram terkirim ke semua teknisi yang baru ditambahkan. Panel "DITANGANI" di detail tiket dan kolom "Ditangani" pada daftar tiket menampilkan semua teknisi dengan avatar berwarna/inisial dan tooltip nama lengkap. Kolom teknisi di laporan/ekspor excel juga disesuaikan.
 
@@ -414,4 +417,4 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
    - **Rating System**: Implementasi sistem bintang dan feedback untuk mengukur kepuasan pengguna (*User Satisfaction Score*).
    - **Mobile Optimization**: Perbaikan UI modal preview foto dan bottom-sheet menu profil untuk pengalaman mobile yang lebih mulus.
 
-*Terakhir diperbarui: 17 Juni 2026 | Versi: 2.31.1 (Pembaruan kolom Ditangani di daftar tiket dan ekspor Excel untuk multi-teknisi)*
+*Terakhir diperbarui: 19 Juni 2026 | Versi: 2.31.2 (Penyederhanaan UI Halaman Login)*
