@@ -706,6 +706,81 @@ class Tickets extends BaseController
                 'notes' => 'Bulk update status oleh ' . $session->get('name'),
                 'changed_by' => $session->get('id'),
             ]);
+
+            // Notify ticket creator about status change
+            $statusLabel = [
+                'OPEN' => 'Terbuka',
+                'IN_PROGRESS' => 'Sedang Diproses',
+                'PENDING' => 'Ditunda',
+                'RESOLVED' => 'Terselesaikan',
+                'CLOSED' => 'Ditutup',
+            ][$newStatus] ?? $newStatus;
+
+            if ($ticket['reporter_id'] && $ticket['reporter_id'] != $session->get('id')) {
+                helper('notification');
+                $locationStr = !empty($ticket['location']) ? ' | Lokasi: ' . $ticket['location'] : '';
+                add_notification(
+                    $ticket['reporter_id'],
+                    'STATUS_CHANGE',
+                    'Status Tiket Diperbarui',
+                    'Status berubah menjadi: ' . $statusLabel . $locationStr . ' | Pada tiket: "' . $ticket['title'] . '"',
+                    $id
+                );
+
+                // Kirim email ke reporter jika reporter adalah role user (role_id=3), kecuali status CLOSED
+                $userModelEmail = new \App\Models\UserModel();
+                $reporter = $newStatus !== 'CLOSED' ? $userModelEmail->find($ticket['reporter_id']) : null;
+                if ($reporter && !empty($reporter['email']) && $reporter['role_id'] == 3) {
+                    helper('email');
+                    $ticketDetail = $ticketModel->getTicketDetail($id);
+                    if ($newStatus === 'RESOLVED') {
+                        $emailBody = email_template_resolved(
+                            $ticketDetail ?: $ticket,
+                            $session->get('name'),
+                            'Bulk update status oleh ' . $session->get('name')
+                        );
+                        $emailSubject = '[Helpdesk] Tiket #' . $ticket['id'] . ' Telah Terselesaikan';
+                    } else {
+                        $emailBody = email_template_status_change(
+                            $ticketDetail ?: $ticket,
+                            $newStatus,
+                            $session->get('name'),
+                            'Bulk update status oleh ' . $session->get('name')
+                        );
+                        $emailSubject = '[Helpdesk] Status Tiket #' . $ticket['id'] . ' Diperbarui: ' . $statusLabel;
+                    }
+                    send_email_notification(
+                        $reporter['email'],
+                        $reporter['name'],
+                        $emailSubject,
+                        $emailBody
+                    );
+                }
+            }
+
+            // Kirim notifikasi Telegram perubahan status
+            helper('telegram');
+            $statusEmoji = [
+                'OPEN' => '🔴',
+                'IN_PROGRESS' => '🟡',
+                'PENDING' => '⏸️',
+                'RESOLVED' => '🟢',
+                'CLOSED' => '✅',
+            ][$newStatus] ?? '🔵';
+            $telegramMsg = "{$statusEmoji} <b>STATUS TIKET DIPERBARUI</b>\n";
+            $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
+            $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
+            $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+            if (!empty($ticket['location'])) {
+                $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
+            }
+            $updatedTicket = $ticketModel->getTicketDetail($id);
+            $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($updatedTicket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
+            $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
+            $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
+            $telegramMsg .= "📝 <b>Catatan:</b> Bulk update status oleh " . $session->get('name') . "\n";
+            $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
+            send_telegram($telegramMsg);
         }
 
         $db->transComplete();
