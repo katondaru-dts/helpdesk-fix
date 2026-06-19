@@ -472,10 +472,6 @@
              SSO — UTAMA
         ===================== -->
         <div class="sso-section">
-            <div class="recommended-badge">
-                <i class="bi bi-shield-check-fill"></i>
-                Disarankan
-            </div>
 
             <a href="<?= base_url('auth/google') ?>" class="btn-sso-primary" id="btnSSO">
                 <div class="sso-icon-wrapper">
@@ -498,21 +494,25 @@
             </div>
         </div>
 
-        <!-- =====================
-             DIVIDER
-        ===================== -->
-        <div class="divider"><span>atau</span></div>
+        <?php $showManual = (isset($_GET['login']) && $_GET['login'] === 'admin') || isset($error); ?>
+        <?php if ($showManual): ?>
+            <!-- =====================
+                 DIVIDER
+            ===================== -->
+            <div class="divider"><span>atau</span></div>
 
-        <!-- =====================
-             MANUAL LOGIN — SEKUNDER
-        ===================== -->
-        <button type="button" class="manual-toggle-btn" id="manualToggle" aria-expanded="false" aria-controls="manualLoginSection">
-            <i class="bi bi-person-fill"></i>
-            Login dengan Email & Kata Sandi
-            <i class="bi bi-chevron-down toggle-chevron"></i>
-        </button>
+            <!-- =====================
+                 MANUAL LOGIN — SEKUNDER
+            ===================== -->
+            <button type="button" class="manual-toggle-btn" id="manualToggle" aria-expanded="false" aria-controls="manualLoginSection">
+                <i class="bi bi-person-fill"></i>
+                Login dengan Email & Kata Sandi
+                <i class="bi bi-chevron-down toggle-chevron"></i>
+            </button>
+        <?php endif; ?>
 
-        <div class="manual-login-section <?= isset($error) ? 'open has-error' : '' ?>" id="manualLoginSection">
+        <?php if ($showManual): ?>
+        <div class="manual-login-section <?= $showManual ? 'open' : '' ?> <?= isset($error) ? 'has-error' : '' ?>" id="manualLoginSection">
             <div class="manual-form-inner">
                 <form action="<?= base_url('login') ?>" method="POST" id="loginForm">
                     <?= csrf_field() ?>
@@ -568,9 +568,9 @@
                 </form>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
-    <p class="footer-text">Lupa Kata Sandi? Hubungi Administrator.</p>
     <p class="footer-text" style="margin-top: 8px;">&copy; 2026 Universitas Merdeka Malang</p>
 
     <script>
@@ -592,17 +592,19 @@
         const manualToggle = document.getElementById('manualToggle');
         const manualSection = document.getElementById('manualLoginSection');
 
-        // Jika ada error, langsung tandai tombol sebagai open
-        if (manualSection.classList.contains('open')) {
-            manualToggle.classList.add('open');
-            manualToggle.setAttribute('aria-expanded', 'true');
-        }
+        if (manualToggle && manualSection) {
+            // Jika ada error, langsung tandai tombol sebagai open
+            if (manualSection.classList.contains('open')) {
+                manualToggle.classList.add('open');
+                manualToggle.setAttribute('aria-expanded', 'true');
+            }
 
-        manualToggle.addEventListener('click', function() {
-            const isOpen = manualSection.classList.toggle('open');
-            manualToggle.classList.toggle('open', isOpen);
-            manualToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
+            manualToggle.addEventListener('click', function() {
+                const isOpen = manualSection.classList.toggle('open');
+                manualToggle.classList.toggle('open', isOpen);
+                manualToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
 
         // SSO button loading state
         const btnSSO = document.getElementById('btnSSO');
