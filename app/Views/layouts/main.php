@@ -160,42 +160,12 @@
             bottom: 32px;
             right: 28px;
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             z-index: 9999;
         }
 
-        .ai-fab-label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            animation: aiPopIn .3s cubic-bezier(.34, 1.56, .64, 1);
-            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .1));
-        }
-
-        .ai-fab-label button {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, .08);
-            color: #64748B;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            padding: 0;
-            line-height: 1;
-            transition: background .15s, color .15s;
-        }
-
-        .ai-fab-label button:hover {
-            background: rgba(0, 0, 0, .15);
-            color: #1E293B;
-        }
 
         .ai-fab {
             width: 54px;
@@ -559,26 +529,12 @@
                 bottom: 24px;
                 right: 18px;
                 gap: 8px;
+                flex-direction: column;
             }
         }
     </style>
 
     <div class="ai-fab-wrap">
-        <div class="ai-fab-label" id="aiFabLabel">
-            <button onclick="document.getElementById('aiFabLabel').style.display='none'" title="Tutup"
-                style="order: -1; margin-right: -4px;"><i class="bi bi-x"></i></button>
-            <svg width="130" height="54" viewBox="0 0 130 54" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- garis lengkung kecil bawah teks (pena) -->
-                <path d="M18 40 Q65 48 112 40" stroke="#94A3B8" stroke-width="1.2" stroke-linecap="round" fill="none" />
-                <!-- teks kursif tinta hitam -->
-                <text x="65" y="31" text-anchor="middle" font-family="'Caveat', 'Segoe Script', cursive" font-size="26"
-                    font-weight="700" fill="#1E293B">Let's Talk</text>
-                <!-- titik-titik di belakang teks -->
-                <circle cx="108" cy="22" r="2.2" fill="#94A3B8" opacity=".7" />
-                <circle cx="116" cy="22" r="1.6" fill="#94A3B8" opacity=".5" />
-                <circle cx="122" cy="22" r="1.1" fill="#94A3B8" opacity=".35" />
-            </svg>
-        </div>
         <button class="ai-fab" id="aiFab" title="Tanya AI Assistant">
             <i class="bi bi-stars" id="aiFabIcon"></i>
         </button>
@@ -635,7 +591,6 @@
             function setOpen(open) {
                 win.style.display = open ? 'flex' : 'none';
                 fabIcon.className = open ? 'bi bi-x-lg' : 'bi bi-stars';
-                if (open) document.getElementById('aiFabLabel').style.display = 'none';
             }
             window.openAiChat = function () { setOpen(true); };
             window.toggleAiChat = function () { setOpen(win.style.display !== 'flex'); };
