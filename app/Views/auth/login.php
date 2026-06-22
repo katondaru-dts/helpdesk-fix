@@ -44,8 +44,8 @@
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 420px;
-            padding: 40px 36px 32px;
+            max-width: 460px;
+            padding: 44px 40px 36px;
             background: rgba(15, 25, 45, 0.45);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
@@ -80,7 +80,7 @@
         }
 
         h1 {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 6px;
@@ -88,7 +88,7 @@
         }
 
         .subtitle {
-            font-size: 14px;
+            font-size: 15px;
             color: rgba(255, 255, 255, 0.6);
             margin-bottom: 28px;
         }
