@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login - Helpdesk Pusim</title>
     <link rel="icon" href="<?= base_url('images/favicon.ico') ?>" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,6 +27,7 @@
             background: #050b14;
             position: relative;
             overflow: hidden;
+            touch-action: manipulation;
         }
 
         /* Latar Belakang Jaringan Ultra-HD via Canvas */
@@ -327,7 +328,7 @@
             background: rgba(255, 255, 255, 0.07);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 16px;
             font-family: 'Inter', sans-serif;
             color: #ffffff;
             outline: none;

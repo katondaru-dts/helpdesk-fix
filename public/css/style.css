@@ -34,7 +34,8 @@
 }
 
 html {
-    scroll-behavior: smooth
+    scroll-behavior: smooth;
+    touch-action: manipulation;
 }
 
 body {
@@ -42,7 +43,8 @@ body {
     background: var(--gray-100);
     color: var(--gray-800);
     font-size: 14px;
-    line-height: 1.6
+    line-height: 1.6;
+    touch-action: manipulation;
 }
 
 a {
