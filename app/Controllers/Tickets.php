@@ -637,6 +637,19 @@ class Tickets extends BaseController
                 send_telegram($telegramMsg);
             }
 
+            // Auto-reply saat status CLOSED
+            if ($newStatus === 'CLOSED') {
+                $closedAutoReply = "📞 Jika masih mengalami kendala?\n\nJangan ragu untuk menghubungi layanan dukungan IT kami!\n\n\"Kirimkan detail keluhan Anda melalui halaman pelaporan kami melalui <strong>helpdesk.unmer.ac.id</strong>\" agar tim kami dapat segera menindaklanjuti kendala Anda.";
+                $messageModel = new TicketMessageModel();
+                $messageModel->insert([
+                    'ticket_id'   => $id,
+                    'sender_id'   => $session->get('id'),
+                    'message'     => $closedAutoReply,
+                    'is_internal' => 0,
+                    'sent_at'     => date('Y-m-d H:i:s'),
+                ]);
+            }
+
             $db->transComplete();
 
             if ($db->transStatus() !== false) {
@@ -781,6 +794,22 @@ class Tickets extends BaseController
             $telegramMsg .= "📝 <b>Catatan:</b> Bulk update status oleh " . $session->get('name') . "\n";
             $telegramMsg .= "⏰ <b>Waktu:</b> " . date('d/m/Y H:i') . " WIB";
             send_telegram($telegramMsg);
+        }
+
+        // Auto-reply saat bulk CLOSED
+        if ($newStatus === 'CLOSED') {
+            $messageModel = new TicketMessageModel();
+            $closedAutoReply = "📞 Jika masih mengalami kendala?\n\nJangan ragu untuk menghubungi layanan dukungan IT kami!\n\n\"Kirimkan detail keluhan Anda melalui halaman pelaporan kami melalui <strong>helpdesk.unmer.ac.id</strong>\" agar tim kami dapat segera menindaklanjuti kendala Anda.";
+            foreach ($ids as $bulkId) {
+                $bulkId = trim($bulkId);
+                $messageModel->insert([
+                    'ticket_id'   => $bulkId,
+                    'sender_id'   => $session->get('id'),
+                    'message'     => $closedAutoReply,
+                    'is_internal' => 0,
+                    'sent_at'     => date('Y-m-d H:i:s'),
+                ]);
+            }
         }
 
         $db->transComplete();

@@ -106,7 +106,7 @@
                                         <span
                                             style="font-size:12px;color:#9ca3af"><?= date('d/m/Y H:i', strtotime($item['at'])) ?></span>
                                     </div>
-                                    <div style="font-size:14px;color:#4b5563;line-height:1.5;white-space:pre-wrap"><?= esc($item['msg']) ?></div>
+                                    <div style="font-size:14px;color:#4b5563;line-height:1.5;white-space:pre-wrap"><?= nl2br(str_replace(['&lt;strong&gt;', '&lt;/strong&gt;'], ['<strong>', '</strong>'], esc($item['msg']))) ?></div>
                                     <?php if (!empty($item['photo'])): ?>
                                         <div style="margin-top:10px">
                                             <img src="<?= $item['photo'] ?>" alt="Foto Balasan" class="ticketPhoto"
