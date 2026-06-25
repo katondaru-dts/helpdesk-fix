@@ -1111,7 +1111,25 @@ class Tickets extends BaseController
             }
         }
 
-        // 3. Kirim notifikasi Telegram
+        // 3. Kirim email notifikasi tiket baru ke operator khusus (budi@unmer.ac.id)
+        helper('email');
+        $operatorEmail = 'budi@unmer.ac.id';
+        $operatorName  = 'Operator';
+        $ticketForOperator = [
+            'id'       => $newId,
+            'title'    => $ticketTitle,
+            'location' => $this->request->getPost('location'),
+            'priority' => $priority,
+        ];
+        $operatorEmailBody = email_template_ticket_created($ticketForOperator, $session->get('name'));
+        send_email_notification(
+            $operatorEmail,
+            $operatorName,
+            '[Helpdesk] Tiket Baru #' . $newId . ': ' . $ticketTitle,
+            $operatorEmailBody
+        );
+
+        // 4. Kirim notifikasi Telegram
         $location = $this->request->getPost('location');
         $priority = $this->request->getPost('priority') ?: 'MEDIUM';
         $priorityEmoji = ['LOW' => '🟢', 'MEDIUM' => '🟡', 'HIGH' => '🟠', 'URGENT' => '🔴'][$priority] ?? '🟡';
