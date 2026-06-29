@@ -5,6 +5,6 @@ class TicketMessageModel extends Model
 {
     protected $table = "ticket_messages";
     protected $primaryKey = "id";
-    protected $allowedFields = ["ticket_id", "sender_id", "message", "is_internal", "photo", "sent_at"];
+    protected $allowedFields = ["ticket_id", "sender_id", "message", "is_internal", "photo", "sent_at", "source"];
     protected $useTimestamps = false;
 }

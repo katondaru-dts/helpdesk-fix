@@ -454,11 +454,15 @@ class Tickets extends BaseController
                                 $emailPhotoUrl = base_url($data['photo']);
                             }
                         }
-                        $emailBody = email_template_reply($ticket, $session->get('name'), $message, $emailPhotoUrl);
+                        $emailBody = email_template_reply($ticket, $session->get('name'), $message, $emailPhotoUrl, $ticket['email_token'] ?? null);
+                        $emailSubject = '[Helpdesk] Balasan Baru pada Tiket #' . $ticket['id'] . ': ' . $ticket['title'];
+                        if (!empty($ticket['email_token'])) {
+                            $emailSubject .= ' [REF:' . $ticket['id'] . ']';
+                        }
                         send_email_notification(
                             $reporter['email'],
                             $reporter['name'],
-                            '[Helpdesk] Balasan Baru pada Tiket #' . $ticket['id'] . ': ' . $ticket['title'],
+                            $emailSubject,
                             $emailBody
                         );
                     }
@@ -995,18 +999,19 @@ class Tickets extends BaseController
         $slaDeadline = $ticketModel->calculateSlaDeadline($priority);
 
         $ticketModel->insert([
-            'id' => $newId,
-            'title' => $ticketTitle,
-            'description' => $this->request->getPost('description'),
-            'cat_id' => $this->request->getPost('cat_id'),
-            'priority' => $priority,
-            'reporter_id' => $session->get('id'),
+            'id'             => $newId,
+            'email_token'    => \App\Models\TicketModel::generateEmailToken(),
+            'title'          => $ticketTitle,
+            'description'    => $this->request->getPost('description'),
+            'cat_id'         => $this->request->getPost('cat_id'),
+            'priority'       => $priority,
+            'reporter_id'    => $session->get('id'),
             'requester_name' => $this->request->getPost('requester_name'),
-            'dept_id' => $session->get('dept_id'),
-            'location' => $this->request->getPost('location'),
-            'drive_link' => $this->request->getPost('drive_link'),
-            'status' => 'OPEN',
-            'sla_deadline' => $slaDeadline
+            'dept_id'        => $session->get('dept_id'),
+            'location'       => $this->request->getPost('location'),
+            'drive_link'     => $this->request->getPost('drive_link'),
+            'status'         => 'OPEN',
+            'sla_deadline'   => $slaDeadline
         ]);
 
         // ── Upload foto (opsional, max 2) — MinIO ──

@@ -56,4 +56,46 @@ class Cron extends BaseController
 
         return "Successfully notified " . count($staffToNotify) . " staff for $count overdue tickets.\n";
     }
+
+    /**
+     * Endpoint HTTP untuk memicu fetch email replies secara manual atau via scheduler eksternal.
+     * Diamankan dengan CRON_SECRET token (query string atau header X-Cron-Token).
+     *
+     * URL: GET /cron/fetch-email-replies?token=SECRET
+     */
+    public function fetchEmailReplies()
+    {
+        $expectedToken = env('CRON_SECRET', '');
+
+        // Validasi token keamanan
+        $providedToken = $this->request->getGet('token')
+                      ?? $this->request->getHeaderLine('X-Cron-Token');
+
+        if (empty($expectedToken) || $providedToken !== $expectedToken) {
+            return $this->response
+                ->setStatusCode(403)
+                ->setBody(json_encode(['error' => 'Forbidden: invalid or missing token']))
+                ->setContentType('application/json');
+        }
+
+        // Jalankan command via CLI service
+        $command = service('commands');
+        ob_start();
+        try {
+            $command->run('cron:fetch-email-replies', []);
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            log_message('error', '[Cron::fetchEmailReplies] ' . $e->getMessage());
+            return $this->response
+                ->setStatusCode(500)
+                ->setBody(json_encode(['error' => $e->getMessage()]))
+                ->setContentType('application/json');
+        }
+        $output = ob_get_clean();
+
+        return $this->response
+            ->setStatusCode(200)
+            ->setBody(json_encode(['status' => 'ok', 'output' => $output]))
+            ->setContentType('application/json');
+    }
 }

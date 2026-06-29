@@ -52,13 +52,25 @@ if (!function_exists('email_template_reply')) {
    * @param array  $ticket      Data tiket
    * @param string $senderName  Nama pengirim balasan
    * @param string $message     Isi pesan balasan
+   * @param string|null $photoUrl  URL foto bukti (opsional)
+   * @param string|null $emailToken Token unik tiket untuk reply tracking
    * @return string             HTML email
    */
-  function email_template_reply(array $ticket, string $senderName, string $message, ?string $photoUrl = null): string
+  function email_template_reply(array $ticket, string $senderName, string $message, ?string $photoUrl = null, ?string $emailToken = null): string
   {
     $baseUrl = rtrim(env('app.baseURL') ?: base_url(), '/');
     $ticketUrl = $baseUrl . '/tickets/detail/' . $ticket['id'];
     $previewMsg = mb_substr(strip_tags($message), 0, 200) . (mb_strlen(strip_tags($message)) > 200 ? '...' : '');
+
+    // Token referensi untuk IMAP reply tracking
+    $refToken   = $emailToken ?? ($ticket['email_token'] ?? null);
+    $refTagHtml = '';
+    if ($refToken) {
+      // Teks tersembunyi di body email: poller IMAP akan membaca token ini dari quoted reply
+      $refTagHtml = '<div style="display:none;font-size:1px;color:#f0f4f8;line-height:1px;max-height:0px;overflow:hidden;opacity:0;">' .
+                    '[REF:' . htmlspecialchars($ticket['id']) . ':' . htmlspecialchars($refToken) . ']' .
+                    '</div>';
+    }
 
     // Photo section (rendered only if photoUrl is provided)
     $photoSection = '';
@@ -144,7 +156,7 @@ if (!function_exists('email_template_reply')) {
           <!-- Footer -->
           <tr>
             <td style="padding:20px 40px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#9ca3af;">Email ini dikirim otomatis oleh sistem Helpdesk UNMER. Jangan membalas email ini.</p>
+              <p style="margin:0;font-size:12px;color:#9ca3af;">Balas email ini untuk menambah komentar pada tiket Anda secara langsung.</p>
               <p style="margin:6px 0 0;font-size:12px;color:#d1d5db;">Universitas Merdeka Malang &copy; ' . date('Y') . '</p>
             </td>
           </tr>
@@ -152,6 +164,7 @@ if (!function_exists('email_template_reply')) {
       </td>
     </tr>
   </table>
+' . $refTagHtml . '
 </body>
 </html>';
   }

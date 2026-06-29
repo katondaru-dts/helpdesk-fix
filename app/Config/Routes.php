@@ -119,3 +119,5 @@ $routes->post('ai/chat', 'AiAssistant::chat', ['filter' => 'auth']);
 $routes->get('ai/models', 'AiAssistant::models', ['filter' => 'auth']);
 $routes->post('ai/clear-cache', 'AiAssistant::clearCache', ['filter' => 'admin']);
 
+// Cron / Scheduled Tasks (diamankan dengan CRON_SECRET token, tanpa auth session)
+$routes->get('cron/fetch-email-replies', 'Cron::fetchEmailReplies');

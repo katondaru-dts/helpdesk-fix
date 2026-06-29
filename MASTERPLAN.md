@@ -117,9 +117,9 @@ helpdesk-v2/
 | `roles` | Data role (code, name, permissions JSON, **is_staff**, **is_technician**, **role_updated_at**) |
 | `departments` | Departemen organisasi (name, code, is_active) |
 | `categories` | Kategori tiket (name, description, is_active) |
-| `tickets` | Data tiket (id, title, description, **drive_link (TEXT)**, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
+| `tickets` | Data tiket (id, **email_token**, title, description, **drive_link (TEXT)**, photo, photo2, status, priority, reporter_id, assigned_to, cat_id, **sla_deadline**, **sla_paused_at**) |
 | `ticket_history` | Riwayat perubahan tiket (ticket_id, changed_by, old_status, new_status, changed_at, **notes**) |
-| `ticket_messages` | Balasan/komentar pada tiket (ticket_id, sender_id, message, is_internal, **photo**, sent_at) |
+| `ticket_messages` | Balasan/komentar pada tiket (ticket_id, sender_id, message, is_internal, **photo**, sent_at, **source** [web/email]) |
 | `ticket_ratings` | Rating & feedback setelah tiket selesai (ticket_id, rated_by, rating, feedback, rated_at) |
 | `ticket_assignees` | Multi-assign teknisi pada tiket (ticket_id, user_id, assigned_by, assigned_at) — pivot many-to-many |
 | `kb_articles` | Artikel pusat bantuan (title, content, slug, cat_id, author_id, view_count, **md_key**, status) |
@@ -199,6 +199,9 @@ helpdesk-v2/
 ---
 
 Aplikasi ini telah mengimplementasikan berbagai fitur utama terkait autentikasi, manajemen tiket (termasuk upload dokumentasi), notifikasi, SLA, profil pengguna, dan administrasi (khusus Superadmin).
+
+**Fitur Terbaru (v2.32.0):**
+- [x] **Email Reply Sync** — Sinkronisasi balasan email ke tiket secara otomatis. User dapat membalas email notifikasi (balasan tiket, perubahan status) langsung dari Gmail/Outlook dan balasannya akan masuk ke percakapan tiket di aplikasi. Sistem menggunakan token referensi `[REF:HDXXXX]` yang disisipkan di Subject email dan IMAP polling via Spark CLI command `cron:fetch-email-replies`. Konfigurasi via `.env` (IMAP_HOST, IMAP_PORT, IMAP_USER, IMAP_PASS, CRON_SECRET).
 
 **Fitur Terbaru (v2.31.2):**
 - [x] **Penyederhanaan UI Login** — Memperbarui logo login, menghapus informasi statis yang tidak perlu, dan menyembunyikan form login manual secara default (kini hanya dapat diakses melalui link rahasia `?login=admin`).
@@ -401,20 +404,7 @@ Berikut adalah daftar rencana pengembangan ke depan untuk menaikkan skala Helpde
 1. ~~**Integrasi SSO (Single Sign-On) via Google Workspace**~~ ✅ *(Sudah diimplementasikan penuh)*
    - Login terpusat menggunakan ekosistem email kampus (`@unmer.ac.id` dan `@student.unmer.ac.id`).
 2. ~~**Knowledge Base (Self-Service Pusat Bantuan)**~~ ✅ *(Sudah diimplementasikan penuh)*
-   - Basis data FAQ mandiri yang tersimpan di MinIO dan terintegrasi dengan chatbot AI.
-3. ~~**AI Assistant (Tanya AI via Gemini API)**~~ ✅ *(Sudah diimplementasikan penuh)*
-   - Bot asisten yang membantu user menemukan jawaban dari Knowledge Base secara percakapan.
-4. **Asset & Inventory Management** *(Tahap Perencanaan)*
-   - Mengaitkan laporan kerusakan tiket secara langsung dengan kode Inventaris Hardware yang bermasalah.
-5. **Email-to-Ticket (Omnichannel)**
-   - Konversi email masuk ke kotak pengaduan menjadi tiket baru di aplikasi secara otomatis.
-6. **SLA Auto-Escalation**
-   - Eskalasi otomatis ke kepala bagian IT jika SLA dilanggar oleh teknisi.
-
-7. **UI/UX Refinements v2.30**:
-   - **Dashboard Admin**: Penambahan visualisasi data analytics (Chart.js) untuk monitoring kinerja tim dan efisiensi waktu respons.
-   - **Performance Filter**: Fitur filter rentang waktu (Hari ini, Kemarin, Minggu ini, Bulan ini) pada dashboard untuk analisis trend yang lebih akurat.
    - **Rating System**: Implementasi sistem bintang dan feedback untuk mengukur kepuasan pengguna (*User Satisfaction Score*).
    - **Mobile Optimization**: Perbaikan UI modal preview foto dan bottom-sheet menu profil untuk pengalaman mobile yang lebih mulus.
 
-*Terakhir diperbarui: 19 Juni 2026 | Versi: 2.31.2 (Penyederhanaan UI Halaman Login)*
+*Terakhir diperbarui: 27 Juni 2026 | Versi: 2.32.0 (Email Reply Sync — Sinkronisasi Balasan Email ke Tiket)*

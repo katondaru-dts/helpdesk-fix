@@ -12,7 +12,7 @@ class TicketModel extends Model
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['id', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'requester_name', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'photo', 'photo2', 'created_at', 'updated_at', 'closed_at'];
+    protected $allowedFields = ['id', 'email_token', 'title', 'description', 'cat_id', 'priority', 'reporter_id', 'requester_name', 'assigned_to', 'dept_id', 'location', 'status', 'sla_deadline', 'sla_notified', 'sla_paused_at', 'drive_link', 'photo', 'photo2', 'created_at', 'updated_at', 'closed_at'];
 
     // Dates
     protected $useTimestamps = true;
@@ -164,6 +164,31 @@ class TicketModel extends Model
 
         $duration = $durations[$priority] ?? $durations['MEDIUM'];
         return date('Y-m-d H:i:s', $start + $duration);
+    }
+
+    /**
+     * Cari tiket berdasarkan email_token unik.
+     * Digunakan oleh FetchEmailReplies command untuk memetakan
+     * balasan email ke tiket yang tepat.
+     *
+     * @param string $token
+     * @return array|null
+     */
+    public function getTicketByEmailToken(string $token): ?array
+    {
+        return $this->where('email_token', $token)->first();
+    }
+
+    /**
+     * Generate token unik untuk email referensi tiket.
+     * Token ini disisipkan ke email notifikasi agar balasan
+     * email dapat dipetakan kembali ke tiket yang tepat.
+     *
+     * @return string
+     */
+    public static function generateEmailToken(): string
+    {
+        return bin2hex(random_bytes(16)); // 32 karakter hex
     }
 }
 
