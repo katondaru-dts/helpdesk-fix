@@ -15,6 +15,15 @@ class Reports extends BaseController
         return $builder;
     }
 
+    private function applyUserFilter($builder)
+    {
+        helper('auth');
+        if (!is_staff() && !has_permission('Lihat Laporan')) {
+            $builder->where('t.reporter_id', session()->get('id'));
+        }
+        return $builder;
+    }
+
     private function resolvePhotoUrl(?string $value): string
     {
         if (empty($value))
@@ -39,6 +48,7 @@ class Reports extends BaseController
             ->join('departments d', 't.dept_id = d.id', 'left')
             ->join('categories c', 't.cat_id = c.id', 'left')
             ->orderBy('t.created_at', 'DESC');
+        $this->applyUserFilter($builder);
         $tickets = $this->applyDateFilter($builder)->get()->getResultArray();
 
         foreach ($tickets as &$t) {
@@ -82,6 +92,7 @@ class Reports extends BaseController
                       SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets,
                       SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress,
                       SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyUserFilter($statsBuilder);
         $this->applyDateFilter($statsBuilder);
         $stats = $statsBuilder->get()->getRowArray();
 
@@ -103,6 +114,7 @@ class Reports extends BaseController
             ->join('departments d', 't.dept_id = d.id', 'left')
             ->join('categories c', 't.cat_id = c.id', 'left')
             ->orderBy('t.created_at', 'DESC');
+        $this->applyUserFilter($ticketsBuilder);
         $this->applyDateFilter($ticketsBuilder);
         $tickets = $ticketsBuilder->get($perPage, $offset)->getResultArray();
 
@@ -163,6 +175,7 @@ class Reports extends BaseController
     {
         $db = \Config\Database::connect();
         $statsBuilder = $db->table('tickets t')->select("COUNT(*) as total, SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets, SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress, SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyUserFilter($statsBuilder);
         $this->applyDateFilter($statsBuilder);
         $stats = $statsBuilder->get()->getRowArray();
         $tickets = $this->getTickets();
@@ -174,10 +187,36 @@ class Reports extends BaseController
     {
         $db = \Config\Database::connect();
         $statsBuilder = $db->table('tickets t')->select("COUNT(*) as total, SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets, SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress, SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyUserFilter($statsBuilder);
         $this->applyDateFilter($statsBuilder);
         $stats = $statsBuilder->get()->getRowArray();
         $tickets = $this->getTickets();
         return view('admin/reports/export_excel', ['stats' => $stats, 'tickets' => $tickets]);
+    }
+
+    public function printReport()
+    {
+        if (!has_permission('Cetak Laporan')) {
+            return redirect()->to('/admin/reports')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mencetak laporan.');
+        }
+
+        $db = \Config\Database::connect();
+        $dateFrom = $this->request->getGet('f-from');
+        $dateTo = $this->request->getGet('f-to');
+
+        $statsBuilder = $db->table('tickets t')->select("COUNT(*) as total, SUM(CASE WHEN status='OPEN' THEN 1 ELSE 0 END) as open_tickets, SUM(CASE WHEN status='IN_PROGRESS' THEN 1 ELSE 0 END) as in_progress, SUM(CASE WHEN status IN ('RESOLVED','CLOSED') THEN 1 ELSE 0 END) as solved");
+        $this->applyUserFilter($statsBuilder);
+        $this->applyDateFilter($statsBuilder);
+        $stats = $statsBuilder->get()->getRowArray();
+
+        $tickets = $this->getTickets();
+
+        return view('admin/reports/print_report', [
+            'stats' => $stats,
+            'tickets' => $tickets,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo
+        ]);
     }
 
     public function updateLink($id)

@@ -14,6 +14,7 @@ class Roles extends BaseController
         'Kelola Role & Izin' => 'Pengaturan Hak Akses',
         'Lihat Laporan' => 'Akses Laporan & Statistik',
         'Ekspor Data' => 'Ekspor Data ke PDF/Excel',
+        'Cetak Laporan' => 'Mencetak Laporan Tiket',
         'Update Status Tiket' => 'Mengubah Status Tiket',
         'Tugaskan Support' => 'Menugaskan Tiket ke Staff Support',
         'Tambah Solusi' => 'Memberikan Solusi Tiket',

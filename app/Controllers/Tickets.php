@@ -144,6 +144,50 @@ class Tickets extends BaseController
             ->setBody(view('tickets/export_excel', $data));
     }
 
+    public function printReport()
+    {
+        if (!has_permission('Cetak Laporan')) {
+            return redirect()->to('/tickets')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mencetak laporan.');
+        }
+
+        $ticketModel = new TicketModel();
+        $session = session();
+        $isStaff = is_staff();
+        $userId = $session->get('id');
+
+        $filters = [
+            'search' => $this->request->getGet('search'),
+            'status' => $this->request->getGet('f-status'),
+            'priority' => $this->request->getGet('f-priority'),
+            'cat_id' => $this->request->getGet('f-cat'),
+            'dept_id' => $this->request->getGet('f-dept'),
+            'assigned_to' => $this->request->getGet('f-assigned'),
+            'date_from' => $this->request->getGet('f-from'),
+            'date_to' => $this->request->getGet('f-to'),
+            'unassigned' => $this->request->getGet('f-unassigned'),
+            'overdue' => $this->request->getGet('f-overdue'),
+            'sort' => $this->request->getGet('sort') ?: 'created_at',
+            'dir' => $this->request->getGet('dir') ?: 'DESC',
+        ];
+
+        $rolePerms = $session->get('permissions') ?: [];
+        $specialPerms = $session->get('user_permissions') ?: [];
+        $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
+        $hasManagementPerm = in_array('Full Access', $userPerms) || in_array('Tugaskan Support', $userPerms) || is_admin();
+
+        $tickets = $ticketModel->getFilteredTickets($filters, $isStaff, $userId, $hasManagementPerm)->findAll();
+
+        $data = [
+            'tickets' => $tickets,
+            'isStaff' => $isStaff,
+            'dateFrom' => $filters['date_from'],
+            'dateTo' => $filters['date_to'],
+            'user' => $session->get(),
+        ];
+
+        return view('tickets/print_report', $data);
+    }
+
     public function view($id)
     {
         return $this->detail($id);

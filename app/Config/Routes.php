@@ -49,11 +49,20 @@ $routes->group('', ['filter' => ['auth', 'rolecheck']], function ($routes) {
             $routes->post('assign/(:segment)', 'Tickets::assign/$1');
             $routes->post('rate/(:segment)', 'Tickets::rate/$1');
             $routes->get('export', 'Tickets::export');
+            $routes->get('print', 'Tickets::printReport');
             $routes->post('delete/(:segment)', 'Tickets::delete/$1');
             $routes->post('update-link/(:segment)', 'Tickets::updateLink/$1');
             $routes->post('bulk-update-status', 'Tickets::bulkUpdateStatus');
         }
     );
+
+    // Reports routes (accessible by everyone, scoped inside controller)
+    $routes->get('admin/reports', 'Admin\Reports::index');
+    $routes->get('admin/reports/excel', 'Admin\Reports::excel');
+    $routes->get('admin/reports/pdf', 'Admin\Reports::pdf');
+    $routes->get('admin/reports/print', 'Admin\Reports::printReport');
+    $routes->get('admin/reports/printReport', 'Admin\Reports::printReport');
+    $routes->post('admin/reports/update-link/(:segment)', 'Admin\Reports::updateLink/$1');
 });
 
 // Admin routes
@@ -82,14 +91,6 @@ $routes->group('admin', ['filter' => ['admin', 'rolecheck']], function ($routes)
 
 // Admin & Staff (Operator) routes
 $routes->group('admin', ['filter' => ['staff', 'rolecheck']], function ($routes) {
-    $routes->get('reports', 'Admin\Reports::index');
-    $routes->get('reports/export', 'Admin\Reports::export');
-    $routes->get('reports/excel', 'Admin\Reports::export');
-    $routes->get('reports/pdf', 'Admin\Reports::pdf');
-    $routes->get('reports/print', 'Admin\Reports::printReport');
-    $routes->get('reports/printReport', 'Admin\Reports::printReport');
-    $routes->post('reports/update-link/(:segment)', 'Admin\Reports::updateLink/$1');
-
     // Knowledge Base Admin
     $routes->get('knowledge-base', 'Admin\KnowledgeBase::index');
     $routes->get('knowledge-base/create', 'Admin\KnowledgeBase::create');

@@ -15,8 +15,8 @@ class MainSeeder extends Seeder
         $this->db->table('roles')->truncate();
         $roles = [
             ['id' => 1, 'code' => 'ADMIN', 'name' => 'Administrator', 'permissions' => '["Full Access", "Kelola User/Dept/Cat", "Lihat Semua Laporan"]'],
-            ['id' => 2, 'code' => 'STAFF', 'name' => 'IT Support', 'permissions' => '["Update Status Tiket", "Tambah Solusi", "Lihat Laporan"]'],
-            ['id' => 3, 'code' => 'USER', 'name' => 'User', 'permissions' => '["Buat Tiket", "Lihat Tiket Sendiri", "Beri Rating"]'],
+            ['id' => 2, 'code' => 'STAFF', 'name' => 'IT Support', 'permissions' => '["Update Status Tiket", "Tambah Solusi", "Lihat Laporan", "Cetak Laporan"]'],
+            ['id' => 3, 'code' => 'USER', 'name' => 'User', 'permissions' => '["Buat Tiket", "Lihat Tiket Sendiri", "Beri Rating", "Cetak Laporan"]'],
         ];
         $this->db->table('roles')->insertBatch($roles);
 

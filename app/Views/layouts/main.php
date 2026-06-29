@@ -33,6 +33,8 @@
                         class="bi bi-speedometer2"></i> Dashboard</a>
                 <a href="<?= base_url('tickets') ?>" class="<?= $activePage == 'tickets' ? 'active' : '' ?>"><i
                         class="bi bi-ticket-detailed"></i> <?= $isStaff ? 'Semua Tiket' : 'Tiket Saya' ?></a>
+                <a href="<?= base_url('admin/reports') ?>" class="<?= $activePage == 'admin-reports' ? 'active' : '' ?>"><i
+                        class="bi bi-graph-up"></i> Laporan</a>
 
                 <?php if (has_permission('Buat Tiket') || $role == 4): ?>
                     <a href="<?= base_url('tickets/create') ?>"
@@ -59,11 +61,6 @@
                     <?php if (has_permission('Kelola Role')): ?>
                         <a href="<?= base_url('admin/roles') ?>" class="<?= $activePage == 'admin-roles' ? 'active' : '' ?>"><i
                                 class="bi bi-shield-check"></i> Role & Izin</a>
-                    <?php endif; ?>
-                    <?php if (has_permission('Lihat Laporan')): ?>
-                        <a href="<?= base_url('admin/reports') ?>"
-                            class="<?= $activePage == 'admin-reports' ? 'active' : '' ?>"><i class="bi bi-graph-up"></i>
-                            Laporan</a>
                     <?php endif; ?>
                     <?php if (has_permission('Lihat Audit Log')): ?>
                         <a href="<?= base_url('admin/audit-logs') ?>"

@@ -42,6 +42,9 @@ if (!function_exists('getInitials')) {
         <?php if (has_permission('Ekspor Data')): ?>
             <button class="btn btn-outline" onclick="exportTickets()" style="background:white; color:#10b981; border:1px solid #10b981; font-weight:bold; cursor:pointer; padding:8px 15px; border-radius:8px"><i class="bi bi-file-earmark-excel"></i> Ekspor CSV/Excel</button>
         <?php endif; ?>
+        <?php if (has_permission('Cetak Laporan')): ?>
+            <button class="btn btn-outline" onclick="printTickets()" style="background:white; color:#2563eb; border:1px solid #2563eb; font-weight:bold; cursor:pointer; padding:8px 15px; border-radius:8px"><i class="bi bi-printer"></i> Cetak Laporan</button>
+        <?php endif; ?>
         <?php if (has_permission('Buat Tiket') || session()->get('role_id') == 4): ?>
             <a href="<?= base_url('tickets/create') ?>" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Buat Tiket</a>
         <?php endif; ?>
@@ -52,6 +55,10 @@ if (!function_exists('getInitials')) {
 function exportTickets() {
     const params = new URLSearchParams(window.location.search);
     window.location.href = '<?= base_url('tickets/export') ?>?' + params.toString();
+}
+function printTickets() {
+    const params = new URLSearchParams(window.location.search);
+    window.open('<?= base_url('tickets/print') ?>?' + params.toString(), '_blank');
 }
 </script>
 
