@@ -237,10 +237,30 @@ function printTickets() {
         </table>
     </div>
     
-    <div class="pagination-wrap" style="padding: 20px; border-top: 1px solid #f3f4f6;">
-        <?= $pager->links() ?>
+    <div class="pagination-wrap" style="padding: 20px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <?= $pager->links() ?>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #475569;">
+            <span>Total: <?= $totalRows ?></span>
+            <select onchange="changePerPage(this.value)" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 14px; color: #1f2937; outline: none;">
+                <?php foreach ([10, 20, 30, 40, 50, 100, 500] as $limit): ?>
+                    <option value="<?= $limit ?>" <?= $limit == ($perPage ?? 10) ? 'selected' : '' ?>><?= $limit ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
     </div>
 </div>
+
+<script>
+function changePerPage(val) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('per_page', val);
+    params.delete('page');
+    params.delete('page_default');
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

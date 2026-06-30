@@ -60,6 +60,12 @@ class Tickets extends BaseController
             'dir' => $this->request->getGet('dir') ?: 'DESC',
         ];
 
+        $perPage = (int) ($this->request->getGet('per_page') ?: ($session->get('ticket_per_page') ?: 10));
+        if (!in_array($perPage, [10, 20, 30, 40, 50, 100, 500])) {
+            $perPage = 10;
+        }
+        $session->set('ticket_per_page', $perPage);
+
         $rolePerms = $session->get('permissions') ?: [];
         $specialPerms = $session->get('user_permissions') ?: [];
         $userPerms = array_unique(array_merge($rolePerms, $specialPerms));
@@ -77,14 +83,15 @@ class Tickets extends BaseController
         $data = [
             'pageTitle' => $isStaff ? 'Semua Tiket' : 'Tiket Saya',
             'activePage' => 'tickets',
-            'tickets' => $query->paginate(10),
+            'tickets' => $query->paginate($perPage),
             'pager' => $ticketModel->pager,
             'categories' => $catModel->findAll(),
             'departments' => $deptModel->findAll(),
             'technicians' => $technicians,
             'filters' => $filters,
             'isStaff' => $isStaff,
-            'totalRows' => $query->countAllResults(false)
+            'totalRows' => $query->countAllResults(false),
+            'perPage' => $perPage
         ];
 
         return view('tickets/index', $data);

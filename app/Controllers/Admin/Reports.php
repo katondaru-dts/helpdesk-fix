@@ -96,9 +96,15 @@ class Reports extends BaseController
         $this->applyDateFilter($statsBuilder);
         $stats = $statsBuilder->get()->getRowArray();
 
+        $session = session();
+        $perPage = (int) ($this->request->getGet('per_page') ?: ($session->get('report_per_page') ?: 10));
+        if (!in_array($perPage, [10, 20, 30, 40, 50, 100, 500])) {
+            $perPage = 10;
+        }
+        $session->set('report_per_page', $perPage);
+
         $pager = \Config\Services::pager();
         $page = max(1, (int) $this->request->getVar('page'));
-        $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
         $ticketsBuilder = $db->table('tickets t')
@@ -167,6 +173,7 @@ class Reports extends BaseController
             'stats' => $stats,
             'tickets' => $tickets,
             'pager_links' => ($stats['total'] ?? 0) > 0 ? $pager->makeLinks($page, $perPage, $stats['total']) : '',
+            'perPage' => $perPage,
         ];
         return view('admin/reports/index', $data);
     }
