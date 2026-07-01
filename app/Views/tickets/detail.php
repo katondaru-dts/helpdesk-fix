@@ -198,6 +198,32 @@
                     <div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">PELAPOR</div>
                     <div style="font-size:14px"><?= esc($ticket['reporter_name']) ?></div>
                 </div>
+                <?php
+                // Nomor telepon pelapor: hanya terlihat oleh Admin, Staff (Operator), dan Teknisi
+                // Role User (termasuk pelapor itu sendiri) TIDAK bisa melihat nomor telepon
+                $canSeePhone = is_admin() || is_staff() || is_technician();
+                if ($canSeePhone && !empty($ticket['reporter_phone'])):
+                    // Format nomor untuk link WhatsApp (hapus +/spasi/strip, pastikan awalan 62)
+                    $rawPhone   = preg_replace('/[^0-9]/', '', $ticket['reporter_phone']);
+                    if (str_starts_with($rawPhone, '0')) {
+                        $rawPhone = '62' . substr($rawPhone, 1);
+                    } elseif (!str_starts_with($rawPhone, '62')) {
+                        $rawPhone = '62' . $rawPhone;
+                    }
+                    $waLink = 'https://wa.me/' . $rawPhone;
+                ?>
+                <div>
+                    <div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">NO. TELEPON PELAPOR</div>
+                    <div style="font-size:13px">
+                        <a href="<?= $waLink ?>" target="_blank" rel="noopener noreferrer"
+                            style="display:inline-flex;align-items:center;gap:5px;color:#15803d;font-weight:600;text-decoration:none;background:#f0fdf4;border:1px solid #bbf7d0;padding:4px 10px;border-radius:20px;font-size:12.5px;transition:all .2s"
+                            onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                            <i class="bi bi-whatsapp" style="font-size:14px;color:#16a34a"></i>
+                            <?= esc($ticket['reporter_phone']) ?>
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <?php if ($ticket['requester_name']): ?>
                     <div>
                         <div style="font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:bold">NAMA PEMOHON</div>

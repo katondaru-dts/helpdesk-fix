@@ -93,6 +93,11 @@
                         Telepon</label>
                     <input type="text" name="phone" value="<?= esc($user['phone'] ?? '') ?>"
                         style="width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box">
+                    <!-- Catatan WhatsApp -->
+                    <div style="display:flex;align-items:flex-start;gap:7px;margin-top:7px;padding:9px 11px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;color:#15803d;line-height:1.5">
+                        <i class="bi bi-whatsapp" style="font-size:15px;color:#16a34a;flex-shrink:0;margin-top:1px"></i>
+                        <span>Nomor telepon wajib <strong>aktif dan terhubung dengan WhatsApp</strong>, karena akan digunakan untuk keperluan <em>follow-up</em> terkait tiket Anda.</span>
+                    </div>
                 </div>
                 <div>
                     <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Jenis

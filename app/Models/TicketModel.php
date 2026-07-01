@@ -128,7 +128,8 @@ class TicketModel extends Model
 
     public function getTicketDetail($id)
     {
-        return $this->select('tickets.*, reporter.name as reporter_name, reporter.email as reporter_email, 
+        return $this->select('tickets.*, reporter.name as reporter_name, reporter.email as reporter_email,
+                             reporter.phone as reporter_phone,
                              departments.name as dept_name, categories.name as cat_name, assigned.name as assigned_name')
             ->join('users as reporter', 'tickets.reporter_id = reporter.id', 'left')
             ->join('departments', 'tickets.dept_id = departments.id', 'left')

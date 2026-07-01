@@ -93,6 +93,15 @@ class Auth extends BaseController
             $userModel->update($user['id'], ['login_attempts' => 0, 'lockout_time' => null]);
             clear_captcha();
             $this->setUserSession($user);
+
+            // Cek kelengkapan profil (phone & gender) — hanya untuk role User (role_id=3)
+            if (($user['role_id'] ?? 0) == 3) {
+                $profileIncomplete = empty($user['phone']) || empty($user['gender']);
+                if ($profileIncomplete) {
+                    session()->set('profile_incomplete', true);
+                }
+            }
+
             return redirect()->to('/dashboard');
         }
 
@@ -337,6 +346,22 @@ class Auth extends BaseController
                 $user['auth_provider'] = 'google';
             }
             $this->setUserSession($user);
+
+            // Cek kelengkapan profil (phone & gender) — hanya untuk role User (role_id=3)
+            // User baru via SSO selalu role_id=3, user lama dicek role_id-nya
+            $userRoleId = $user['role_id'] ?? 3;
+            if ($userRoleId == 3) {
+                $profileIncomplete = empty($user['phone']) || empty($user['gender']);
+                if ($profileIncomplete) {
+                    if ($isNewUser) {
+                        // User baru via SSO: paksa redirect ke halaman pengisian profil
+                        session()->set('is_new_sso_user', true);
+                    } else {
+                        // User lama via SSO: tampilkan popup di setiap halaman
+                        session()->set('profile_incomplete', true);
+                    }
+                }
+            }
 
             return redirect()->to('/dashboard');
 

@@ -19,8 +19,12 @@ $routes->get('logout', 'Auth::logout');
 $routes->get('auth/google', 'Auth::googleLogin');
 $routes->get('auth/googleCallback', 'Auth::googleCallback');
 
+// Profile Complete (wajib isi profil - dikecualikan dari profilecomplete filter)
+$routes->get('profile/complete', 'Profile::complete', ['filter' => 'auth']);
+$routes->post('profile/save-complete', 'Profile::saveComplete', ['filter' => 'auth']);
+
 // Dashboard & Profile
-$routes->group('', ['filter' => ['auth', 'rolecheck']], function ($routes) {
+$routes->group('', ['filter' => ['auth', 'rolecheck', 'profilecomplete']], function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update', 'Profile::update');

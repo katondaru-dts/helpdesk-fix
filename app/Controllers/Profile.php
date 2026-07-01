@@ -62,6 +62,12 @@ class Profile extends BaseController
         $userModel = new UserModel();
         $userModel->update($userId, $updateData);
 
+        // Jika phone & gender sudah terisi, clear flag profile_incomplete
+        if (!empty($updateData['phone']) && !empty($updateData['gender'])) {
+            session()->remove('profile_incomplete');
+            session()->remove('show_profile_popup');
+        }
+
         $sessionUpdate = [
             'name' => $name,
             'notif_sound_enabled' => $updateData['notif_sound_enabled'],
@@ -74,6 +80,84 @@ class Profile extends BaseController
         session()->set($sessionUpdate);
 
         return redirect()->to('/profile')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    /**
+     * Halaman wajib pengisian profil (nomor telepon & jenis kelamin)
+     * Hanya muncul untuk user baru via SSO yang belum pernah mengisi profil.
+     */
+    public function complete()
+    {
+        // Jika sudah lengkap dan bukan user baru SSO, redirect ke dashboard
+        $userId = session()->get('id');
+        $userModel = new UserModel();
+        $user = $userModel->find($userId);
+
+        if ($user && !empty($user['phone']) && !empty($user['gender'])) {
+            session()->remove('is_new_sso_user');
+            return redirect()->to('/dashboard');
+        }
+
+        $data = [
+            'pageTitle' => 'Lengkapi Profil - Helpdesk',
+            'user'      => $user,
+        ];
+
+        return view('profile/complete', $data);
+    }
+
+    /**
+     * Simpan data profil wajib (nomor telepon & jenis kelamin)
+     * dari halaman /profile/complete.
+     */
+    public function saveComplete()
+    {
+        $userId = session()->get('id');
+        $phone  = trim($this->request->getPost('phone'));
+        $gender = $this->request->getPost('gender');
+
+        $rules = [
+            'phone'  => 'required|min_length[9]|max_length[20]',
+            'gender' => 'required|in_list[L,P]',
+        ];
+        $messages = [
+            'phone'  => [
+                'required'   => 'Nomor telepon wajib diisi.',
+                'min_length' => 'Nomor telepon minimal 9 digit.',
+                'max_length' => 'Nomor telepon terlalu panjang.',
+            ],
+            'gender' => [
+                'required' => 'Jenis kelamin wajib dipilih.',
+                'in_list'  => 'Pilih jenis kelamin yang valid.',
+            ],
+        ];
+
+        if (!$this->validate($rules, $messages)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $userModel = new UserModel();
+        $userModel->update($userId, [
+            'phone'  => $phone,
+            'gender' => $gender,
+        ]);
+
+        // Hapus semua flag profil tidak lengkap dari session
+        session()->remove('is_new_sso_user');
+        session()->remove('profile_incomplete');
+        session()->remove('show_profile_popup');
+
+        return redirect()->to('/dashboard')->with('success', 'Profil berhasil dilengkapi. Selamat datang!');
+    }
+
+    /**
+     * AJAX: Dismiss popup "Lengkapi Profil" untuk sesi ini.
+     * Popup tidak akan muncul lagi sampai user login ulang.
+     */
+    public function dismissPopup()
+    {
+        session()->remove('show_profile_popup');
+        return $this->response->setJSON(['status' => 'ok']);
     }
 
     public function changePassword()

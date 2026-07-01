@@ -150,6 +150,102 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <?php if (session()->get('show_profile_popup')): ?>
+    <!-- ── Modal Popup: Lengkapi Profil (user lama) ── -->
+    <div id="profilePopupOverlay"
+        style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99990;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:fadeIn .25s ease">
+        <div style="background:white;border-radius:20px;max-width:440px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.3);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);overflow:hidden">
+
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,#2563eb,#7c3aed);padding:24px 28px;position:relative">
+                <div style="display:flex;align-items:center;gap:14px">
+                    <div style="width:50px;height:50px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <i class="bi bi-person-exclamation" style="font-size:24px;color:white"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:17px;font-weight:800;color:white;margin-bottom:2px">Profil Belum Lengkap</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,.75)">Perbarui data Anda untuk pengalaman lebih baik</div>
+                    </div>
+                </div>
+                <button onclick="dismissProfilePopup()" id="popupCloseBtn"
+                    style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.15);border:none;color:white;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:24px 28px">
+                <p style="font-size:14px;color:#374151;line-height:1.6;margin-bottom:18px">
+                    Halo, <strong><?= esc(session()->get('name')) ?></strong>! 👋<br>
+                    Kami memerlukan <strong>nomor telepon</strong> dan <strong>jenis kelamin</strong> Anda
+                    untuk keperluan komunikasi terkait tiket yang Anda ajukan.
+                </p>
+
+                <div style="display:flex;align-items:flex-start;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:12.5px;color:#15803d;line-height:1.5">
+                    <i class="bi bi-whatsapp" style="font-size:18px;color:#16a34a;flex-shrink:0;margin-top:1px"></i>
+                    <span>Nomor telepon yang dicantumkan wajib <strong>aktif dan terhubung dengan WhatsApp</strong>, karena akan digunakan untuk <em>follow-up</em> terkait tiket.</span>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <a href="<?= base_url('profile') ?>"
+                        onclick="dismissProfilePopupAndNavigate(event, '<?= base_url('profile') ?>')"
+                        style="display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:white;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s;box-shadow:0 4px 12px rgba(37,99,235,0.3)"
+                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="bi bi-pencil-fill"></i> Lengkapi Sekarang
+                    </a>
+                    <button onclick="dismissProfilePopup()"
+                        style="display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s"
+                        onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                        <i class="bi bi-clock"></i> Nanti Saja
+                    </button>
+                </div>
+                <div style="text-align:center;margin-top:10px;font-size:11.5px;color:#9ca3af">
+                    <i class="bi bi-info-circle"></i> Notifikasi ini akan muncul kembali selama data belum dilengkapi.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes popIn {
+            from { opacity:0; transform:scale(.88) translateY(16px); }
+            to { opacity:1; transform:scale(1) translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity:0; }
+            to { opacity:1; }
+        }
+    </style>
+
+    <script>
+        function dismissProfilePopup() {
+            // Hanya tutup modal untuk halaman ini saja (JS-only).
+            // Popup akan muncul kembali di halaman berikutnya sampai profil dilengkapi.
+            const overlay = document.getElementById('profilePopupOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity .2s';
+                setTimeout(() => overlay.remove(), 200);
+            }
+        }
+
+        function dismissProfilePopupAndNavigate(event, url) {
+            event.preventDefault();
+            const overlay = document.getElementById('profilePopupOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity .2s';
+                setTimeout(() => {
+                    overlay.remove();
+                    window.location.href = url;
+                }, 200);
+            } else {
+                window.location.href = url;
+            }
+        }
+    </script>
+    <?php endif; ?>
+
     <!-- ── AI CHAT WIDGET ── -->
     <style>
         .ai-fab-wrap {
