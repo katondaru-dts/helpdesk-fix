@@ -35,6 +35,10 @@ class ProfileCompleteFilter implements FilterInterface
         // ── Hanya berlaku untuk role User (role_id=3) ──
         // Admin, Staff, Operator, Teknisi tidak perlu wajib mengisi profil
         if ($session->get('role_id') != 3) {
+            // Bersihkan flag popup jika pernah tersimpan sebelumnya
+            // (misal user diganti role dari User -> Teknisi)
+            $session->remove('show_profile_popup');
+            $session->remove('profile_incomplete');
             return;
         }
 
