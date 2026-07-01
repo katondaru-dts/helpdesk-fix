@@ -43,13 +43,38 @@ class ProfileCompleteFilter implements FilterInterface
             return redirect()->to('/profile/complete');
         }
 
+        // ── Cek kelengkapan profil langsung ke database ──
+        // Kita TIDAK boleh andalkan flag session 'profile_incomplete' yang hanya
+        // di-set saat login, karena user yang login sebelum fitur ini aktif tidak
+        // punya flag itu — padahal datanya belum lengkap. Jadi cek DB setiap request.
+        $userId = $session->get('id');
+        if (!$userId) {
+            return;
+        }
+
+        $db   = \Config\Database::connect();
+        $user = $db->table('users')->select('phone, gender')->where('id', $userId)->get(1)->getRowArray();
+
+        if (!$user) {
+            return;
+        }
+
+        $profileIncomplete = empty($user['phone']) || empty($user['gender']);
+
+        // Sinkronkan flag session agar konsisten dengan data terbaru.
+        if ($profileIncomplete) {
+            $session->set('profile_incomplete', true);
+        } else {
+            $session->remove('profile_incomplete');
+        }
+
         // Jika profil tidak lengkap: tampilkan popup di halaman lain.
         // Halaman /profile & /profile/complete dikecualikan karena di sana user
         // sudah berada di form pengisian — popup akan mengganggu.
         $path = ltrim($request->getUri()->getPath(), '/');
         $onProfilePage = ($path === 'profile' || $path === 'profile/complete');
 
-        if ($session->get('profile_incomplete') === true) {
+        if ($profileIncomplete) {
             if ($onProfilePage) {
                 // User sudah di halaman form — hapus flag agar popup tidak muncul di sini.
                 $session->remove('show_profile_popup');
