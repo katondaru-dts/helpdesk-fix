@@ -54,7 +54,14 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-    public array $allowedHostnames = ['helpdesk.unmer.ac.id', 'localhost', 'helpdesk.local', 'helpdesk-v2.test'];
+    public array $allowedHostnames = [
+        'helpdesk.unmer.ac.id',
+        'dev-helpdesk.unmer.ac.id',
+        'localhost',
+        'localhost:8085',
+        'helpdesk.local',
+        'helpdesk-v2.test',
+    ];
 
     /**
      * --------------------------------------------------------------------------

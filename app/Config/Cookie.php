@@ -53,8 +53,9 @@ class Cookie extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * Cookie will only be set if a secure HTTPS connection exists.
+     * Set to false so session cookies work via reverse proxy (HTTPS terminated at proxy).
      */
-    public bool $secure = (ENVIRONMENT === 'production');
+    public bool $secure = false;
 
     /**
      * --------------------------------------------------------------------------
