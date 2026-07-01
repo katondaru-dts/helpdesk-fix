@@ -572,9 +572,6 @@ if (!function_exists('getInitials')) {
     <?php if (($stats['total'] ?? 0) > 0): ?>
         <div class="no-print"
             style="padding:16px 24px; border-top: 1px solid #f1f5f9; background: white; border-radius: 0 0 14px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <?= $pager_links ?>
-            </div>
             <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #475569;">
                 <span>Total: <?= $stats['total'] ?? 0 ?></span>
                 <select onchange="changePerPage(this.value)" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 14px; color: #1f2937; outline: none;">
@@ -582,6 +579,9 @@ if (!function_exists('getInitials')) {
                         <option value="<?= $limit ?>" <?= $limit == ($perPage ?? 10) ? 'selected' : '' ?>><?= $limit ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+            <div>
+                <?= $pager_links ?>
             </div>
         </div>
     <?php endif; ?>

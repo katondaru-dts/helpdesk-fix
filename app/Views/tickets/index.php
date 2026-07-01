@@ -238,9 +238,6 @@ function printTickets() {
     </div>
     
     <div class="pagination-wrap" style="padding: 20px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <div>
-            <?= $pager->links() ?>
-        </div>
         <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #475569;">
             <span>Total: <?= $totalRows ?></span>
             <select onchange="changePerPage(this.value)" style="padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 14px; color: #1f2937; outline: none;">
@@ -248,6 +245,9 @@ function printTickets() {
                     <option value="<?= $limit ?>" <?= $limit == ($perPage ?? 10) ? 'selected' : '' ?>><?= $limit ?></option>
                 <?php endforeach; ?>
             </select>
+        </div>
+        <div>
+            <?= $pager->links() ?>
         </div>
     </div>
 </div>
