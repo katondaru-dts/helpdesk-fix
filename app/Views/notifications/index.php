@@ -87,16 +87,24 @@
                     — <a href="<?= base_url('tickets/detail/' . $n['ref_id']) ?>" style="color:#3b82f6;font-weight:600;text-decoration:none" onclick="event.stopPropagation()"><?= esc($n['ticket_title'] ?? $n['ref_id']) ?></a>
                     <?php endif; ?>
                 </div>
-                <div style="font-size:11px;color:#9ca3af">
-                    <i class="bi bi-clock" style="margin-right:3px"></i>
-                    <?php
-                        $ts = strtotime($n['created_at']);
-                        $diff = time() - $ts;
-                        if ($diff < 60) echo 'Baru saja';
-                        elseif ($diff < 3600) echo floor($diff/60) . ' menit lalu';
-                        elseif ($diff < 86400) echo floor($diff/3600) . ' jam lalu';
-                        else echo date('d M Y H:i', $ts);
-                    ?>
+                <div style="font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span>
+                        <i class="bi bi-clock" style="margin-right:3px"></i>
+                        <?php
+                            $ts = strtotime($n['created_at']);
+                            $diff = time() - $ts;
+                            if ($diff < 60) echo 'Baru saja';
+                            elseif ($diff < 3600) echo floor($diff/60) . ' menit lalu';
+                            elseif ($diff < 86400) echo floor($diff/3600) . ' jam lalu';
+                            else echo date('d M Y H:i', $ts);
+                        ?>
+                    </span>
+                    <?php if (!empty($n['cat_name'])): ?>
+                    <span style="display:inline-flex;align-items:center;gap:4px;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">
+                        <i class="bi bi-tag-fill" style="font-size:9px"></i>
+                        <?= esc($n['cat_name']) ?>
+                    </span>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php if (!empty($n['ref_id'])): ?>

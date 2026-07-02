@@ -461,6 +461,9 @@ class Tickets extends BaseController
                     $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
                     $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
                     $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+                    if (!empty($ticket['cat_name'])) {
+                        $telegramMsg .= "🗂️ <b>Kategori:</b> " . $ticket['cat_name'] . "\n";
+                    }
                     if (!empty($ticket['location'])) {
                         $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
                     }
@@ -678,10 +681,13 @@ class Tickets extends BaseController
                 $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
                 $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
                 $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+                $updatedTicket = $ticketModel->getTicketDetail($id);
+                if (!empty($updatedTicket['cat_name'])) {
+                    $telegramMsg .= "🗂️ <b>Kategori:</b> " . $updatedTicket['cat_name'] . "\n";
+                }
                 if (!empty($ticket['location'])) {
                     $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
                 }
-                $updatedTicket = $ticketModel->getTicketDetail($id);
                 $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($updatedTicket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
                 $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
                 $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
@@ -839,10 +845,13 @@ class Tickets extends BaseController
             $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
             $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
             $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+            $updatedTicket = $ticketModel->getTicketDetail($id);
+            if (!empty($updatedTicket['cat_name'])) {
+                $telegramMsg .= "🗂️ <b>Kategori:</b> " . $updatedTicket['cat_name'] . "\n";
+            }
             if (!empty($ticket['location'])) {
                 $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
             }
-            $updatedTicket = $ticketModel->getTicketDetail($id);
             $telegramMsg .= "👨‍🔧 <b>Teknisi:</b> " . ($updatedTicket['assigned_name'] ?? 'Belum ditugaskan') . "\n";
             $telegramMsg .= "{$statusEmoji} <b>Status Baru:</b> {$statusLabel}\n";
             $telegramMsg .= "👤 <b>Diubah oleh:</b> " . $session->get('name') . "\n";
@@ -966,10 +975,14 @@ class Tickets extends BaseController
             $u = $userModel->find($uid);
             if ($u) $assignedNames[] = $u['name'];
         }
+        $ticketDetail = $ticketModel->getTicketDetail($id);
         $telegramMsg  = "👨‍🔧 <b>PENUGASAN TIKET</b>\n";
         $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
         $telegramMsg .= "📋 <b>ID Tiket:</b> {$id}\n";
         $telegramMsg .= "📌 <b>Judul:</b> " . $ticket['title'] . "\n";
+        if (!empty($ticketDetail['cat_name'])) {
+            $telegramMsg .= "🗂️ <b>Kategori:</b> " . $ticketDetail['cat_name'] . "\n";
+        }
         if (!empty($ticket['location'])) {
             $telegramMsg .= "📍 <b>Lokasi:</b> " . $ticket['location'] . "\n";
         }
@@ -1189,10 +1202,19 @@ class Tickets extends BaseController
         $location = $this->request->getPost('location');
         $priority = $this->request->getPost('priority') ?: 'MEDIUM';
         $priorityEmoji = ['LOW' => '🟢', 'MEDIUM' => '🟡', 'HIGH' => '🟠', 'URGENT' => '🔴'][$priority] ?? '🟡';
+        $catId = $this->request->getPost('cat_id');
+        $catName = '';
+        if ($catId) {
+            $catRow = $catModel->find($catId);
+            $catName = $catRow['name'] ?? '';
+        }
         $telegramMsg = "🎫 <b>TIKET BARU MASUK</b>\n";
         $telegramMsg .= "━━━━━━━━━━━━━━━━━━━━\n";
         $telegramMsg .= "📋 <b>ID:</b> {$newId}\n";
         $telegramMsg .= "📌 <b>Judul:</b> {$ticketTitle}\n";
+        if ($catName) {
+            $telegramMsg .= "🗂️ <b>Kategori:</b> {$catName}\n";
+        }
         $telegramMsg .= "{$priorityEmoji} <b>Prioritas:</b> {$priority}\n";
         $telegramMsg .= "👤 <b>Pelapor:</b> " . $session->get('name') . "\n";
         if ($location) {

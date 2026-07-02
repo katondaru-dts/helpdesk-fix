@@ -11,8 +11,9 @@ class Notifications extends BaseController
         $filter = $this->request->getGet('filter'); // 'unread', 'read', or null (all)
 
         $notificationModel = new \App\Models\NotificationModel();
-        $builder = $notificationModel->select('notifications.*, tickets.title as ticket_title')
+        $builder = $notificationModel->select('notifications.*, tickets.title as ticket_title, categories.name as cat_name')
             ->join('tickets', 'notifications.ref_id = tickets.id', 'left')
+            ->join('categories', 'tickets.cat_id = categories.id', 'left')
             ->where('notifications.user_id', $userId);
 
         // User biasa (role 3) hanya lihat notifikasi dari tiket miliknya sendiri
