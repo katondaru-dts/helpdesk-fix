@@ -181,8 +181,12 @@ class Profile extends BaseController
         if ($newPassword !== $confirmPassword) {
             return redirect()->to('/profile')->with('error', 'Konfirmasi password tidak cocok.');
         }
-        if (strlen($newPassword) < 8) {
-            return redirect()->to('/profile')->with('error', 'Password baru minimal 8 karakter.');
+        // Validasi kekuatan kata sandi baru secara dinamis
+        $settingModel = new \App\Models\SettingModel();
+        $strengthLevel = $settingModel->getSetting('min_password_strength', 'Sedang');
+        $passwordError = validate_password_strength($newPassword, $strengthLevel);
+        if ($passwordError) {
+            return redirect()->to('/profile')->with('error', $passwordError);
         }
 
         $userModel->update($userId, ['password' => password_hash($newPassword, PASSWORD_DEFAULT)]);

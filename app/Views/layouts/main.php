@@ -44,23 +44,10 @@
 
                 <?php if ($isStaff): ?>
                     <div class="nav-section" style="margin-top: 16px;">Administrasi</div>
-                    <?php if (has_permission('Kelola User')): ?>
-                        <a href="<?= base_url('admin/users') ?>" class="<?= $activePage == 'admin-users' ? 'active' : '' ?>"><i
-                                class="bi bi-people"></i> Kelola User</a>
-                    <?php endif; ?>
-                    <?php if (has_permission('Kelola Departemen')): ?>
-                        <a href="<?= base_url('admin/departments') ?>"
-                            class="<?= $activePage == 'admin-departments' ? 'active' : '' ?>"><i class="bi bi-building"></i>
-                            Departemen</a>
-                    <?php endif; ?>
                     <?php if (has_permission('Kelola Kategori')): ?>
                         <a href="<?= base_url('admin/categories') ?>"
                             class="<?= $activePage == 'admin-categories' ? 'active' : '' ?>"><i class="bi bi-tag"></i>
                             Kategori</a>
-                    <?php endif; ?>
-                    <?php if (has_permission('Kelola Role')): ?>
-                        <a href="<?= base_url('admin/roles') ?>" class="<?= $activePage == 'admin-roles' ? 'active' : '' ?>"><i
-                                class="bi bi-shield-check"></i> Role & Izin</a>
                     <?php endif; ?>
                     <?php if (has_permission('Lihat Audit Log')): ?>
                         <a href="<?= base_url('admin/audit-logs') ?>"
@@ -70,6 +57,11 @@
                     <a href="<?= base_url('admin/knowledge-base') ?>"
                         class="<?= $activePage == 'admin-kb' ? 'active' : '' ?>"><i class="bi bi-book-half"></i> Kelola
                         KB</a>
+                    <?php if (is_admin() || has_permission('Kelola Role') || has_permission('Kelola Role & Izin')): ?>
+                        <a href="<?= base_url('admin/security') ?>"
+                            class="<?= $activePage == 'admin-security' ? 'active' : '' ?>"><i class="bi bi-shield-check"></i>
+                            Akun dan Keamanan</a>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <div class="nav-section" style="margin-top: 16px;">Akun</div>

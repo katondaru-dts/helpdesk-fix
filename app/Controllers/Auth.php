@@ -108,21 +108,25 @@ class Auth extends BaseController
         // ❌ PASSWORD SALAH — increment counter
         $newAttempts = $loginAttempts + 1;
 
-        if ($newAttempts >= 3) {
-            // Percobaan ke-3: kunci 1 menit, reset counter
+        $settingModel   = new \App\Models\SettingModel();
+        $maxAttempts    = (int) ($settingModel->getSetting('max_failed_attempts', '5'));
+        $lockoutMinutes = (int) ($settingModel->getSetting('lockout_duration', '10'));
+
+        if ($newAttempts >= $maxAttempts) {
+            // Kunci akun selama lockoutMinutes menit, reset counter
             $userModel->update($user['id'], [
                 'login_attempts' => 0,
-                'lockout_time' => date('Y-m-d H:i:s', time() + 60),
+                'lockout_time' => date('Y-m-d H:i:s', time() + ($lockoutMinutes * 60)),
             ]);
             clear_captcha();
-            $errorMessage = 'Terlalu banyak percobaan gagal. Akun Anda dikunci selama 1 menit.';
+            $errorMessage = "Terlalu banyak percobaan gagal. Akun Anda dikunci selama {$lockoutMinutes} menit.";
         } else {
             $userModel->update($user['id'], ['login_attempts' => $newAttempts]);
-            $attemptsLeft = 3 - $newAttempts;
+            $attemptsLeft = $maxAttempts - $newAttempts;
             $errorMessage = "Email atau Password salah. Sisa percobaan: {$attemptsLeft}x";
 
-            // Percobaan ke-2: aktifkan CAPTCHA untuk percobaan berikutnya
-            if ($newAttempts === 2) {
+            // Aktifkan CAPTCHA jika sisa 1 percobaan
+            if ($attemptsLeft === 1) {
                 session()->set('captcha_required', true);
                 generate_captcha();
             }
@@ -184,17 +188,33 @@ class Auth extends BaseController
     public function attemptRegister()
     {
         $userModel = new UserModel();
+        $settingModel = new \App\Models\SettingModel();
+        $strengthLevel = $settingModel->getSetting('min_password_strength', 'Sedang');
+
+        $minLen = 8;
+        if ($strengthLevel === 'Lemah') {
+            $minLen = 6;
+        } elseif ($strengthLevel === 'Kuat') {
+            $minLen = 10;
+        }
 
         $rules = [
             'name' => 'required|min_length[3]',
             'email' => 'required|valid_email|is_unique[users.email]',
-            'password' => 'required|min_length[8]',
+            'password' => "required|min_length[{$minLen}]",
             'dept_id' => 'required',
             'gender' => 'required'
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        // Validasi kekuatan kata sandi tambahan (huruf/angka/simbol)
+        $password = (string) $this->request->getPost('password');
+        $passwordError = validate_password_strength($password, $strengthLevel);
+        if ($passwordError) {
+            return redirect()->back()->withInput()->with('errors', ['password' => $passwordError]);
         }
 
         $userModel->insert([

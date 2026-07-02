@@ -10,50 +10,18 @@ class Users extends BaseController
 {
     public function index()
     {
-        $userModel = new UserModel();
-        $roleModel = new RoleModel();
-        $deptModel = new DepartmentModel();
+        $queryParams = $this->request->getGet();
+        $queryParams['activeTab'] = 'users';
 
-        $f_role = $this->request->getGet('f-role');
-        $search = $this->request->getGet('search');
-
-        $query = $userModel->select('users.*, roles.name as role_name, departments.name as dept_name')
-            ->join('roles', 'users.role_id = roles.id', 'left')
-            ->join('departments', 'users.dept_id = departments.id', 'left');
-
-        if (!empty($f_role)) {
-            $query->where('users.role_id', $f_role);
+        $session = session();
+        if ($session->getFlashdata('success')) {
+            $session->setFlashdata('success', $session->getFlashdata('success'));
         }
-        if (!empty($search)) {
-            $query->groupStart()
-                ->like('users.name', $search)
-                ->orLike('users.email', $search)
-                ->groupEnd();
+        if ($session->getFlashdata('error')) {
+            $session->setFlashdata('error', $session->getFlashdata('error'));
         }
 
-        $users = $query->orderBy('users.name', 'ASC')->findAll();
-
-        $data = [
-            'pageTitle' => 'Kelola User - Helpdesk',
-            'activePage' => 'user-management',
-            'users' => $users,
-            'roles' => $roleModel->findAll(),
-            'depts' => $deptModel->findAll(),
-            'f_role' => $f_role,
-            'search' => $search,
-            'availablePermissions' => [
-                'Lihat Laporan' => 'Akses Laporan & Statistik',
-                'Ekspor Data' => 'Ekspor Data ke PDF/Excel',
-                'Cetak Laporan' => 'Mencetak Laporan Tiket',
-                'Update Status Tiket' => 'Mengubah Status Tiket',
-                'Tugaskan Support' => 'Menugaskan Tiket ke Staff Support',
-                'Tambah Solusi' => 'Memberikan Solusi Tiket',
-                'Buat Tiket' => 'Membuat Tiket Baru',
-                'Lihat Tiket Sendiri' => 'Melihat Daftar Tiket Pribadi'
-            ],
-        ];
-
-        return view('admin/users/index', $data);
+        return redirect()->to('/admin/security?' . http_build_query($queryParams));
     }
 
     public function save()

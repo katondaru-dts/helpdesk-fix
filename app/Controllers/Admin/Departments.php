@@ -8,22 +8,15 @@ class Departments extends BaseController
 {
     public function index()
     {
-        $db    = \Config\Database::connect();
-        $depts = $db->query("
-            SELECT d.id, d.name,
-                   COALESCE(d.is_active, 1) as is_active,
-                   (SELECT COUNT(*) FROM users u WHERE u.dept_id = d.id) as user_count 
-            FROM departments d 
-            ORDER BY d.name ASC
-        ")->getResultArray();
+        $session = session();
+        if ($session->getFlashdata('success')) {
+            $session->setFlashdata('success', $session->getFlashdata('success'));
+        }
+        if ($session->getFlashdata('error')) {
+            $session->setFlashdata('error', $session->getFlashdata('error'));
+        }
 
-        $data = [
-            'pageTitle'   => 'Kelola Departemen',
-            'activePage'  => 'department-management',
-            'departments' => $depts,
-        ];
-
-        return view('admin/departments/index', $data);
+        return redirect()->to('/admin/security?activeTab=depts');
     }
 
     public function save()

@@ -91,6 +91,11 @@ $routes->group('admin', ['filter' => ['admin', 'rolecheck']], function ($routes)
     $routes->post('roles/delete', 'Admin\Roles::delete');
 
     $routes->get('audit-logs', 'Admin\AuditLogs::index');
+
+    // Parameter Dasar Settings & Akun Keamanan
+    $routes->get('settings', 'Admin\Settings::index');
+    $routes->post('settings/save', 'Admin\Settings::save');
+    $routes->get('security', 'Admin\Security::index');
 });
 
 // Admin & Staff (Operator) routes

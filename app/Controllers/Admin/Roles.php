@@ -53,7 +53,7 @@ class Roles extends BaseController
         $isTechnician = $this->request->getPost('is_technician') ? 1 : 0;
 
         if ($id && $id == 1) {
-            return redirect()->to('/admin/roles')->with('error', 'Role Superadmin tidak dapat diubah izinnya.');
+            return redirect()->to('/admin/security')->with('error', 'Role Superadmin tidak dapat diubah izinnya.')->with('activeTab', 'roles');
         }
 
         if ($id) {
@@ -67,7 +67,7 @@ class Roles extends BaseController
             ];
             $roleModel->update($id, $data);
             $auditLog->logAction('UPDATE', 'roles', $id, $data);
-            return redirect()->to('/admin/roles')->with('success', 'Role diperbarui.');
+            return redirect()->to('/admin/security')->with('success', 'Role diperbarui.')->with('activeTab', 'roles');
         }
         else {
             $data = [
@@ -79,7 +79,7 @@ class Roles extends BaseController
             ];
             $roleModel->insert($data);
             $auditLog->logAction('CREATE', 'roles', $roleModel->getInsertID(), $data);
-            return redirect()->to('/admin/roles')->with('success', 'Role ditambahkan.');
+            return redirect()->to('/admin/security')->with('success', 'Role ditambahkan.')->with('activeTab', 'roles');
         }
     }
 
@@ -87,7 +87,7 @@ class Roles extends BaseController
     {
         $id = $this->request->getPost('id');
         if ($id == 1) {
-            return redirect()->to('/admin/roles')->with('error', 'Role Superadmin dilindungi sistem!');
+            return redirect()->to('/admin/security')->with('error', 'Role Superadmin dilindungi sistem!')->with('activeTab', 'roles');
         }
         $db = \Config\Database::connect();
         $count = $db->query("SELECT COUNT(*) as c FROM users WHERE role_id = ?", [$id])->getRow()->c;
@@ -97,8 +97,8 @@ class Roles extends BaseController
             $auditLog = new AuditLogModel();
             $roleModel->delete($id);
             $auditLog->logAction('DELETE', 'roles', $id);
-            return redirect()->to('/admin/roles')->with('success', 'Role dihapus.');
+            return redirect()->to('/admin/security')->with('success', 'Role dihapus.')->with('activeTab', 'roles');
         }
-        return redirect()->to('/admin/roles')->with('error', 'Membatalkan karena role sedang dipakai user.');
+        return redirect()->to('/admin/security')->with('error', 'Membatalkan karena role sedang dipakai user.')->with('activeTab', 'roles');
     }
 }
